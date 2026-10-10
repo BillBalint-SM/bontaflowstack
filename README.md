@@ -14,10 +14,10 @@ on its own when you already have its input.
 
 You need Codex Desktop, Git and **Node.js 24 or newer**. The core uses no npm packages.
 
-Install the tested `0.7.0` release with the Codex CLI in PowerShell:
+Install the `0.7.1` release with the Codex CLI in PowerShell:
 
 ```powershell
-codex plugin marketplace add BillBalint-SM/bontaflowstack-workbook --ref v0.7.0
+codex plugin marketplace add BillBalint-SM/bontaflowstack-workbook --ref v0.7.1
 codex plugin add bontaflowstack@bontaflowstack
 ```
 
@@ -48,7 +48,7 @@ Git Bash and jq are not required by the core.
 ### Optional: source ZIP or local clone
 
 For manual setup, download the source ZIP and SHA-256 file from
-[GitHub Releases](https://github.com/BillBalint-SM/bontaflowstack-workbook/releases/tag/v0.7.0),
+[GitHub Releases](https://github.com/BillBalint-SM/bontaflowstack-workbook/releases/tag/v0.7.1),
 or use a local clone. Follow the
 [source ZIP setup](docs/bontaflowstack/INSTALL-WINDOWS.md#optional-install-a-source-zip-or-local-clone).
 

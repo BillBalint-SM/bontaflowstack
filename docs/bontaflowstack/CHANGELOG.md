@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.1 — 2026-10-11
+
+- Pin engine 0.3.2 and its published source archive checksum. The browser retains
+  session cookies, including HttpOnly cookies, in memory across handoff relaunches
+  and restores them before pages reload.
+- The first headless-to-visible handoff still reloads pages; unsaved form values
+  and JavaScript application memory are not retained.
+- This release uses the prior focused regression evidence and a targeted B01
+  installed-package rerun. Full CI and the full test campaign are intentionally
+  not rerun. The Windows sandbox W01 prerequisite remains blocked after Codex
+  restart by a runtime read/execute ACL sharing violation.
+
 ## 0.7.0 — 2026-10-01
 
 - Added optional isolated prototypes with runnable decision questions and

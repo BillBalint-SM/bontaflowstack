@@ -13,14 +13,14 @@ dependencies and Chromium to its own directory. Git Bash and jq are unnecessary.
 ## Install from GitHub (recommended)
 
 Use the Git-backed marketplace for installation and updates. Run in PowerShell
-with the Codex CLI on PATH to install the tested `0.7.0` release:
+with the Codex CLI on PATH to install the `0.7.1` release:
 
 ```powershell
-codex plugin marketplace add BillBalint-SM/bontaflowstack-workbook --ref v0.7.0
+codex plugin marketplace add BillBalint-SM/bontaflowstack-workbook --ref v0.7.1
 codex plugin add bontaflowstack@bontaflowstack
 ```
 
-This pins the marketplace to `v0.7.0`. Select a newer release explicitly using
+This pins the marketplace to `v0.7.1`. Select a newer release explicitly using
 the [Update](#update) procedure. If `bontaflowstack` is already registered with a
 different source or tag, use that procedure to switch it.
 
@@ -85,7 +85,7 @@ authorize publication, deployment, spending or destructive changes.
 
 Use this alternative for manual setup from a release archive or local source
 checkout. Download the source ZIP and SHA-256 file from
-[GitHub Releases](https://github.com/BillBalint-SM/bontaflowstack-workbook/releases/tag/v0.7.0).
+[GitHub Releases](https://github.com/BillBalint-SM/bontaflowstack-workbook/releases/tag/v0.7.1).
 Compare the archive's SHA-256 with the downloaded checksum before extraction.
 Extract the complete repository ZIP to a stable directory, or use a local clone.
 From that directory:
@@ -133,12 +133,12 @@ manual login and continuation. Close it with the bfs-browse skill when finished.
 
 Choose a tested release from
 [GitHub Releases](https://github.com/BillBalint-SM/bontaflowstack-workbook/releases).
-Set `$releaseTag` to the tag you selected; `v0.7.0` is the current example. To change
+Set `$releaseTag` to the tag you selected; `v0.7.1` is the current example. To change
 an existing marketplace's source or pinned tag, remove its registration first,
 then register the selected Git release and install it:
 
 ```powershell
-$releaseTag = 'v0.7.0'
+$releaseTag = 'v0.7.1'
 codex plugin marketplace remove bontaflowstack
 codex plugin marketplace add BillBalint-SM/bontaflowstack-workbook --ref $releaseTag
 codex plugin add bontaflowstack@bontaflowstack
