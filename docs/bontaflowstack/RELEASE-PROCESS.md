@@ -21,6 +21,11 @@ amíg a javítás és a szükséges bizonyítékpótlás meg nem történik.
 
 ## Használat
 
+A példák a jelenlegi **1.0.0-s jelöltet** és a megőrzött **0.7.5-ös natív
+bizonyítékot** használják. Ezért a `check` és `finalize` parancsban az eredeti
+0.7.5-ös ZIP a `--basis-candidate`. A korábbi eredményt nem írjuk át 1.0.0-ra;
+a kapu az eredeti bizonyíték és a két csomag összevetésével dönt az érvényességről.
+
 1. Nézd át a [kiadási mátrixot](../../release/policy.json). A jelenlegi kötelező
    natív Desktop-kombináció **Windows x64 / Full Access / approvalPolicy=never**,
    Codex Desktop `26.1007.2314.0`, CLI `0.162.0-alpha.17.2`.
@@ -32,38 +37,42 @@ amíg a javítás és a szükséges bizonyítékpótlás meg nem történik.
    ellenőrzi; böngészőpróbát és telepítést nem indít.
 
 ```powershell
-node scripts/release.mjs prepare --source . --output artifacts/candidate-075
+node scripts/release.mjs prepare --source . --output artifacts/candidate-100
 ```
 
 3. **Először a meglévő bizonyítékot egyeztesd.** A példákban az `artifacts/desktop-proof`
    egy korábban rögzített vagy újonnan létrehozandó, privát bizonyítékcsomag.
 
 ```powershell
-node scripts/release.mjs check --candidate artifacts/candidate-075/BontaFlowStack-0.7.5.zip --evidence artifacts/desktop-proof
+node scripts/release.mjs check --candidate artifacts/candidate-100/BontaFlowStack-1.0.0.zip --basis-candidate release/ci/BontaFlowStack-0.7.5.zip --evidence artifacts/desktop-proof
 ```
 
    `eligible` eredménynél lépj az 5. pontra. Hiányzó/elavult bizonyítéknál a
    jelentés alapján csak az érintett Desktop-használati utat végezd el a natív
    próbaeljárással. Új funkcionális tesztet ez a parancs nem indít.
-4. Az adott jelölt ZIP-pel lezajlott natív próba eredeti eredményeit rögzítsd.
+4. Csak ha szükség volt új natív próbára, az adott jelölt ZIP-pel ténylegesen
+   lezajlott próba eredeti eredményeit rögzítsd, új bizonyítékkönyvtárba.
    A nyers jelentés a próba elején feljegyzett `contractSha256` értéket is
    tartalmazza; a `record` nem tölti ki utólag az aktuális elvárásból.
 
 ```powershell
-node scripts/release.mjs record --candidate artifacts/candidate-075/BontaFlowStack-0.7.5.zip --raw artifacts/native-result.json --profile full-access --evidence artifacts/desktop-proof
+node scripts/release.mjs record --candidate artifacts/candidate-100/BontaFlowStack-1.0.0.zip --raw artifacts/native-result.json --profile full-access --evidence artifacts/desktop-proof-100
 ```
 
    A már létező profilbizonyítékot nem írja felül. Új próbához új bizonyíték-
    könyvtárat adj meg. A csomag eredeti tooleredményeket és helyi útvonalakat
    tartalmazhat: nyilvános Gitbe vagy kiadási ZIP-be ne másold ellenőrzés nélkül.
    Több kötelező profil esetén mindegyikhez kell saját rögzített eredmény.
+   Az új, ténylegesen 1.0.0-val készült bizonyítéknál az 5. lépésben ezt az új
+   könyvtárat add meg, és hagyd el a `--basis-candidate` kapcsolót. Meglévő,
+   érvényes 0.7.5-ös bizonyíték újrahasználatakor a 4. lépés kimarad.
 5. Véglegesítsd pontosan ugyanazt a jelöltet:
 
 ```powershell
-node scripts/release.mjs finalize --candidate artifacts/candidate-075/BontaFlowStack-0.7.5.zip --evidence artifacts/desktop-proof --output artifacts/final --report artifacts/final-result.json
+node scripts/release.mjs finalize --candidate artifacts/candidate-100/BontaFlowStack-1.0.0.zip --basis-candidate release/ci/BontaFlowStack-0.7.5.zip --evidence artifacts/desktop-proof --output artifacts/final --report artifacts/final-result.json
 ```
 
-   Siker: `outcome=released`, `artifacts/final/0.7.5/`, az ellenőrzött ZIP
+   Siker: `outcome=released`, `artifacts/final/1.0.0/`, az ellenőrzött ZIP
    változatlan bájtjai, SHA256 és `RELEASE-RECEIPT.json`. A könyvtár csak a
    fájlok elkészülte után kapja meg a végleges nevét. A már létező kiadást és
    jelentést nem írja felül. Hiba: nem nulla kilépési kód, `outcome=blocked`;

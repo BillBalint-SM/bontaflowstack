@@ -1,5 +1,8 @@
 # Local data: inspect, back up and remove
 
+This guide describes **BontaFlowStack 1.0.0 with engine 0.3.3**. Earlier engine
+locations are identified as legacy so existing data can still be backed up or removed.
+
 BFS retains local records until you explicitly remove them. Uninstalling the
 plugin does not remove project state, optional engines or Chromium profiles.
 There is no automatic memory upload or retention expiry. Legacy imports preserve
@@ -24,7 +27,7 @@ runs BFS rather than assuming another terminal's path.
 | Same workspace: `checkpoints/`, `evidence/` | Manual snapshots and delivery command evidence |
 | Same workspace: `tasks/` | Task preferences, guard policy/pending grants and hook observations |
 | Same workspace: `engine-sessions/<taskId>/own-engine/` | Browser service metadata, tabs/session storage, downloads and startup logs |
-| Same workspace: `engine-sessions/<taskId>/host-browser/` (0.7.3) | MCP browser `tabs.json` snapshots and downloads; separate task ownership |
+| Same workspace: `engine-sessions/<taskId>/host-browser/` (1.0.0) | MCP browser `tabs.json` snapshots and downloads; separate task ownership |
 
 Linked Git worktrees share project memory and project preferences because project
 identity uses the canonical Git common directory. Their workspace/task state is
@@ -39,9 +42,9 @@ profile for each selected task before deleting its state; do not guess from the
 task ID or delete all profiles. Changing BFS_STATE_HOME does not change the profile
 base directory. Recheck the mapping in the installed engine when upgrading it.
 
-Plugin 0.7.5 with engine 0.3.3 uses temporary Chromium profiles plus
-task-owned snapshots. Its host MCP native acceptance is summarized in the
-[release evidence](RELEASE-0.7.5.md). Persistent cookies, local storage,
+Plugin 1.0.0 with engine 0.3.3 uses temporary Chromium profiles plus
+task-owned snapshots. The [1.0.0 release evidence](RELEASE-1.0.0.md) explains
+the reuse of the original 0.7.5 host MCP acceptance. Persistent cookies, local storage,
 IndexedDB, session storage and tab URLs can be retained in snapshots; treat them
 as private login data. Session cookies remain in memory until browser stop or
 connection closure. Caches, service-worker registrations and unsaved application
@@ -65,8 +68,9 @@ upgrading requires a fresh login. Use the legacy mapping above for old profiles.
 
 1. Save doctor output, the effective root, selected task IDs and profile paths.
    For Git use `git worktree list` to identify siblings sharing project data.
-2. Stop each owned browser using its MCP `browser` tool with `args:["stop"]`
-   in 0.7.3, or `engine browser stop` for a legacy CLI service, in its original chat/task.
+2. In BontaFlowStack 1.0.0, stop each owned browser using its MCP `browser` tool
+   with `args:["stop"]` in its original chat/task. For a legacy CLI service,
+   use `engine browser stop` in that service's original chat/task.
    If unavailable, inspect the owned service metadata/process and stop only that
    instance. An unrelated current task's stop command does not stop old sessions.
 3. Make and verify the backup you need. Inspect active lock files; wait for their
@@ -97,4 +101,4 @@ project and shared engine data. It does not remove real user state or profiles.
 
 ## Portable handoff
 
-Source development adds workflow export/import-handoff. A handoff includes the full selected memory histories, checkpoint/workflow and selected evidence, up to 8 MiB. Import stores one immutable historical checkpoint under the current identity without merging memory, guard settings or permissions. Code and other required artifacts travel separately. See [portable context](../../plugins/bontaflowstack/references/context.md).
+BontaFlowStack 1.0.0 provides workflow export/import-handoff. A handoff includes the full selected memory histories, checkpoint/workflow and selected evidence, up to 8 MiB. Import stores one immutable historical checkpoint under the current identity without merging memory, guard settings or permissions. Code and other required artifacts travel separately. See [portable context](../../plugins/bontaflowstack/references/context.md).
