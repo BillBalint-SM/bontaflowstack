@@ -2,8 +2,10 @@
 
 A [38156928938-as GitHub Actions-futás](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938)
 **sikeres**. Ellenőrzött commit: `95900ec7e79b315b787d6fc8414fe0cea5596bdb`,
-ág: `codex/release-gate-proof-20261011`. Ez külön ellenőrzési ág;
-a változtatások nem kerültek beolvasztásra a `main` ágba.
+ág: `codex/release-gate-proof-20261011`. Az igazolás ezen a külön ágon történt.
+A `main` ág 2026-10-11-én fast-forward beolvasztással megkapta a folyamatot és
+a megőrzött bizonyítékokat (`ffd7a81` forrásállapot). Az igazolt implementáció
+nem változott; a beolvasztás nem ismételte meg a lezárt teszteket.
 
 ## A vizsgált 0.7.5-ös kiadás megfelelősége
 
