@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "version": "1.0.0",
+  "kind": "documentation-only-version-label-refresh",
+  "date": "2026-10-11",
+  "documentationCommit": "07106e624c3c9c00c64e6cbc53d1eb3da306c195",
+  "originalTagCommit": "6addc812aac2486a7d5eb7900b5c3381ad015b03",
+  "tagMoved": false,
+  "previousArchiveSha256": "fe75ae488ad33f84ed8242979f87f1c0e5aa3f54057a7802cea1e2ed1423de4b",
+  "archiveSha256": "827799b5f90db2a887f9368da9ac79acb12bb80751cdbac39228a500372caf42",
+  "changedFiles": [
+    {
+      "file": "docs/bontaflowstack/LOCAL-DATA.md",
+      "beforeSha256": "6e8dec0e916ac06597ba121fca5adfe3ddb4eaba28c496786756c4b44e2485c9",
+      "afterSha256": "8569f3488152ab84b562223090e6a3eaa3259537cb798fbed05d407b3cc340a1"
+    }
+  ],
+  "sourceOnlyChanges": [
+    "docs/bontaflowstack/RELEASE-PROCESS.md"
+  ],
+  "generatedMetadataChanged": [
+    "PACKAGE.json"
+  ],
+  "addedFiles": [],
+  "removedFiles": [],
+  "inventoryFiles": 133,
+  "unchangedPluginFiles": 109,
+  "setupAndMarketplaceUnchanged": true,
+  "releaseGate": {
+    "outcome": "released",
+    "receiptSha256": "b16fd997d6b62e654914434149fe388aa9c85f436c3419972dcf45a0584f357d",
+    "profiles": [
+      {
+        "version": "0.7.5",
+        "profile": "full-access",
+        "engine": "0.3.3",
+        "completedAt": "2026-10-11 15:06:16 UTC",
+        "reusedFromArchiveSha256": "a3276a51b668495b7f7ed14b02bece4c740a5ba8e1652198ad35a6418edbe94e",
+        "candidateArchiveSha256": "827799b5f90db2a887f9368da9ac79acb12bb80751cdbac39228a500372caf42",
+        "documentationOnlyReuse": false,
+        "receiptSha256": "0cfccf717177fb90d4f52b9849c1f49dfc19b2753b7d03e230a5d9d83becc91f",
+        "nativeSha256": "ee11d4cfd771c37ce74465b7fc7b3162bd7b3544497c51d5d97efbec7518d92e",
+        "versionPromotion": {
+          "kind": "version-label-only",
+          "fromVersion": "0.7.5",
+          "toVersion": "1.0.0",
+          "basisArchiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+          "candidateArchiveSha256": "827799b5f90db2a887f9368da9ac79acb12bb80751cdbac39228a500372caf42",
+          "changedPaths": [
+            "plugins/bontaflowstack/.codex-plugin/plugin.json",
+            "plugins/bontaflowstack/catalog.json"
+          ],
+          "desktopJourneyRerun": false
+        }
+      }
+    ]
+  },
+  "predecessorRecord": {
+    "file": "DOCUMENTATION-UPDATE.json",
+    "sha256": "2c15eb1208985026faedf202fe801070ca2b31f221d89aed89b2fe0c3c4efee7"
+  },
+  "retainedPreviousAssets": {
+    "archive": "BontaFlowStack-1.0.0-before-version-labels-assets.zip",
+    "sha256": "f628da515624c4c53763700f2afe371a00a63638f631c79bc5ee067029c26832",
+    "files": [
+      {
+        "name": "BontaFlowStack-1.0.0-original-assets.zip",
+        "sha256": "f70443b0d45b0689ab2afd313e8242d6633ad0200a40bf2ffefc5c1fdfd66c49",
+        "bytes": 624994
+      },
+      {
+        "name": "BontaFlowStack-1.0.0.zip",
+        "sha256": "fe75ae488ad33f84ed8242979f87f1c0e5aa3f54057a7802cea1e2ed1423de4b",
+        "bytes": 633922
+      },
+      {
+        "name": "BontaFlowStack-1.0.0.zip.sha256",
+        "sha256": "a104117ddc5c161c6f946064a71aa70fbaf26593376d7590aa6811c8632ccaa7",
+        "bytes": 91
+      },
+      {
+        "name": "DOCUMENTATION-UPDATE.json",
+        "sha256": "2c15eb1208985026faedf202fe801070ca2b31f221d89aed89b2fe0c3c4efee7",
+        "bytes": 4221
+      },
+      {
+        "name": "INSTALL-WINDOWS.md",
+        "sha256": "1708febb74b0428c2f7887bc338eefedb6cca33a1bce2b3eb8e591434af6ca50",
+        "bytes": 10693
+      },
+      {
+        "name": "RELEASE-RECEIPT.json",
+        "sha256": "a954cd041ed4c4246b3e0c8a4eb87b7081648e5a0386c1b19f52da8673929ed4",
+        "bytes": 1550
+      },
+      {
+        "name": "SHA256SUMS",
+        "sha256": "1a82680a45c0c29f6aac02eda0471314b7340512698b7757e389069adc97fc82",
+        "bytes": 639
+      },
+      {
+        "name": "TELEPITES.md",
+        "sha256": "cc22d3e90d3a9a676c4110674dc3a594211ab988b222b17f9620ecf6c8792a7b",
+        "bytes": 23533
+      }
+    ]
+  },
+  "checks": {
+    "archiveInventory": "passed",
+    "documentationLinks": "passed",
+    "releaseExamplesPowerShellSyntax": "five examples parsed by Windows PowerShell; commands not executed",
+    "releaseFinalization": "passed",
+    "previousAssetsPreservation": "eight prior public assets byte-identical"
+  },
+  "closedTestsRerun": false,
+  "nativeDesktopJourneyRerun": false,
+  "note": "Current local-data guidance and release command examples use plugin 1.0.0. Engine 0.3.3 and the actual 0.7.5 native acceptance provenance are unchanged. Only LOCAL-DATA.md and its PACKAGE.json hash changed in the distribution ZIP; RELEASE-PROCESS.md is source-maintainer documentation. Original evidence retains its original version and scope."
+}
