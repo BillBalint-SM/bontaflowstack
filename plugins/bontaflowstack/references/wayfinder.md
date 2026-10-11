@@ -11,6 +11,7 @@ stays waiting.
 
 Give one next step tied to the active goal and its actual prerequisite. If work
 is paused, point to load/resume. If the request is a new task, point to router.
-If there is no useful next action, state the missing input/capability and the
-smallest question needed. Wayfinder does not create workflow or memory records,
+If the goal is complete, report closure. For unfinished work with no useful next
+action, state the missing input/capability and the smallest question needed.
+Wayfinder does not create workflow or memory records,
 start workers or edit project state.

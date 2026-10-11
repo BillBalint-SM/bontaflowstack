@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.2 — 2026-10-11
+
+- Scope verification blockers to the current task's concrete dependencies.
+  Unrelated limits remain historical notes; they neither reopen completed work
+  nor trigger another test campaign. Untested behavior remains untested.
+- Wayfinder reports closure when the requested goal is complete.
+- Instruction-only patch with no new functional test campaign or full CI run.
+  The engine pin remains 0.3.2.
+
 ## 0.7.1 — 2026-10-11
 
 - Pin engine 0.3.2 and its published source archive checksum. The browser retains

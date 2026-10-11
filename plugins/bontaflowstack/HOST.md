@@ -88,6 +88,17 @@ condition. Continue only after inspecting its actual result. Report completed,
 failed, blocked or waiting honestly. A recommendation or instruction read is
 not completed execution.
 
+## Verification limits
+
+A verification limit blocks only work whose current requirement or prerequisite
+depends on the missing evidence. Name that dependency and the affected action.
+Otherwise retain the limit with its original evidence as a non-blocking note;
+completed work stays closed, including in status reports and resume/next-step
+decisions. A recorded limit alone never reopens work or starts a new test campaign.
+When current work needs additional evidence, select only the checks needed for
+that dependency within the user's authorized scope. Untested behavior remains
+untested; classifying a limit as non-blocking does not turn it into a pass.
+
 ## Resumable workflow
 
 For a requested sequence, use one workflow record across the selected steps:
