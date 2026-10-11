@@ -180,6 +180,12 @@ Read [capabilities](references/capabilities.md) before checking or using an opti
 engine, image tool or external design tool. Missing capability blocks only the
 affected operation. Use the inherited native task identity and stop only owned
 resources. For browser operations also read [browser](references/browser.md).
+Browser and render use this plugin's separately enabled `bfs-browser` MCP tools;
+the host supplies the thread identity and selected workspace. Use that workspace
+or select a directory inside it with `select_project`. A directory outside the
+host workspace requires human confirmation. Keep Chromium's sandbox enabled.
+Do not replace a disabled connection with an MXC shell launch. Requested local
+input/output files stay inside the host-selected project.
 
 ## Guard
 

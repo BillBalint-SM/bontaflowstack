@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "version": "1.0.0",
+  "archiveSha256": "3e25b7dc6b5c0e9816b0494dac2acc06a24fd97f0842d31c610e5cc484d409f6",
+  "releaseReceipt": {
+    "schema": 1,
+    "outcome": "released",
+    "version": "1.0.0",
+    "archive": "BontaFlowStack-1.0.0.zip",
+    "archiveSha256": "3e25b7dc6b5c0e9816b0494dac2acc06a24fd97f0842d31c610e5cc484d409f6",
+    "policySha256": "dec65e4e37c1feae3abb34ef483b7b01e69077ae70e13c03cdc835c8d4ba79ee",
+    "contractSha256": "4e3c52eb0ec520c5a86b17b18465c3a81ed60c9fb1f55d24c9b6a31dfbe7a0a4",
+    "profiles": [
+      {
+        "version": "0.7.5",
+        "profile": "full-access",
+        "engine": "0.3.3",
+        "completedAt": "2026-10-11 15:06:16 UTC",
+        "reusedFromArchiveSha256": "a3276a51b668495b7f7ed14b02bece4c740a5ba8e1652198ad35a6418edbe94e",
+        "candidateArchiveSha256": "3e25b7dc6b5c0e9816b0494dac2acc06a24fd97f0842d31c610e5cc484d409f6",
+        "documentationOnlyReuse": false,
+        "receiptSha256": "0cfccf717177fb90d4f52b9849c1f49dfc19b2753b7d03e230a5d9d83becc91f",
+        "nativeSha256": "ee11d4cfd771c37ce74465b7fc7b3162bd7b3544497c51d5d97efbec7518d92e",
+        "versionPromotion": {
+          "kind": "version-label-only",
+          "fromVersion": "0.7.5",
+          "toVersion": "1.0.0",
+          "basisArchiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+          "candidateArchiveSha256": "3e25b7dc6b5c0e9816b0494dac2acc06a24fd97f0842d31c610e5cc484d409f6",
+          "changedPaths": [
+            "plugins/bontaflowstack/.codex-plugin/plugin.json",
+            "plugins/bontaflowstack/catalog.json"
+          ],
+          "desktopJourneyRerun": false
+        }
+      }
+    ],
+    "finalizedAt": "2026-10-11T17:29:28.672Z",
+    "functionalTestsRerun": false
+  },
+  "newChecks": {
+    "unitTestsPassed": 5,
+    "mutationCaught": true,
+    "cliRejections": [
+      {
+        "name": "missing-proof",
+        "exitCode": 1,
+        "code": "DESKTOP_EVIDENCE_MISSING",
+        "noReleaseOutput": true
+      },
+      {
+        "name": "stale-basis",
+        "exitCode": 1,
+        "code": "DESKTOP_INPUTS_STALE",
+        "noReleaseOutput": true
+      },
+      {
+        "name": "no-promotion-basis",
+        "exitCode": 1,
+        "code": "DESKTOP_VERSION_STALE",
+        "noReleaseOutput": true
+      },
+      {
+        "name": "runtime-changed",
+        "exitCode": 1,
+        "code": "PROMOTION_INPUTS_CHANGED",
+        "noReleaseOutput": true
+      },
+      {
+        "name": "metadata-changed",
+        "exitCode": 1,
+        "code": "PROMOTION_METADATA_CHANGED",
+        "noReleaseOutput": true
+      }
+    ],
+    "finalization": "passed",
+    "readmeCatalog": "34 entries match",
+    "changedDocumentationLinks": "passed",
+    "installationPowerShellSyntax": "passed"
+  },
+  "retainedGitHubProof": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938",
+  "closedProductTestsRerun": false,
+  "nativeDesktopJourneyRerun": false,
+  "newPromotionGitHubActionRun": false
+}

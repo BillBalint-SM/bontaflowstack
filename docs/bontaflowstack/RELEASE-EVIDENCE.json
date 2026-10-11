@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "version": "0.7.5",
+  "scope": "ZIP-installed plugin invoked through actual Codex Desktop native MCP tools under Full Access",
+  "outcome": "passed",
+  "completedAt": "2026-10-11 15:06:16 UTC",
+  "environment": {
+    "cli": "0.162.0-alpha.17.2",
+    "os": "Windows x64",
+    "desktop": "26.1007.2314.0",
+    "engine": "0.3.3"
+  },
+  "candidateArchiveSha256": "a3276a51b668495b7f7ed14b02bece4c740a5ba8e1652198ad35a6418edbe94e",
+  "runtimeSha256": "f6021750bed448960daa973d3048dcdc614b2e6636749e6e433b8472062bd0b8",
+  "nativeCalls": 12,
+  "bindingSource": "host-workspace",
+  "hostPermissionProfile": {
+    "type": "disabled"
+  },
+  "approvalPolicy": "never",
+  "chromiumSandbox": true,
+  "noNoSandboxFlagObserved": true,
+  "observedPageState": {
+    "result": "Ready",
+    "title": "BFS Desktop Full Access",
+    "choice": "Ready",
+    "chosenAt": "2026-10-11T15:05:02.905Z"
+  },
+  "humanInput": {
+    "confirmation": "Ready",
+    "agentClicked": false,
+    "agentModifiedPageState": false
+  },
+  "stopped": true,
+  "wireRegression": {
+    "failedBefore": 2,
+    "passedAfter": 2
+  },
+  "originalLocalEvidenceSha256": {
+    "wire": "cc0904bf37e5281fa83b304d9206ce27d6b78da57df46415f51b1da48cbd6efb",
+    "native": "66c3e3c903122f22aebed7f6038d74b72f3ed3cd964710cbdcd5a7ad78b5f82e"
+  },
+  "privacy": "Personal paths, task identifiers and raw process command lines omitted from this public summary.",
+  "closedTestsRerun": false,
+  "graphicalInstallationTested": false,
+  "otherMachinesTested": false
+}

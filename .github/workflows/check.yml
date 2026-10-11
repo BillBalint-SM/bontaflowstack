@@ -9,6 +9,10 @@ on:
         required: true
         default: release/evidence
         type: string
+      basis_candidate:
+        description: Optional accepted ZIP for a version-label-only promotion
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
@@ -24,7 +28,7 @@ jobs:
       # These source artifacts are candidates, never final releases.
       - run: ./scripts/build-package.ps1 -OutputDirectory artifacts/source-check
       - run: ./scripts/test-package.ps1 -Archive (Get-ChildItem artifacts/source-check/*-source.zip).FullName
-      - run: node --test tests/release-gate.test.mjs tests/release-workflow.test.mjs
+      - run: node --test tests/release-gate.test.mjs tests/release-workflow.test.mjs tests/release-promotion.test.mjs
   release:
     if: github.event_name == 'workflow_dispatch'
     needs: core
@@ -40,6 +44,7 @@ jobs:
         with:
           candidate: artifacts/candidate/*.zip
           evidence: ${{ inputs.desktop_evidence_directory }}
+          basis-candidate: ${{ inputs.basis_candidate }}
           output: artifacts/final
           report: artifacts/release-result.json
       - uses: actions/upload-artifact@v4

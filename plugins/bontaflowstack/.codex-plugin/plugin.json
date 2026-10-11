@@ -1,11 +1,12 @@
 {
   "name": "bontaflowstack",
-  "version": "0.7.2",
+  "version": "1.0.0",
   "description": "Business, product, design and development workflows for Codex on Windows.",
   "author": {
     "name": "Bálint Bilisics (BontaFlow)"
   },
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "BontaFlowStack",
     "shortDescription": "From business ideas to tested product delivery.",

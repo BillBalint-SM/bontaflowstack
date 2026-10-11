@@ -7,3 +7,7 @@ artifacts/
 **/dist/
 runtime/
 docs/diagrams/*.visual-check.*
+
+# The installable plugin includes the verified engine source archive.
+!plugins/bontaflowstack/engines/*.zip
+!plugins/bontaflowstack/engines/*.zip.sha256

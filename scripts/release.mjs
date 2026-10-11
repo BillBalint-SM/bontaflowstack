@@ -5,7 +5,7 @@ import {randomUUID} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {checkLocalLinks} from './check.mjs';
-import {ReleaseError,requireRelease,digest,canonical,contractHash,desktopInputs,validatePolicy,validateNative,validateEvidence,contractVersion} from './release-gate.mjs';
+import {ReleaseError,requireRelease,digest,canonical,contractHash,desktopInputs,validatePolicy,validateNative,validateEvidence,validateVersionPromotion,contractVersion} from './release-gate.mjs';
 
 const repo=fileURLToPath(new URL('../',import.meta.url));
 const hash=file=>digest(fs.readFileSync(file));
@@ -58,6 +58,7 @@ function prepare(source,output,run) {
   const stage=path.join(run,'source');fs.mkdirSync(stage);
   const names=['.agents/plugins/marketplace.json','scripts/setup.ps1','LICENSE','README.md','TELEPITES.md',
     'docs/bontaflowstack/INSTALL-WINDOWS.md','docs/bontaflowstack/LOCAL-DATA.md','docs/bontaflowstack/CHANGELOG.md','docs/bontaflowstack/RELEASE-'+version+'.md'];
+  for(const name of fs.readdirSync(path.join(source,'docs/bontaflowstack')).filter(name=>/^RELEASE-\d+\.\d+\.\d+\.md$/.test(name)&&name!=='RELEASE-'+version+'.md'))names.push('docs/bontaflowstack/'+name);
   for(const folder of ['plugins/bontaflowstack','docs/diagrams','docs/bontaflowstack/release']) {
     const root=path.join(source,folder);
     if(fs.existsSync(root))names.push(...files(root).map(file=>path.relative(source,file)));
@@ -143,11 +144,11 @@ function serve() {
 async function main() {
   const [command,...args]=process.argv.slice(2);
   if(command==='fixture') {requireRelease(args.length===0,'ARGUMENT_INVALID','arguments','fixture accepts no flags.');serve();return;}
-  if(command==='help'||!command) {console.log('release.mjs prepare --source DIR --output DIR | record --candidate ZIP --raw JSON --profile ID --evidence DIR | check/finalize --candidate ZIP --evidence DIR [--output DIR] [--policy FILE] [--report FILE]\nNo skip/force option. See docs/bontaflowstack/RELEASE-PROCESS.md.');return;}
+  if(command==='help'||!command) {console.log('release.mjs prepare --source DIR --output DIR | record --candidate ZIP --raw JSON --profile ID --evidence DIR | check/finalize --candidate ZIP --evidence DIR [--output DIR] [--basis-candidate ZIP] [--policy FILE] [--report FILE]\nNo skip/force option. See docs/bontaflowstack/RELEASE-PROCESS.md.');return;}
   const options={};
   for(let i=0;i<args.length;i+=2) {
     const key=args[i]?.replace(/^--/,'');
-    requireRelease(['source','output','candidate','raw','profile','evidence','policy','report'].includes(key)&&args[i].startsWith('--')&&args[i+1]&&!args[i+1].startsWith('--')&&!Object.hasOwn(options,key),'ARGUMENT_INVALID','arguments','Unknown, duplicate or incomplete release argument.',{argument:args[i]});
+    requireRelease(['source','output','candidate','basis-candidate','raw','profile','evidence','policy','report'].includes(key)&&args[i].startsWith('--')&&args[i+1]&&!args[i+1].startsWith('--')&&!Object.hasOwn(options,key),'ARGUMENT_INVALID','arguments','Unknown, duplicate or incomplete release argument.',{argument:args[i]});
     options[key]=args[i+1];
   }
   const run=path.join(repo,'artifacts/release-runs',randomUUID());fs.mkdirSync(run,{recursive:true});
@@ -157,6 +158,7 @@ async function main() {
   save(report,{...context,outcome:'running'});
   const writeReport=value=>fs.writeFileSync(report,JSON.stringify(value,null,2)+'\n');
   try {
+    requireRelease(!options['basis-candidate']||['check','finalize'].includes(command),'ARGUMENT_INVALID','arguments','--basis-candidate is only valid for check/finalize.');
     const policy=loadPolicy(path.resolve(options.policy||path.join(repo,'release/policy.json')));
     context.environment=policy.environment;context.contractSha256=policy.contractSha256;
     let result;
@@ -172,7 +174,12 @@ async function main() {
         requireRelease(profile&&options.raw,'ARGUMENT_INVALID','arguments','record requires a required --profile and --raw native result file.');
         result=record(snapshot,path.resolve(options.raw),path.resolve(options.evidence),policy,profile);
       } else {
-        const proofs=check(snapshot,path.resolve(options.evidence),policy);
+        const basis=options['basis-candidate']?inspect(path.resolve(options['basis-candidate']),run,false):snapshot;
+        let proofs=check(basis,path.resolve(options.evidence),policy);
+        if(basis!==snapshot) {
+          const versionPromotion=validateVersionPromotion(snapshot,basis,(item,name)=>fs.readFileSync(inside(item.extracted,name)));
+          proofs=proofs.map(proof=>({...proof,documentationOnlyReuse:false,candidateArchiveSha256:snapshot.archiveSha256,versionPromotion}));
+        }
         if(command==='finalize')requireRelease(options.output,'ARGUMENT_INVALID','arguments','finalize requires --output.');
         result=command==='check'?{outcome:'eligible',profiles:proofs}:finalize(snapshot,proofs,policy,path.resolve(options.output));
       }

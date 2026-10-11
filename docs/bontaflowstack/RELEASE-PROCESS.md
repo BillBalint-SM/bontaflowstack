@@ -73,9 +73,35 @@ A `prepare` kimenete önmagában csak jelölt. A hagyományos forráscsomagoló 
 futása is fejlesztői csomagot készít. Kiadásként a sikeres kapuhoz tartozó ZIP,
 ellenőrzőösszeg és kiadási bizonylat együtt adható át.
 
+## Csak verziójelölést módosító kiadás
+
+Az 1.0.0 a 0.7.5 elfogadott implementációjának kiadási átnevezése. Az új,
+opcionális `--basis-candidate` az eredeti ZIP-et kéri a bizonyíték mellé.
+Először a régi ZIP-re ellenőrzi a teljes eredeti Desktop-bizonyítékot, azután
+összeveti az új csomaggal. Kizárólag a plugin manifest és catalog felső szintű
+`version` karakterlánca változhat; minden más plugin-, setup- és marketplace-bájt
+azonos kell legyen. Hozzáadás, törlés, más JSON-mező vagy formázásváltozás sem
+fér ebbe a kivételbe. A dokumentáció változhat, de a csomagellenőrzések arra is
+lefutnak. A host/profil/próbaeljárás és a nyers bizonyíték változatlanul kötött.
+
+```powershell
+node scripts/release.mjs finalize --candidate artifacts/candidate-100/BontaFlowStack-1.0.0.zip --basis-candidate release/ci/BontaFlowStack-0.7.5.zip --evidence artifacts/desktop-proof --output artifacts/final --report artifacts/final-100.json
+```
+
+A `check` ugyanígy használható. A PowerShell-belépőben `-BasisCandidate`, a közös
+GitHub actionben `basis-candidate`, a kézi workflowban `basis_candidate` a neve.
+Nélküle a korábbi szigorú verzióegyezés marad. A bizonylat `versionPromotion`
+mezője őrzi mindkét verziót és ZIP-hasht; a natív eredményt és eredeti verzióját
+nem írja át. Ez egyezésen alapuló újrahasználat, nem új verzióval végzett Desktop-próba.
+`PROMOTION_INPUTS_CHANGED` vagy `PROMOTION_METADATA_CHANGED` esetén tényleges
+termékváltozás történt: annak érintett használati útját külön kell igazolni.
+
+Az új ellenőrzések: `node --test tests/release-promotion.test.mjs`.
+A korábbi GitHub-kapupróba eredménye megmarad saját eredeti scope-jában.
+
 ## Mikor érvényes a korábbi Desktop-bizonyíték?
 
-Egyeznie kell a plugin verziójának és **minden** `plugins/bontaflowstack/` fájlnak
+Alapesetben egyeznie kell a plugin verziójának és **minden** `plugins/bontaflowstack/` fájlnak
 (hozzáadás és törlés is változás), a gyökér `scripts/setup.ps1` fájlnak és a
 `.agents/plugins/marketplace.json` fájlnak. A deklarált Desktop/CLI-verzió,
 jóváhagyási szabály, jogosultsági profil, próbaeljárás és próbaoldal is kötött.

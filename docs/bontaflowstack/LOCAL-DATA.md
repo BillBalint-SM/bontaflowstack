@@ -24,19 +24,29 @@ runs BFS rather than assuming another terminal's path.
 | Same workspace: `checkpoints/`, `evidence/` | Manual snapshots and delivery command evidence |
 | Same workspace: `tasks/` | Task preferences, guard policy/pending grants and hook observations |
 | Same workspace: `engine-sessions/<taskId>/own-engine/` | Browser service metadata, tabs/session storage, downloads and startup logs |
+| Same workspace: `engine-sessions/<taskId>/host-browser/` (0.7.3) | MCP browser `tabs.json` snapshots and downloads; separate task ownership |
 
 Linked Git worktrees share project memory and project preferences because project
 identity uses the canonical Git common directory. Their workspace/task state is
 separate. Non-Git identity uses the canonical selected directory. Moving a project
 can leave state under its previous identity; identify that state before removing it.
 
-Browser profiles are outside the state root, under the Node user's home:
+For engine 0.3.2, legacy browser profiles are outside the state root, under the Node user's home:
 `~/.bontaflowstack/browser-profiles/<profileId>`. They can retain cookies, login
 sessions and local storage. For the pinned engine, profileId is SHA-256 of the
 lowercase absolute `own-engine` session directory, encoded as UTF-8. Derive the
 profile for each selected task before deleting its state; do not guess from the
 task ID or delete all profiles. Changing BFS_STATE_HOME does not change the profile
 base directory. Recheck the mapping in the installed engine when upgrading it.
+
+Plugin 0.7.5 with engine 0.3.3 uses temporary Chromium profiles plus
+task-owned snapshots. Its host MCP native acceptance is summarized in the
+[release evidence](RELEASE-0.7.5.md). Persistent cookies, local storage,
+IndexedDB, session storage and tab URLs can be retained in snapshots; treat them
+as private login data. Session cookies remain in memory until browser stop or
+connection closure. Caches, service-worker registrations and unsaved application
+memory are not retained. Legacy profiles are neither imported nor deleted;
+upgrading requires a fresh login. Use the legacy mapping above for old profiles.
 
 ## Inspect and back up
 
@@ -55,7 +65,8 @@ base directory. Recheck the mapping in the installed engine when upgrading it.
 
 1. Save doctor output, the effective root, selected task IDs and profile paths.
    For Git use `git worktree list` to identify siblings sharing project data.
-2. Stop each owned browser using `engine browser stop` in its original chat/task.
+2. Stop each owned browser using its MCP `browser` tool with `args:["stop"]`
+   in 0.7.3, or `engine browser stop` for a legacy CLI service, in its original chat/task.
    If unavailable, inspect the owned service metadata/process and stop only that
    instance. An unrelated current task's stop command does not stop old sessions.
 3. Make and verify the backup you need. Inspect active lock files; wait for their

@@ -29,3 +29,8 @@ if ($WithEngines) {
 }
 Write-Host 'Setup complete. In Codex, use $bfs-router. Installed plugin changes are loaded in a new chat.'
 Write-Host 'Review and trust PreToolUse and Stop in Codex /hooks to enable protection and interruption tracking.'
+if ($WithEngines) {
+    Write-Host 'Enable this plugin browser MCP connection in Codex. Engine file readiness does not verify browser launch.'
+    Write-Host 'Keep Chromium sandbox enabled. Browser/render use the host MCP connection, not the MXC shell.'
+    Write-Host 'The browser uses the workspace selected in Codex. Selecting an outside directory requires host confirmation. Keep your chosen permission profile.'
+}

@@ -8,6 +8,11 @@ The bridge checks registered manifests and entry files and isolates engine state
 by project/task. Use the inherited `CODEX_THREAD_ID`, never an invented identity.
 Human login uses a visible browser and continuation in that session; stop only
 owned processes/tabs. Read [browser](browser.md) before browser or render work.
+Browser/render additionally require the plugin's separately enabled `bfs-browser`
+host MCP connection. Engine doctor checks files; it does not prove that connection
+is enabled or Chromium can launch. Connection status and a requested actual
+operation establish those respective results. No host permission is granted by
+setup, a skill or engine registration.
 
 Image generation/editing uses the current Codex image tool without a separate
 API key. Check availability in the chat, not through engine doctor. The local

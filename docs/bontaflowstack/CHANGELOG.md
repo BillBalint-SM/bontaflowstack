@@ -1,5 +1,69 @@
 # Changelog
 
+## 1.0.0 — public release, 2026-10-11
+
+- Promote the validated 0.7.5 implementation to 1.0.0. Only the plugin manifest
+  and catalog version labels change; the remaining 107 plugin files, bundled
+  engine 0.3.3, root setup and marketplace stay byte-identical.
+- Publish a GitHub Release with the installable ZIP, SHA256, release receipt,
+  and English/Hungarian installation guides.
+- Refresh the README around product journeys, all 34 skills, examples and a
+  direct download path; update installation and troubleshooting for 1.0.0.
+- Add a strictly bounded version-label promotion path to the existing release
+  gate. Original Desktop evidence retains its observed 0.7.5 version and scope.
+  See [1.0.0 evidence](RELEASE-1.0.0.md). Closed functional tests are not repeated.
+
+## 0.7.5 — distribution package, 2026-10-11
+
+- Correct the host workspace wire field to `sandboxCwd`. Version 0.7.4 used
+  the Rust field name instead of the serialized camelCase name, so actual
+  Desktop calls remained unbound. Its matching synthetic fixtures were wrong.
+- Correct those two regression scenarios and expose host-provided permission
+  metadata in status for actual Desktop acceptance. The corrected scenarios
+  fail on 0.7.4 and pass on 0.7.5.
+- ZIP-installed 0.7.5 passed actual Codex Desktop native browser use under Full
+  Access: host workspace binding, visible launch, human Choose/Ready interaction,
+  resume, capture and stop. See [release evidence](RELEASE-0.7.5.md) for provenance
+  and scope. Closed tests were not repeated; graphical installation controls
+  were not validated.
+- Ship the final ZIP with unchanged validated plugin files, a SHA-256 inventory,
+  and Hungarian/English installation, update and rollback guides. This creates a
+  distributable artifact; it does not publish a GitHub release or tag.
+
+## 0.7.4 — local candidate, 2026-10-11
+
+- Request Codex host workspace metadata and bind the browser to that workspace
+  or an explicitly selected subdirectory without a redundant project form.
+  Outside directories retain the human confirmation requirement. Workspace
+  changes and ownership changes are rejected within an existing connection.
+- Expose unbound status, binding provenance, runtime version and source checksum
+  for native Desktop verification. Chromium sandbox and project file checks
+  are retained. Focused new protocol regressions passed; Desktop acceptance is
+  recorded separately and must not be inferred from those tests.
+
+## 0.7.3 — local candidate, 2026-10-11
+
+- Full Access with `never` approval passed a separate eight-call native human
+  browser acceptance. Correct profile-switch guidance and declare form-input
+  support in the custom validation client; runtime browser code was unchanged.
+  The result covers that client configuration, not every desktop/client version.
+- Add a separately enabled host stdio MCP browser/render connection. Codex
+  supplies thread identity; the human confirms the project through MCP form input.
+  Requested file paths stay in that project. Relative plugin cwd starts the
+  packaged entry, and optional BFS_STATE_HOME is explicitly forwarded.
+  Workspace-git and Chromium's sandbox remain enabled.
+- Bundle engine 0.3.3 source with a pinned checksum; setup still explicitly
+  installs locked npm dependencies and Chromium. No unpublished remote release
+  URL is required. Existing installations and legacy home profiles are preserved.
+- Retain browser state in task snapshots with temporary Chromium runtime profiles.
+- Native configured-MCP interaction/state/render/isolation acceptance passed.
+  Fresh ZIP engine setup, native plugin discovery, human project confirmation,
+  visible button interaction, handoff/resume, capture and stop also passed.
+  MCP forms require a permitting host policy; the final run used on-request.
+  This is not a published release.
+- Draft packaging can use `-SkipChecks`, recorded as `checks: not-run` in
+  PACKAGE.json. Release packaging rejects that option. Closed tests were not rerun.
+
 ## 0.7.2 — 2026-10-11
 
 - Scope verification blockers to the current task's concrete dependencies.
@@ -45,7 +109,7 @@
   unnecessary save and status steps.
 - Validation: 52 automated checks and the release ZIP smoke passed. Native
   session timeouts and coverage boundaries are recorded in the
-  [context-closure report](CONTEXT-CLOSURE-REPORT.md). Engine 0.3.1 is unchanged.
+  maintainer report `CONTEXT-CLOSURE-REPORT.md`. Engine 0.3.1 is unchanged.
 
 ## 0.6.0 — 2026-09-30
 
@@ -60,7 +124,7 @@
   bug repair uses that procedure within the investigation step.
 - Code review reports Standards and Spec separately against the same frozen scope.
 - Validation: 43 automated checks and 32 native methodology sessions, with findings
-  and limits in [the methodology report](CORE-SKILL-METHODOLOGY-REPORT.md).
+  and limits in maintainer report `CORE-SKILL-METHODOLOGY-REPORT.md`.
 - The context/closure extension (portable handoff, unified delivery proof and retro)
   remains a separate planned increment. Engine 0.3.1 is unchanged.
 
@@ -86,7 +150,7 @@
 - Reduced combined instruction text from 11127 to 9921 words (10.8%), counting the relocated reference text. This measures text size, not runtime cost or latency.
 - Clarified mode-specific memory and deployment steps, removed duplicate output requirements, and checked local reference links and section anchors.
 - Fixed setup to read the guard reference before any technical checks, including core-only setup. Missing capabilities no longer suppress questions about required task inputs.
-- Validation: 35 automated checks, 19 matched native A/B cases, two desktop setup chats with human panel/chat answers, and five focused sessions for the follow-up fixes. See [native results and limits](NATIVE-ACCEPTANCE-REPORT.md).
+- Validation: 35 automated checks, 19 matched native A/B cases, two desktop setup chats with human panel/chat answers, and five focused sessions for the follow-up fixes. See maintainer report `NATIVE-ACCEPTANCE-REPORT.md` for the original scope and limits.
 - Native guard enforcement, actual provider deployment and the remaining manual cases are not certified by those runs. After updating, start a new chat and review changed hook definitions through Codex's native trust interface when requested.
 
 ## 0.4.1 — 2026-09-30

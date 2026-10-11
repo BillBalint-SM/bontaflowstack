@@ -1,187 +1,195 @@
-# Install BontaFlowStack on Windows
+# Install BontaFlowStack 1.0.0 on Windows
+
+[Magyar útmutató](../../TELEPITES.md) · [Release evidence](RELEASE-1.0.0.md)
+
+This guide installs the **1.0.0 ZIP** into Codex Desktop. Keep your preferred
+permission profile. Version 1.0.0 carries forward the implementation practically
+verified as 0.7.5 under Full Access, with only version labels and user documentation
+changed. The original evidence retains its original version; no new 1.0.0 Desktop
+run is claimed. The plugin uses the selected workspace and keeps Chromium's sandbox
+enabled. It does not require switching to on-request.
 
 ## Requirements
 
-- Windows x64 and Codex Desktop.
-- Node.js 24 or newer on PATH.
-- Git for Git-based installation and delivery workflows.
-- npm, included with Node.js, for installing the optional engine dependencies.
+- Windows x64, Codex Desktop, and a signed-in Codex account.
+- Node.js **24 or newer**, including npm, available on PATH.
+- A Codex CLI with `plugin marketplace` and `plugin add` commands.
+- Internet access for the engine's pinned npm dependencies and Chromium download.
+  The engine's 0.3.3 source archive is already included.
+- Git only for Git-based project/delivery operations; not for this ZIP installation.
 
-The core has no npm dependency installation. Engine setup downloads locked npm
-dependencies and Chromium to its own directory. Git Bash and jq are unnecessary.
-
-## Install from GitHub (recommended)
-
-Use the Git-backed marketplace for installation and updates. Run in PowerShell
-with the Codex CLI on PATH to install the `0.7.2` release:
+Check in normal Windows PowerShell, using the same Windows account as Desktop:
 
 ```powershell
-codex plugin marketplace add BillBalint-SM/bontaflowstack-workbook --ref v0.7.2
-codex plugin add bontaflowstack@bontaflowstack
+node --version
+npm.cmd --version
+codex --version
+codex --no-daemon plugin --help
 ```
 
-This pins the marketplace to `v0.7.2`. Select a newer release explicitly using
-the [Update](#update) procedure. If `bontaflowstack` is already registered with a
-different source or tag, use that procedure to switch it.
+Expected: Node 24+; working npm; Codex lists plugin commands. The observed Desktop
+build was `26.1007.2314.0`, with CLI `0.162.0-alpha.17.2`. These identify the
+tested environment, not a proven minimum version.
 
-Start a new chat in your project. Ask `$bfs-router Set up BontaFlowStack`.
-Include "browser and design capabilities" to run the optional engine installer.
-Open `/hooks` in the Codex CLI and review/trust this plugin's PreToolUse and Stop
-definitions. Installation alone does not trust hooks; changed definitions need
-review again. See the [official hook guide](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks).
-Setup with `-InstallPrerequisites` can use Windows Package Manager to install
-missing Node.js. Existing unsupported Node versions produce an upgrade message.
+If Node is missing, install it from [nodejs.org](https://nodejs.org/en/download)
+and reopen PowerShell and Codex. If Codex CLI is missing, OpenAI documents
+`npm.cmd install -g @openai/codex@latest` in its
+[CLI installation instructions](https://developers.openai.com/codex/cli/).
+Then reopen PowerShell. Do not invoke an arbitrary `codex.exe` from an app cache.
+If your CLI lacks these plugin commands, update it before continuing.
+The commands below use `--no-daemon`, as verified with the installed CLI;
+an older CLI that rejects this flag needs an update.
 
-## Set up the target project
+## 1. Verify and extract the download
 
-The PowerShell setup checks the plugin installation. To add project guidance,
-open a Codex chat in the target project and request:
+Obtain both `BontaFlowStack-1.0.0.zip` and
+`BontaFlowStack-1.0.0.zip.sha256` from the
+[GitHub release](https://github.com/BillBalint-SM/bontaflowstack/releases/tag/v1.0.0).
+Choose these named assets, not GitHub's automatic source-code archive. Do not use
+an older release's checksum.
+
+The example expects the two files in Downloads. Change only `$downloadDir`
+if your browser saved them elsewhere. Use a new, stable destination: Codex keeps
+this directory as its local marketplace source.
+
+```powershell
+$downloadDir = Join-Path $env:USERPROFILE 'Downloads'
+$archive = Join-Path $downloadDir 'BontaFlowStack-1.0.0.zip'
+$checksum = "$archive.sha256"
+$expected = ((Get-Content -LiteralPath $checksum -Raw).Trim() -split '\s+')[0]
+if ($expected -notmatch '^[a-fA-F0-9]{64}$') { throw 'Invalid checksum file.' }
+$actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash
+if ($actual -ine $expected) { throw 'Checksum mismatch. Stop installation.' }
+
+$packageDir = Join-Path $env:USERPROFILE 'Tools/BontaFlowStack/1.0.0'
+if (Test-Path -LiteralPath $packageDir) { throw 'Destination exists. Choose a new empty directory.' }
+Unblock-File -LiteralPath $archive
+Expand-Archive -LiteralPath $archive -DestinationPath $packageDir
+Set-Location -LiteralPath $packageDir
+```
+
+Expected: extraction succeeds; the directory contains `README.md`,
+`TELEPITES.md`, `.agents/plugins/marketplace.json`, and `plugins/bontaflowstack`.
+A mismatch stops the process before any packaged code runs.
+
+## 2. Register and install the plugin
+
+For a **first installation**, continue in the same PowerShell window:
+
+```powershell
+codex --no-daemon plugin marketplace add $packageDir --json
+if ($LASTEXITCODE -ne 0) { throw 'Marketplace registration failed.' }
+codex --no-daemon plugin add bontaflowstack@bontaflowstack --json
+if ($LASTEXITCODE -ne 0) { throw 'Plugin installation failed.' }
+```
+
+Expected: plugin ID `bontaflowstack@bontaflowstack`, version **1.0.0**, and an
+installed cache path. If a marketplace with this name already exists, use
+[Update](#update) below; do not delete another marketplace or edit its files.
+Keep the extracted directory after installation.
+
+## 3. Load it in Desktop and install the requested engines
+
+Save any active work, then fully quit and reopen Codex Desktop. Merely sending
+another message did not reload an already-running old MCP server during
+validation. Open a chat in **your actual project directory**, not the extracted
+plugin directory.
+
+Keep your preferred permission profile. If Codex prompts to enable the plugin's
+`bfs-browser` connection, review and enable that connection through its normal
+plugin/MCP controls. The exact UI wording depends on the Desktop version.
+
+Send:
 
 ```text
-$bfs-router Set up BontaFlowStack for this project.
+$bfs-router Set up BontaFlowStack for this project, including browser, render and design capabilities. Use the installed 1.0.0 plugin.
 ```
 
-Before any setup script or doctor check, the router reads the guard reference,
-including for core-only setup. Reading it does not enable guard protection or
-grant native hook trust.
+Expected: the router runs the installed setup script with `-WithEngines`,
+verifies the bundled engine archive, installs pinned dependencies and Chromium,
+and reports core plus browser/render capability readiness. Let downloads finish.
+This step runs from the actual Desktop environment so setup and the MCP host use
+the same effective local state root.
 
-After successful technical setup, the router offers a one-time question about
-BFS decision questions: selection panels when available (recommended), or chat.
-It saves an actual answer as a user preference shared across projects. Existing
-effective choices are reused on repeated setup. An unanswered question saves
-nothing and does not block setup. The PowerShell installer itself does not open
-this question; request setup in a Codex chat.
+If you only want planning/core skills, omit the browser/render/design request.
+The core needs Node but no npm dependency installation.
 
-Change the choice later with `$bfs-plan-tune Use chat for BFS decision questions.`
-or `$bfs-plan-tune Prefer selection panels for BFS decision questions.` Ask it to
-reset the preference to restore inheritance. Explicit project or current-chat
-overrides are also supported. Without a saved choice, BFS prefers available
-panels without saving that default. Panels depend on the host's available tools
-and usage rules; otherwise BFS asks in chat. Native approval dialogs are separate.
-After updating the plugin, start a new chat to load these instructions.
+The router preserves existing project instructions. It asks for missing tracker
+or domain choices before creating the corresponding project guides. It may offer
+panels versus chat for BFS decision questions; either choice is valid.
+Optional external impeccable and Google DESIGN.md integrations can remain
+unavailable without blocking browser/render or ordinary design work.
 
-The router checks `AGENTS.md`, issue-tracker guidance, domain terms and decision
-locations before changing project files. It creates a missing
-`docs/agents/issue-tracker.md` with the chosen tracker location and its read,
-publish and update procedure; a missing `docs/agents/domain.md` points to the
-actual domain and decision sources. It adds only missing `AGENTS.md` links.
-Existing instructions are not replaced. If the tracker or domain source is not
-clear, answer the router's focused question first. A Git remote alone does not
-mean specifications belong in GitHub Issues. Choosing no tracker is valid and
-is recorded explicitly. Setup never creates invented terms, labels or ADRs.
+For optional guard protection, review and trust **PreToolUse** and **Stop** in
+Codex's `/hooks` interface when requested; see OpenAI's
+[hook guide](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks).
+Installing the plugin does not itself establish native hook trust.
 
-For example, an empty project may need the answer “Use local Markdown issues in
-`tasks/`; keep domain terms in `CONTEXT.md` and decisions in `docs/adr/`.” The
-router can then create the two guides and their `AGENTS.md` pointers. Verify the
-reported created and reused paths, open each pointer, and rerun the same setup
-request: it should leave the guides unchanged. Use `doctor` to confirm requested
-core or browser capabilities; a core-only check does not prove browser readiness.
+## 4. Check actual use
 
-`bfs-guard` is not started by the router. Invoke `$bfs-guard Show the current protection
-status.` directly when you want task protection. Skill selection does not itself
-authorize publication, deployment, spending or destructive changes.
-
-## Optional: install a source ZIP or local clone
-
-Use this alternative for manual setup from a release archive or local source
-checkout. Download the source ZIP and SHA-256 file from
-[GitHub Releases](https://github.com/BillBalint-SM/bontaflowstack-workbook/releases/tag/v0.7.2).
-Compare the archive's SHA-256 with the downloaded checksum before extraction.
-Extract the complete repository ZIP to a stable directory, or use a local clone.
-From that directory:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup.ps1 -InstallPlugin -WithEngines
-```
-
-`-InstallPlugin` registers the local directory as a marketplace and installs the
-plugin through Codex. Keep that source directory for updates. `-WithEngines`
-installs the exact optional engine release recorded in
-`plugins/bontaflowstack/engines.lock.json`. Omit either switch when that step is
-already handled. Add `-InstallPrerequisites` to install missing prerequisites.
-
-To inspect the package before installation:
-
-```powershell
-node scripts/check.mjs
-powershell -NoProfile -File plugins/bontaflowstack/scripts/bfstack.ps1 -Command doctor
-```
-
-## Verify an installed plugin
-
-Ask in a new chat:
+Ask in that Desktop chat:
 
 ```text
-$bfs-router Check the installed catalog and capabilities, then guide me to the next step.
+$bfs-browse Open https://example.com visibly using the installed plugin. First report its connection version, project and permission state. Read the page title, then stop only this task's browser.
 ```
 
-The skill entries must match the catalog. Core readiness and engine readiness are
-reported separately. `doctor bfs-browse` must report the browser capability ready
-before a browser-dependent task starts. Images use the Codex image generation tool
-available in the chat; no separate API key is needed. Optional impeccable and
-Google DESIGN.md commands report unavailable until their external installations
-are configured; this does not block the browser, renderer or ordinary design work.
+Expected:
 
-If a task lacks both required inputs and an available capability, BFS asks for
-the missing inputs and reports the capability gap. Dependent work waits for the
-actual answer and capability readiness.
+| Check | Correct result |
+| --- | --- |
+| Connection | Version 1.0.0, project equals the selected workspace, bindingSource host-workspace |
+| Permission | Your chosen profile stays unchanged; under Full Access the host reports type disabled |
+| Engine | 0.3.3 installed and browser ready |
+| Actual browser | Visible page; the agent reads Example Domain and reports any network error separately |
+| Cleanup | This task's browser closes and its status is stopped |
 
-The first browser operation starts the local browser. A visible session supports
-manual login and continuation. Close it with the bfs-browse skill when finished.
+File readiness alone is not a launch check. Only report installation/use success
+after the requested operation actually succeeds. When a site needs sign-in, ask
+for visible handoff, enter credentials yourself, then ask BFS to resume.
+A directory outside the selected workspace needs actual host confirmation; a
+host that cannot provide that confirmation cannot authorize the outside path.
 
 ## Update
 
-Choose a tested release from
-[GitHub Releases](https://github.com/BillBalint-SM/bontaflowstack-workbook/releases).
-Set `$releaseTag` to the tag you selected; `v0.7.2` is the current example. To change
-an existing marketplace's source or pinned tag, remove its registration first,
-then register the selected Git release and install it:
+Extract the new verified ZIP into a **new** version directory and assign that
+absolute directory to `$packageDir`. Preserve the previous source directory and
+[local data](LOCAL-DATA.md) for rollback. Replace only the BFS registration:
 
 ```powershell
-$releaseTag = 'v0.7.2'
-codex plugin marketplace remove bontaflowstack
-codex plugin marketplace add BillBalint-SM/bontaflowstack-workbook --ref $releaseTag
-codex plugin add bontaflowstack@bontaflowstack
+codex --no-daemon plugin marketplace remove bontaflowstack
+if ($LASTEXITCODE -ne 0) { throw 'Could not remove the old BFS marketplace registration.' }
+codex --no-daemon plugin marketplace add $packageDir --json
+if ($LASTEXITCODE -ne 0) { throw 'Could not register the selected BFS directory.' }
+codex --no-daemon plugin add bontaflowstack@bontaflowstack --json
+if ($LASTEXITCODE -ne 0) { throw 'Could not install the selected BFS version.' }
 ```
 
-Use the same sequence to switch from a local source installation to Git. For a
-ZIP or local clone installation that should remain local, update its source
-files first, then repeat `codex plugin add bontaflowstack@bontaflowstack`.
+Fully quit/reopen Desktop and check the version through the native connection.
+If the engine version changes, request engine setup again from Desktop. An old
+running server can retain the old version until the application actually exits.
 
-If you intentionally track a Git branch, refresh it with
-`codex plugin marketplace upgrade bontaflowstack`, then repeat the plugin-add
-command. Refreshing a pinned tag keeps that tag; it does not select a newer release.
-
-Start a new chat after updating. Review changed hook definitions through `/hooks`
-when Codex requests it. Run setup with `-WithEngines` when the pinned engine
-version changes.
-
-Engine releases install to distinct version/checksum directories. Local project
-memory and checkpoints remain separate from the plugin cache. Updating the plugin
-does not remove old data. Legacy notes can be previewed and imported with
-`memory import-legacy`; original files remain untouched. Legacy guard state and
-historical permissions are not imported.
+Rollback uses the same registration/install sequence with the previous verified
+directory. Engine versions and local memory are stored separately; see
+[Local data](LOCAL-DATA.md). Reverting to an older plugin can reintroduce its known
+bugs; versions 0.7.3/0.7.4 do not provide the demonstrated Full Access Desktop fix.
 
 ## Troubleshooting
 
-For retained project state, backups, browser profiles and uninstall cleanup, see
-[Local data](LOCAL-DATA.md). Uninstalling the plugin retains that data.
+| Symptom | Action |
+| --- | --- |
+| `codex` or `node` missing | Install the prerequisite and reopen both apps; confirm PATH using the commands above. |
+| CLI says it has no complete local package | Use the documented `--no-daemon` commands, or install the complete standalone CLI. |
+| Marketplace already exists | Use the BFS-only Update sequence. |
+| Status shows an older version | Confirm installation output says 1.0.0; fully quit/reopen Desktop. A new message alone is insufficient. |
+| Project is null or approval is declined | Select/open the real project in Codex. Check version 1.0.0 and host workspace metadata; do not switch profiles as a workaround. An outside path still requires supported host confirmation. |
+| Engine ready in a terminal, missing in Desktop | Ask the installed router to run setup from Desktop. Windows app packaging can redirect LOCALAPPDATA. |
+| `BFS_STATE_HOME` is customized | Installer and Desktop must inherit the same value. Otherwise leave it unset; do not copy someone else's state paths. |
+| No browser tool | Enable the plugin/MCP connection normally. Do not launch a replacement from the sandboxed shell or disable Chromium sandbox. |
+| `CreateWindowStationW` | Confirm use of the packaged host MCP connection, not a shell browser launch; retain the exact error if that connection also fails. |
+| Checksum mismatch | Stop; obtain the archive and its matching checksum again. |
+| npm/Chromium download fails | Check the stated network/proxy error, then retry the installer. No offline engine binary is bundled. |
+| Hook trust/guard warning | Review the changed hook definitions; preserve the error and do not treat a denied call as success. |
 
-| Message or symptom | Action |
-|---|---|
-| `node` is missing or too old | Install Node.js 24+ and reopen PowerShell/Codex. |
-| `codex` is not recognized | Add the Codex CLI to PATH, or use Desktop's plugin installation interface. |
-| Optional engines are missing | Run the installed plugin's `scripts/setup.ps1 -WithEngines`. |
-| Archive checksum mismatch | Stop installation; download the pinned release again. No archive source has run. |
-| Engine component changed/missing | Inspect the installation and rerun the explicit installer; do not bypass the hash check. |
-| Incomplete engine directory | Inspect the named failed installation. Preserve useful logs before removing only that directory and retrying. |
-| Another process holds a state lock | Wait for that operation and retry. Never remove a lock while its writer is active. |
-| PreToolUse says `BFS guard could not inspect this event` | The tool call was denied. A brief Windows lock error is retried automatically; if the message persists, check state-directory permissions and competing processes before retrying. Changed hook definitions must be reviewed again in `/hooks`. |
-| Guard lacks a native observation | Review/trust the plugin definitions in `/hooks`, then use a new chat. Manual hook invocation is not native integration evidence. |
-| Saved checks are stale | Recheck the changed inputs and rerun the affected workflow step. |
-| Codex image tool unavailable | Use a chat with image generation available, or choose local HTML variants. |
-| External design checker unavailable | Install/configure the selected optional tool as described in the engine README. |
-
-Set `BFS_STATE_HOME` only for an intentional separate state directory, such as an
-isolated verification run. No developer checkout, personal runtime cache or global
-skill directory is required by the installed package.
+Uninstall through Codex's plugin controls. Uninstalling keeps local memory,
+checkpoints, browser state and engine files; the [data guide](LOCAL-DATA.md)
+explains their locations, backup and explicit cleanup.

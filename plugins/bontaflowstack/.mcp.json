@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "bfs-browser": {
+      "command": "node",
+      "args": ["core/browser-host.mjs"],
+      "cwd": ".",
+      "env_vars": ["BFS_STATE_HOME"]
+    }
+  }
+}

@@ -109,7 +109,7 @@ function checkPackage() {
   const hooks=JSON.parse(fs.readFileSync(path.join(pluginRoot,'hooks/hooks.json'),'utf8'));
   assert.deepEqual(Object.keys(hooks.hooks).sort(),['PreToolUse','Stop']);
   assert.equal(fs.readFileSync(path.join(root,'LICENSE'),'utf8'),fs.readFileSync(path.join(pluginRoot,'LICENSE'),'utf8'));
-  const result=spawnSync(process.execPath,['--test',...['core','package','reliability','context-closure','task-graph'].map(name=>path.join(root,`tests/${name}.test.mjs`)),path.join(root,'tests/parallel.integration.test.mjs')],{stdio:'inherit',windowsHide:true});
+  const result=spawnSync(process.execPath,['--test',...['core','package','reliability','context-closure','task-graph','browser-host','browser-host-package'].map(name=>path.join(root,`tests/${name}.test.mjs`)),path.join(root,'tests/parallel.integration.test.mjs')],{stdio:'inherit',windowsHide:true});
   if(result.error)throw result.error;
   if(result.status!==0)process.exit(result.status||1);
   console.log(`Checked BontaFlowStack ${manifest.version}: ${names.length} skills, README, policies, handoffs, hooks, license and core tests.`);

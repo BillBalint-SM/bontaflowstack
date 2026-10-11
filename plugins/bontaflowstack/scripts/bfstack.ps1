@@ -18,7 +18,12 @@ try {
     if ($Skill) { $cliArguments += $Skill }
     if ($InputFile) { $cliArguments += @('--input', $InputFile) }
     if ($Arguments) { $cliArguments += $Arguments }
-    & $node @cliArguments
+    if ($Command -eq 'hook' -and -not $InputFile) {
+        # Forward hook JSON explicitly to avoid Windows PowerShell's event 4100 on inherited stdin.
+        [Console]::In.ReadToEnd() | & $node @cliArguments
+    } else {
+        & $node @cliArguments
+    }
     exit $LASTEXITCODE
 } catch {
     [Console]::Error.WriteLine("BontaFlowStack launcher: $($_.Exception.Message)")

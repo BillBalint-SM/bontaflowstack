@@ -10,7 +10,7 @@ Modes: `quick`, `baseline`, `compare`, `trend`. Use quick for one sample, baseli
 
 1. Select the pages and measurement mode. Quick uses one labelled sample; a baseline or comparison uses three samples under equivalent conditions.
 2. Record browser, viewport, cache, network, authentication and revision when known. Diff-aware coverage comes from an explicit base and verified changed pages.
-3. Read real navigation, paint and resource entries through engine browser perf or js. Serialize entries with toJSON when needed.
+3. Read real navigation, paint and resource entries through the plugin's host MCP `browser` tool with `args:["perf"]` or `js`, following the shared browser contract. Serialize entries with toJSON when needed.
 4. Calculate TTFB from responseStart minus requestStart; retain interactive/load timings, FCP, request counts and observable transfer sizes. Measure LCP with a buffered PerformanceObserver and a bounded wait. Missing measurements remain unknown.
 5. Report medians for repeated samples and compare only matching coverage and conditions. A zero baseline produces an unavailable percentage, not infinity. Apply user budgets first; otherwise label a suggested threshold as a heuristic.
 6. Save raw samples and a report to the agreed project directory. Only an explicit baseline operation replaces the selected baseline, preserving its previous copy.

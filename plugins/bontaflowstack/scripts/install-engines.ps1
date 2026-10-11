@@ -11,6 +11,17 @@ if (-not (Get-Command npm.cmd -CommandType Application -ErrorAction SilentlyCont
 if ($Archive) {
     if ($Sha256 -notmatch '^[a-fA-F0-9]{64}$') { throw 'A local archive requires its explicit SHA-256.' }
     $Archive = (Resolve-Path -LiteralPath $Archive).Path
+} elseif ($lock.bundledArchive) {
+    if ($lock.bundledArchive -notmatch '^engines/[a-zA-Z0-9._-]+\.zip$' -or $lock.sha256 -notmatch '^[a-f0-9]{64}$') { throw 'Invalid bundled engine archive record.' }
+    $Archive = [IO.Path]::GetFullPath((Join-Path $pluginRoot $lock.bundledArchive))
+    if (-not $Archive.StartsWith($pluginRoot + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'Bundled engine archive escapes the plugin.' }
+    $archiveAncestor = $Archive
+    while ($archiveAncestor) {
+        if ((Test-Path -LiteralPath $archiveAncestor) -and ((Get-Item -LiteralPath $archiveAncestor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw "Bundled archive path contains a link: $archiveAncestor" }
+        $archiveAncestor = [IO.Path]::GetDirectoryName($archiveAncestor)
+    }
+    if (-not (Test-Path -LiteralPath $Archive -PathType Leaf)) { throw 'The package is missing its bundled engine source archive.' }
+    $Sha256 = $lock.sha256
 } else {
     if ($lock.url -notmatch '^https://github\.com/BillBalint-SM/bontaflowstack-engines/releases/download/' -or $lock.sha256 -notmatch '^[a-f0-9]{64}$') { throw 'The engine release URL or checksum is invalid.' }
     $Sha256 = $lock.sha256

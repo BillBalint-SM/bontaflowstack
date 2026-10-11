@@ -7,6 +7,9 @@ inputs:
   evidence:
     description: Desktop evidence bundle directory
     required: true
+  basis-candidate:
+    description: Optional checked ZIP backing a version-label-only promotion
+    required: false
   output:
     description: Final release directory
     required: true
@@ -20,10 +23,13 @@ runs:
       env:
         BFS_CANDIDATE: ${{ inputs.candidate }}
         BFS_EVIDENCE: ${{ inputs.evidence }}
+        BFS_BASIS_CANDIDATE: ${{ inputs.basis-candidate }}
         BFS_OUTPUT: ${{ inputs.output }}
         BFS_REPORT: ${{ inputs.report }}
       run: |
         $candidateFiles = @(Get-Item -Path "$env:BFS_CANDIDATE" -ErrorAction Stop)
         if ($candidateFiles.Count -ne 1) { throw 'Expected exactly one candidate ZIP.' }
-        node scripts/release.mjs finalize --candidate $candidateFiles[0].FullName --evidence "$env:BFS_EVIDENCE" --output "$env:BFS_OUTPUT" --report "$env:BFS_REPORT"
+        $promotionArguments = @()
+        if ($env:BFS_BASIS_CANDIDATE) { $promotionArguments += @('--basis-candidate', $env:BFS_BASIS_CANDIDATE) }
+        node scripts/release.mjs finalize --candidate $candidateFiles[0].FullName --evidence "$env:BFS_EVIDENCE" --output "$env:BFS_OUTPUT" --report "$env:BFS_REPORT" @promotionArguments
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

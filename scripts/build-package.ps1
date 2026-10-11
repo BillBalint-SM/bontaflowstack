@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param([string]$OutputDirectory, [switch]$Release, [switch]$SkipChecks,
-    [string]$Candidate, [string]$EvidenceDirectory, [string]$Policy, [string]$Report)
+    [string]$Candidate, [string]$EvidenceDirectory, [string]$Policy, [string]$Report, [string]$BasisCandidate)
 $ErrorActionPreference = 'Stop'
 if ($Release -and $SkipChecks) { throw 'Release packaging requires the package checks.' }
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -10,6 +10,7 @@ if ($Release) {
     $releaseArguments = @((Join-Path $PSScriptRoot 'release.mjs'),'finalize','--candidate',$Candidate,'--evidence',$EvidenceDirectory,'--output',$OutputDirectory)
     if ($Policy) { $releaseArguments += @('--policy',$Policy) }
     if ($Report) { $releaseArguments += @('--report',$Report) }
+    if ($BasisCandidate) { $releaseArguments += @('--basis-candidate',$BasisCandidate) }
     & node @releaseArguments
     if ($LASTEXITCODE -ne 0) { throw 'Release gate rejected finalization; inspect its JSON diagnostic report.' }
     exit 0

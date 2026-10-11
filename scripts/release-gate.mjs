@@ -70,3 +70,21 @@ export function validateEvidence(snapshot,receipt,raw,policy,profile) {
   const result=validateNative(raw,receipt.inputs,profile);
   return {...result,reusedFromArchiveSha256:receipt.inputs.archiveSha256,candidateArchiveSha256:snapshot.archiveSha256,documentationOnlyReuse:receipt.inputs.archiveSha256!==snapshot.archiveSha256};
 }
+
+export function validateVersionPromotion(snapshot,basis,readFile) {
+  requireRelease(/^\d+\.\d+\.\d+$/.test(snapshot.version)&&snapshot.version!==basis.version,'PROMOTION_INVALID','version-promotion','Promotion requires a distinct release version.');
+  const current=desktopInputs(snapshot.files),previous=desktopInputs(basis.files);
+  const metadata=['plugins/bontaflowstack/.codex-plugin/plugin.json','plugins/bontaflowstack/catalog.json'];
+  const changed=[...new Set([...Object.keys(current),...Object.keys(previous)])].filter(name=>current[name]!==previous[name]);
+  requireRelease(changed.length===metadata.length&&changed.every(name=>metadata.includes(name)),'PROMOTION_INPUTS_CHANGED','version-promotion','Only the two top-level version labels may change; runtime, skills, setup and marketplace must stay byte-identical.',{changedPaths:changed});
+  for(const name of metadata) {
+    const before=readFile(basis,name),after=readFile(snapshot,name);
+    requireRelease(digest(before)===previous[name]&&digest(after)===current[name],'PROMOTION_INPUTS_CHANGED','version-promotion','Metadata bytes differ from the checked ZIP inventory.',{name});
+    const oldText=before.toString('utf8'),newText=after.toString('utf8');
+    const labels=[...oldText.matchAll(/^  "version": "([^"\r\n]+)"/gm)];
+    requireRelease(JSON.parse(oldText).version===basis.version&&JSON.parse(newText).version===snapshot.version&&labels.length===1&&labels[0][1]===basis.version&&
+      before.equals(Buffer.from(oldText))&&after.equals(Buffer.from(oldText.replace(labels[0][0],'  "version": "'+snapshot.version+'"'))),
+      'PROMOTION_METADATA_CHANGED','version-promotion','Metadata must differ only in its top-level version string.',{name});
+  }
+  return {kind:'version-label-only',fromVersion:basis.version,toVersion:snapshot.version,basisArchiveSha256:basis.archiveSha256,candidateArchiveSha256:snapshot.archiveSha256,changedPaths:changed,desktopJourneyRerun:false};
+}

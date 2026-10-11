@@ -1,263 +1,180 @@
 # BontaFlowStack
 
-**Connected skills for turning business ideas into designed, tested and delivered products.**
+### From the first idea to the work you can ship.
 
-BontaFlowStack works inside **Codex Desktop on Windows x64**. Describe your goal
-in your own language. The plugin helps choose the next step, performs the requested
-work, checks the result and keeps local progress for continuation.
+**34 connected skills for Codex Desktop.** Shape a product, design its interface,
+build from an accepted plan, check it in a real browser, and pick up where you
+left off—with project decisions and delivery evidence kept alongside the work.
 
-It supports business and product planning, brand and interface direction, website
-development, debugging, testing, documentation and delivery. Each skill also works
-on its own when you already have its input.
+[![Release](https://img.shields.io/github/v/release/BillBalint-SM/bontaflowstack)](https://github.com/BillBalint-SM/bontaflowstack/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
+![Host: Codex Desktop](https://img.shields.io/badge/Host-Codex_Desktop-222222)
 
-## Install from GitHub (recommended)
+**[Download 1.0.0](https://github.com/BillBalint-SM/bontaflowstack/releases/tag/v1.0.0)**
+· [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
+· [Telepítés magyarul](TELEPITES.md)
+· [What's in this release](docs/bontaflowstack/RELEASE-1.0.0.md)
 
-You need Codex Desktop, Git and **Node.js 24 or newer**. The core uses no npm packages.
+## Bring the whole product journey into your project
 
-Install the `0.7.2` release with the Codex CLI in PowerShell:
+You have an idea to test, a screen to improve, or a feature to finish.
+BontaFlowStack gives Codex focused ways to carry that work forward:
 
-```powershell
-codex plugin marketplace add BillBalint-SM/bontaflowstack-workbook --ref v0.7.2
-codex plugin add bontaflowstack@bontaflowstack
-```
+- **Find the next useful step.** Turn a rough brief into a customer problem,
+  specification, design direction, or implementation plan.
+- **Keep decisions connected to the work.** Save accepted plans, project facts,
+  progress and checkpoints, then recover them in a later session.
+- **Build and inspect the result.** Implement an agreed scope, review the change,
+  and exercise web journeys through the plugin's browser connection.
+- **Stay involved where it matters.** Choose a design, take over a visible browser
+  for sign-in, then hand control back to the agent.
+- **Deliver with evidence.** Prepare documentation and Git delivery from the
+  actual changed files and recorded checks.
 
-The marketplace tracks that release tag. To select a newer version, follow
-[Update](docs/bontaflowstack/INSTALL-WINDOWS.md#update).
+Use one skill for a focused task, or let the router choose the next entry point.
+You can ask in your own language.
 
-Start a new Codex chat in your project and ask:
+## Start here
+
+**Requirements:** Windows x64, Codex Desktop, Node.js 24+ with npm, and a Codex CLI
+that supports plugin installation. Browser setup also needs internet access.
+Git is needed for Git operations.
+
+1. Download [BontaFlowStack-1.0.0.zip](https://github.com/BillBalint-SM/bontaflowstack/releases/download/v1.0.0/BontaFlowStack-1.0.0.zip)
+   and its [SHA256 file](https://github.com/BillBalint-SM/bontaflowstack/releases/download/v1.0.0/BontaFlowStack-1.0.0.zip.sha256).
+   Choose these release assets, rather than GitHub's automatic source-code archive.
+2. Follow the [installation guide](docs/bontaflowstack/INSTALL-WINDOWS.md) to verify
+   the checksum, extract into a permanent folder and register the local plugin.
+3. Fully restart Codex Desktop, open your project and ask:
 
 ```text
-$bfs-router Set up BontaFlowStack for this project, including browser and design capabilities.
+$bfs-router Set up BontaFlowStack for this project, including browser, render and design capabilities. Use the installed 1.0.0 plugin.
 ```
 
-Review and trust the plugin's **PreToolUse** and **Stop** hooks through Codex's
-`/hooks` interface. New or changed hook definitions need user trust before Codex
-runs them. This enables task protection and interruption tracking; ordinary
-workflow checkpoints are written by the core. [Hook setup](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks)
+Then bring it a real task:
 
-The setup mode checks the installation and adapts instructions in the current
-project. Browser, render and design operations use
-the separately installed [BontaFlowStack engines](https://github.com/BillBalint-SM/bontaflowstack-engines).
-Their installer checks the pinned source archive, installs its locked dependencies
-and Chromium, then registers the checked Node.js tools. Bun is not required.
+```text
+$bfs-router I want a booking page for my service business. Help me define the
+first useful version, compare design directions, and plan the implementation.
+```
 
-Git Bash and jq are not required by the core.
+The guide includes upgrades, rollback and expected results at every step.
+Keep your preferred Codex permission profile; the documented Full Access route
+does not require a switch to on-request.
 
-[Installation and troubleshooting](docs/bontaflowstack/INSTALL-WINDOWS.md)
+## Pick the skill that fits
 
-### Optional: source ZIP or local clone
+| Your next move | Start with | What the skill is for |
+| --- | --- | --- |
+| Explore an idea | `$bfs-business-builder` | Customer problem, product direction and a testable brief |
+| Make a plan | `$bfs-spec`, `$bfs-autoplan` | Acceptance scenarios and coordinated plan review |
+| Give it a visual direction | `$bfs-design-consultation` | Compare directions and define the selected design system |
+| Build the interface | `$bfs-design-html` | Responsive HTML/components and rendered inspection |
+| Implement an accepted change | `$bfs-implement` | Scoped implementation and verification |
+| Work with a website | `$bfs-browse`, `$bfs-scrape` | Visible browser sessions, human handoff and checked extraction |
+| Investigate or review | `$bfs-bug-issue-investigate`, `$bfs-review`, `$bfs-qa` | Diagnosis, code review and actual web journeys |
+| Prepare delivery | `$bfs-documentation`, `$bfs-finisher` | Source-grounded docs, commits, pushes and PR operations |
+| Resume later | `$bfs-save-context`, `$bfs-load-context` | Checkpoint recovery with drift detection |
+| Choose what comes next | `$bfs-wayfinder` | Project status and the next useful step |
 
-For manual setup, download the source ZIP and SHA-256 file from
-[GitHub Releases](https://github.com/BillBalint-SM/bontaflowstack-workbook/releases/tag/v0.7.2),
-or use a local clone. Follow the
-[source ZIP setup](docs/bontaflowstack/INSTALL-WINDOWS.md#optional-install-a-source-zip-or-local-clone).
-
-### Set up a project
-
-Open a new chat in the target project and ask `$bfs-router Set up BontaFlowStack
-for this project.` The router checks the installed core and any requested optional
-capabilities, then reads existing `AGENTS.md` and project guides. It creates only
-missing `docs/agents/issue-tracker.md` and `docs/agents/domain.md` guides and
-adds their missing `AGENTS.md` links. Existing instructions are preserved; a
-second setup should make no file changes. The issue guide records where and how
-to read, publish and update work. The domain guide points to the project's real
-source of terms and decisions. Setup does not invent a glossary or ADR.
-
-If the project does not identify its issue tracker or domain source, the router
-asks for that choice before writing the dependent guide. For example: "Should
-specifications go to GitHub Issues, local files, or no tracker? Where are the
-project's domain terms and decisions kept?" After setup, check the router's
-reported created/reused files, open their `AGENTS.md` links, and check `doctor`
-for the capabilities you requested. [Detailed steps](docs/bontaflowstack/INSTALL-WINDOWS.md)
-
-On first conversational setup, choose selection panels when available or chat
-for BFS decision questions. Change or reset the saved choice with
-`bfs-plan-tune`; explicit project and current-chat overrides are supported.
-Without a saved choice, BFS prefers available panels and falls back to chat.
-This preference does not control Codex's native approval dialogs.
-
-## Start with a goal
-
-| You want to… | Example request |
-|---|---|
-| Develop an idea | `$bfs-business-builder Help me shape an offer for independent consultants.` |
-| Turn a brief into a plan | `$bfs-router Turn this brief into a specification and check the implementation plan.` |
-| Implement an accepted plan | `$bfs-implement Implement the specification I accepted and verify its acceptance criteria.` |
-| Compare visual directions | `$bfs-design-consultation Explore three directions using this brief and content.` |
-| Build an approved page | `$bfs-design-html Implement the selected direction in this project and check the rendered page.` |
-| Inspect a user journey | `$bfs-qa Inspect checkout at this URL and report reproducible issues.` |
-| Diagnose and fix a bug | `$bfs-bug-issue-investigate Reproduce this failure, repair its cause and verify the fix.` |
-| Finish a change | `$bfs-finisher Review, test and document this change, then prepare it for delivery.` |
-| Resume later | `$bfs-load-context Find the latest saved workflow and show what remains.` |
-
-Use `$bfs-router` when you want help choosing a route. Naming a skill goes directly
-to that skill. Ask explicitly for publication or deployment when you want those
-operations included. `bfs-guard` is user-invoked only: name `$bfs-guard` directly to
-inspect or change its task protections, for example `$bfs-guard Show the current
-protection status.` The router does not start it implicitly. Selecting any skill
-or workflow does not by itself authorize publication, deployment, spending or
-destructive changes.
-
-## How workflows connect
-
-The router loads and follows each relevant skill in the same chat. A completed
-step passes its checked artifacts and settled decisions to the next step.
-Missing information pauses only the dependent work. You can supply a document,
-existing file or your own description instead of running an earlier skill.
-
-### Plan and design
-
-Turn an idea into a brief, specification and reviewed plan, or take a selected
-visual direction through implementation and the relevant interface checks.
-
-[![Planning and design routes: bfs-router selects bfs-business-builder, bfs-spec, bfs-autoplan and relevant plan reviews, or bfs-design-consultation, bfs-design-html and bfs-design-review or bfs-qa.](docs/diagrams/plan-and-design.svg)](docs/diagrams/plan-and-design.svg)
-
-### Implement an accepted plan
-
-Use **`$bfs-implement`** (BFS Implement) to build functionality from a plan,
-specification, selected design or scoped change you have explicitly accepted.
-It identifies the accepted version and your decision, implements checkable parts,
-saves their verified progress and checks the result against your acceptance criteria.
-
-Acceptance starts implementation when the requested workflow includes it.
-Without clear acceptance, the skill waits. Material changes to scope, behavior
-or design return to you for a decision; routine technical choices remain within
-the accepted scope. Accepting a plan does not authorize publication or deployment.
-
-The route is **accepted basis → bfs-implement → relevant checks → bfs-finisher when requested**.
-The Codex agent performs the edits and commands; the skill guides that work and
-the local core records its checkpoints.
-
-### Check and deliver
-
-Prepare a change for delivery, investigate a defect, or work directly in the
-browser. Documentation follows the affected scope; deployment is included when
-requested and uses existing configuration.
-
-[![Delivery, debugging and browser routes: bfs-finisher uses bfs-review, project checks and bfs-documentation before requested deployment; bug investigation leads to requested repair and verification; browser work uses bfs-browse, bfs-scrape or bfs-benchmark.](docs/diagrams/check-and-deliver.svg)](docs/diagrams/check-and-deliver.svg)
-
-There are three kinds of connection:
-
-- **Results:** a business brief becomes input to a specification or design.
-- **Capabilities:** QA, scraping, rendering and benchmarks share the browser engine.
-- **Project data:** skills reuse the same design decisions, memory and workflow state.
-
-### Save and resume
-
-[![Continuation: a recorded step or manual bfs-save-context snapshot creates a local checkpoint; bfs-load-context checks saved results and changed files before bfs-router continues the work.](docs/diagrams/save-and-resume.svg)](docs/diagrams/save-and-resume.svg)
-
-After every recorded step, the core writes and reads back a local checkpoint.
-The Stop hook marks an unfinished active step interrupted. It never turns an
-interruption into a successful result. Changed input files make old checks stale.
-`bfs-save-context` adds a manual snapshot; `bfs-load-context` checks what changed before
-continuing. Remembered decisions do not grant permission for new external actions.
-
-Click an image to enlarge it. [Interactive diagrams and editable sources](docs/diagrams/README.md)
-are included for local use.
+Explore all **34 skills** in the [catalog](plugins/bontaflowstack/catalog.json)
+and the [command reference](plugins/bontaflowstack/references/commands.md).
 
 ## Skills
 
-All installed skill names begin with `bfs-`. The Codex picker uses the
-matching `BFS` title: `$bfs-router` is **BFS Router**, `$bfs-benchmark` is
-**BFS Benchmark**, and `$bfs-save-context` is **BFS Save Context**. Use these
-names for direct calls. Previous names remain catalog aliases through
-`$bfs-router`.
+<details>
+<summary>Browse all 34 skill entry points</summary>
 
-| Area | Skills | What they do |
-|---|---|---|
-| Routing | `bfs-router` | Choose and run a skill or workflow; set up capabilities. |
-| Business and specification | `bfs-business-builder`, `bfs-spec` | Clarify the customer problem, value and scope; write verifiable requirements. |
-| Plan coordination | `bfs-autoplan`, `bfs-plan-tune` | Select relevant reviews; manage explicit preferences and local proposals. |
-| Implementation | `bfs-implement` | Implement a user-accepted plan, spec or design; verify and checkpoint each part. |
-| Prototyping | `bfs-prototype` | Run an isolated experiment to answer one decision question and preserve its evidence. |
-| Triage and navigation | `bfs-triage`, `bfs-wayfinder` | Structure a reported problem; identify the next useful step from verified current work. |
-| Learning | `bfs-learn` | Create an isolated runnable exercise or review actual practice evidence. |
-| Plan reviews | `bfs-plan-ceo-review`, `bfs-plan-eng-review`, `bfs-plan-design-review`, `bfs-plan-devex-review` | Check business value, engineering, UI/UX and planned developer-facing interfaces. |
-| Design | `bfs-design-consultation`, `bfs-design-html`, `bfs-design-review` | Compare directions, preserve your selection, implement and inspect the rendered result. |
-| Browser and data | `bfs-browse`, `bfs-scrape`, `bfs-benchmark` | Browse or sign in visibly, extract verified data, measure page performance. |
-| Quality | `bfs-bug-issue-investigate`, `bfs-review`, `bfs-cso-audit`, `bfs-health`, `bfs-qa` | Diagnose defects, inspect changes and security, run project checks and test web flows. |
-| Documentation and delivery | `bfs-documentation`, `bfs-finisher`, `bfs-prod-deploy`, `bfs-landing-report`, `bfs-retro` | Maintain docs, prepare changes, use existing deployment configuration and report live delivery state. |
-| Continuation and control | `bfs-bontaflow-memory`, `bfs-save-context`, `bfs-load-context`, `bfs-guard` | Keep project decisions and learnings, save/restore progress and apply optional task protections. |
+| Skill | Purpose |
+| --- | --- |
+| `bfs-router` | Set up BFS or route a requested task to the matching skill or workflow. |
+| `bfs-implement` | Implement an accepted plan, spec, design or scoped change and verify its acceptance criteria. |
+| `bfs-business-builder` | Clarify a customer problem or product direction into a testable business brief. |
+| `bfs-spec` | Draft or revise a project-grounded specification with observable acceptance scenarios. |
+| `bfs-autoplan` | Coordinate relevant plan reviews and return a reconciled plan with open decisions. |
+| `bfs-plan-ceo-review` | Review a plan for customer value, business fit and measurable success. |
+| `bfs-plan-eng-review` | Review a plan against the codebase for architecture, correctness and implementation readiness. |
+| `bfs-plan-design-review` | Review planned screens and journeys for usability, accessibility and coherent interaction states. |
+| `bfs-plan-devex-review` | Review planned API, CLI, SDK and onboarding experiences for developer usability. |
+| `bfs-plan-tune` | Inspect or configure optional BFS preferences, including panel/chat questions, and review adjustment proposals. |
+| `bfs-design-consultation` | Define a visual identity, compare design directions or refine the selected design system. |
+| `bfs-design-html` | Build or refine responsive HTML/components from an accepted design and verify rendered behavior. |
+| `bfs-design-review` | Inspect a rendered interface for usability and visual defects, or repair and retest requested findings. |
+| `bfs-browse` | Read or interact with a web page, open a visible session or resume human sign-in. |
+| `bfs-scrape` | Extract checked page data as JSON or answer a page question with sources. |
+| `bfs-benchmark` | Measure browser performance and report comparable baselines, regressions or trends. |
+| `bfs-bug-issue-investigate` | Diagnose a reproducible bug, or fix its shared cause and verify the regression. |
+| `bfs-review` | Review a code diff against requirements and callers, or repair and recheck requested defects. |
+| `bfs-cso-audit` | Audit code or a change for reachable security risks and prioritized remediation. |
+| `bfs-health` | Run existing project checks and report commands, results and verification limits. |
+| `bfs-qa` | Test real web journeys and responsive states, or fix and retest requested defects. |
+| `bfs-documentation` | Create or update source-verified project documentation, or report documentation gaps. |
+| `bfs-finisher` | Prepare a verified change for delivery or perform requested commit, push and PR operations. |
+| `bfs-prod-deploy` | Inspect, integrate or deploy a selected change and verify delivered revision and health. |
+| `bfs-landing-report` | Report integration queue, version conflicts and check freshness without changing repository state. |
+| `bfs-bontaflow-memory` | Read, revise, retire or inspect project decisions, facts, plans and learnings. |
+| `bfs-save-context` | Save, pause or export verified work, or list existing checkpoints. |
+| `bfs-load-context` | Recover checkpoint state, detect drift and resume from a verified next step. |
+| `bfs-guard` | Inspect or explicitly change current-task command warnings and the project edit boundary. |
+| `bfs-retro` | Review actual work traces for reusable lessons, distinguishing mechanical checks from judgment. |
+| `bfs-prototype` | Run a small, disposable experiment to settle a concrete product or technical question and preserve the decision evidence. |
+| `bfs-triage` | Turn a reported problem into an evidence-based, prioritized triage report and next route. |
+| `bfs-wayfinder` | Find the next useful project step from current context, workflow and task status. |
+| `bfs-learn` | Create an isolated runnable practice exercise or review its actual learning evidence. |
 
-### Combined modes
+</details>
 
-Source development adds portable handoff export/import and optional trace-based
-retro reporting. These additions are included in 0.7.0.
+## A browser you can take over
 
-- **bfs-design-consultation:** consultation, variants, Codex image generation and refinement.
-- **bfs-browse:** page work, visible browser, manual login and continuation in the same session.
-- **bfs-qa:** inspection and reporting by default; requested repair followed by retesting.
-- **bfs-documentation:** one coverage assessment identifies both missing and outdated documentation.
-- **bfs-bontaflow-memory:** typed decisions and learnings, search, revisions, exact-record pruning and export.
-- **bfs-guard:** command warnings and an edit boundary can be enabled independently.
-  Releasing the boundary keeps command warnings active.
+Ask BFS to open a page visibly. When a site needs your input, take over the
+browser, complete the step yourself, and ask the agent to resume. The packaged
+`bfs-browser` connection uses the project selected in Codex and keeps Chromium's
+sandbox enabled.
 
-The full mode and handoff definitions live in the [catalog](plugins/bontaflowstack/catalog.json).
-Older names resolve through the router; only the catalog entries are installed.
-Saved reusable browser automation, standalone developer-experience audits,
-deployment provisioning are outside this version.
+[See the browser workflow](plugins/bontaflowstack/references/browser.md).
 
-## Local data and optional tools
+## Your project's context stays local
 
-[Inspect, back up and remove local data](docs/bontaflowstack/LOCAL-DATA.md).
+The core uses Node.js standard-library modules. Decisions, workflow progress,
+checkpoints and browser state live in a local state store; engine files are
+installed separately. Existing project instructions are preserved during setup.
 
-Core data stays in `%LOCALAPPDATA%\BontaFlowStack\state\v2`. Project memory is
-shared across linked Git worktrees; workflow, task, browser and guard state are
-separate. Non-Git project directories also work. Nothing automatically uploads
-memory or installs a browser engine. Existing older data is preserved; selected
-notes can be imported explicitly.
+The ZIP includes the checksum-pinned **0.3.3 engine source archive**. Browser
+dependencies and Chromium download during setup. Optional design integrations
+can be added when their specific features are needed.
 
-Guard requires working native hooks and reports its supported coverage: edit and
-patch paths, plus recognized destructive shell commands. It is optional and is
-not an operating-system sandbox. Arbitrary shell writes are outside its edit-boundary
-coverage.
+Read [local data, backup and removal](docs/bontaflowstack/LOCAL-DATA.md).
+Optional hooks require Codex's normal trust approval; the guard is a scoped
+warning/edit check, not an operating-system security boundary.
 
-Image generation and editing use **Codex's image generation tool**, when available
-in the current chat. BontaFlowStack does not request a separate image API key.
-The local design tool creates comparison boards and records your chosen direction.
+## What 1.0.0 is based on
 
-Optional prerequisites for specific design operations:
+This release promotes the validated 0.7.5 implementation to **1.0.0**, with new
+release labels and user documentation. The release gate checks that the only
+plugin changes are the two version fields; the remaining plugin files, engine,
+setup and marketplace bytes must match the accepted package.
 
-- [impeccable](https://github.com/pbakaus/impeccable): additional automated design checks.
-- [Google DESIGN.md](https://github.com/google-labs-code/design.md): checking and exporting that specific design-document format. It can be used without Stitch; there is no built-in Stitch connection.
+The retained practical evidence covers a ZIP-installed plugin in **actual Codex
+Desktop on Windows x64, under Full Access**: project binding, visible Chromium,
+human input, agent resumption, readback and cleanup. The recorded run used
+0.7.5; it is preserved with its original version and environment, not relabeled
+as a new 1.0.0 run.
 
-Neither is required for ordinary BontaFlowStack design work. Their source is not
-included in either BontaFlowStack source package. The engine README explains how
-to connect an installation. Browser profiles stay under
-`~/.bontaflowstack/browser-profiles`, isolated by the task's session identity, so
-Chromium also works with deeply nested Windows project paths.
+[Evidence and compatibility scope](docs/bontaflowstack/RELEASE-1.0.0.md)
+· [Changelog](docs/bontaflowstack/CHANGELOG.md)
 
-## Develop and verify
+## Help shape what comes next
 
-```powershell
-node scripts/check.mjs
-node tests/engine.integration.mjs C:\path\to\bontaflowstack-engines
-powershell -NoProfile -File scripts/build-package.ps1
-powershell -NoProfile -File scripts/build-package.ps1 -Release
-powershell -NoProfile -File scripts/test-package.ps1 -Archive C:\path\to\BontaFlowStack-version-source.zip
-```
+Found a problem? [Open an issue](https://github.com/BillBalint-SM/bontaflowstack/issues)
+with your plugin, Desktop and CLI versions, the operation you attempted, and its
+actual error. Remove personal paths, credentials and private page content.
 
-The first command checks the catalog-defined package and core behavior. The second uses
-real Chromium for navigation, interactions, extraction, performance, screenshots,
-HTML rendering and design comparison. The package builder writes a ZIP, SHA-256
-and a per-file manifest; it records whether the source checkout was clean.
-Release mode requires a clean checkout. The archive check verifies the inventory,
-hashes and entrypoints from a fresh extraction with isolated state and no engines.
-The Windows CI runs both release construction and archive verification.
-
-[Manual agent and setup acceptance](docs/bontaflowstack/MANUAL-ACCEPTANCE.md) ·
-`node scripts/measure-runtime.mjs` measures local hook latency and HOST response reuse.
-
-[Native validation results and limits](docs/bontaflowstack/NATIVE-ACCEPTANCE-REPORT.md) ·
-[Instruction size comparison](docs/bontaflowstack/SKILL-OPTIMIZATION-REPORT.md)
-
-[Changelog](docs/bontaflowstack/CHANGELOG.md) ·
-[Core command reference](plugins/bontaflowstack/references/commands.md) ·
-[Execution contract](plugins/bontaflowstack/HOST.md)
+Contributions are welcome. For source architecture and contracts, start with
+[HOST.md](plugins/bontaflowstack/HOST.md) and the
+[core modules](plugins/bontaflowstack/core). Maintainer release procedures live in
+the source repository's `docs/bontaflowstack/RELEASE-PROCESS.md`.
 
 ## License
 
-[MIT](LICENSE) — Copyright © 2026 Bálint Bilisics (BontaFlow).
-
-This repository contains the BontaFlowStack core, skills and documentation.
-Optional engines and separately installed applications are distributed separately.
+[MIT](LICENSE). Built by Bálint Bilisics / BontaFlow.

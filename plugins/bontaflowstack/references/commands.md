@@ -197,6 +197,9 @@ five minutes. Changed inputs and project-root deletion are not covered.
 `engine register` takes the verified installation `root` and the exact engine
 manifest `sha256` printed by its build. The explicit installer handles this.
 `engine browser -- goto <url>` passes arguments as separate process arguments.
+This is the standalone CLI interface. Installed plugin browser/render work uses
+the separately enabled host MCP tools described in [browser](browser.md), with
+`args` and optional text `stdin`; host tools return their result directly.
 JSON input can instead provide `args`, optional text `stdin` and `timeoutMs`.
 Other capabilities: `render`, `design`, `design-md`, `design-detect`, `pretext`.
 Engine execution returns `exitCode`, `stdout`, `stderr` and status. Parse the
