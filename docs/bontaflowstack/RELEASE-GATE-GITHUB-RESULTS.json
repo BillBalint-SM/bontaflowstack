@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "scope": "GitHub-hosted release gate only; no new native Desktop or product test",
+  "verifiedAt": "2026-10-11T16:49:40.017Z",
+  "runUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938",
+  "runId": 38156928938,
+  "workflowCommit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
+  "branch": "codex/release-gate-proof-20261011",
+  "conclusion": "success",
+  "cases": [
+    {
+      "scenario": "missing",
+      "assertions": "passed",
+      "gateOutcome": "blocked",
+      "gateCode": "DESKTOP_EVIDENCE_MISSING",
+      "archiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+      "releaseOutputExists": false,
+      "runId": "38156928938",
+      "runAttempt": "1",
+      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
+      "newDesktopTestRun": false,
+      "closedFunctionalTestsRerun": false,
+      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715800",
+      "publishStep": "skipped",
+      "diagnosticSha256": "b7544c710ab7636fad8492051f52c513bbcd86fc91662b0ba6ec001a24c95201"
+    },
+    {
+      "scenario": "stale",
+      "assertions": "passed",
+      "gateOutcome": "blocked",
+      "gateCode": "DESKTOP_INPUTS_STALE",
+      "archiveSha256": "eb2557191160fe52d538a4381c6aa964e9a9f637bfe05dca30be75bacc5b0bd0",
+      "releaseOutputExists": false,
+      "runId": "38156928938",
+      "runAttempt": "1",
+      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
+      "newDesktopTestRun": false,
+      "closedFunctionalTestsRerun": false,
+      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715798",
+      "publishStep": "skipped",
+      "diagnosticSha256": "c2e04154f737de493db45db45d37afca9d160a2f2055008e2edc1d8f933f4d8d"
+    },
+    {
+      "scenario": "valid",
+      "assertions": "passed",
+      "gateOutcome": "released",
+      "gateCode": null,
+      "archiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+      "releaseOutputExists": true,
+      "runId": "38156928938",
+      "runAttempt": "1",
+      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
+      "newDesktopTestRun": false,
+      "closedFunctionalTestsRerun": false,
+      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715551",
+      "publishStep": "success",
+      "diagnosticSha256": "91c5fe9872ba8ef148cf4fa8fd7b9cd7821c21fcf608a569af16583635192f86"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 11709405209,
+      "name": "gate-diagnostics-stale",
+      "digest": "sha256:3af17f499a07cdf734d5000aed1bb300c274c88e29465974bcac2b1454f9fce7",
+      "expired": false
+    },
+    {
+      "id": 11709210215,
+      "name": "gate-diagnostics-missing",
+      "digest": "sha256:a55494b7a91e5daf87d355451fc246f108650a0b7ad1374fb1985326aa09eabe",
+      "expired": false
+    },
+    {
+      "id": 11709160342,
+      "name": "gate-diagnostics-valid",
+      "digest": "sha256:45a89a1153a1e343324d715ee713c74cd7c29da2f44125e8a78a3578aff9a362",
+      "expired": false
+    },
+    {
+      "id": 11708696445,
+      "name": "verified-release-valid",
+      "digest": "sha256:1af14e75f38cacc4a942b2f9a8a0ddf86adfb17ba73cb87236994fc3fd3329b3",
+      "expired": false
+    }
+  ],
+  "downloadedReleaseZipSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+  "originalReleaseZipIdentical": true,
+  "expectedNonzeroGateExits": 2,
+  "closedProductChecks": {
+    "url": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928867",
+    "conclusion": "skipped",
+    "jobs": [
+      {
+        "name": "core",
+        "conclusion": "skipped",
+        "steps": 0
+      },
+      {
+        "name": "release",
+        "conclusion": "skipped",
+        "steps": 0
+      }
+    ]
+  },
+  "newDesktopTestRun": false,
+  "notes": [
+    "Only the proof harness continues after the two expected gate failures to assert rejection; production action preserves nonzero exit.",
+    "GitHub warned that the v4 actions target deprecated Node 20; this run executed them on Node 24.",
+    "Artifacts retained for 30 days; this summary stays versioned.",
+    "No public GitHub Release or tag created; accepted package is a workflow artifact."
+  ]
+}

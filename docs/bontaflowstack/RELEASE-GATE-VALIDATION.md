@@ -2,7 +2,9 @@
 
 Az [öt kötelező kiadási feltétel](RELEASE-PROCESS.md) új folyamatát ellenőriztük.
 A korábban lezárt natív, böngésző- és termékteszteket nem futtattuk újra.
-A GitHub Actions workflow-t nem indítottuk el.
+A kezdeti helyi ellenőrzéskor a GitHub Actions workflow még nem futott.
+Az ezt követő, külön kért GitHub-igazolás eredménye:
+[RELEASE-GATE-GITHUB.md](RELEASE-GATE-GITHUB.md).
 
 ## Megfigyelt eredmények
 
