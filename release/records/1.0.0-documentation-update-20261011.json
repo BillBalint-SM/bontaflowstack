@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "version": "1.0.0",
+  "kind": "documentation-only-asset-refresh",
+  "date": "2026-10-11",
+  "documentationCommit": "2325e888eeb2e225d5a0390a13a480304fcba11a",
+  "originalTagCommit": "6addc812aac2486a7d5eb7900b5c3381ad015b03",
+  "tagMoved": false,
+  "previousArchiveSha256": "3e25b7dc6b5c0e9816b0494dac2acc06a24fd97f0842d31c610e5cc484d409f6",
+  "archiveSha256": "fe75ae488ad33f84ed8242979f87f1c0e5aa3f54057a7802cea1e2ed1423de4b",
+  "changedFiles": [
+    {
+      "file": "README.md",
+      "beforeSha256": "2cab3bd232f8d34803a20800b044de0d64830d2479f16573ccf1f83421d87fa2",
+      "afterSha256": "35402b2e8bb94430827b1c48b4c471a3b62466479f3f49585752f57ac756577b"
+    },
+    {
+      "file": "TELEPITES.md",
+      "beforeSha256": "e476b1b2876d6058a80d5c814f690c830db84e7ce05ccff4786c6d108c4c5786",
+      "afterSha256": "cc22d3e90d3a9a676c4110674dc3a594211ab988b222b17f9620ecf6c8792a7b"
+    }
+  ],
+  "generatedMetadataChanged": [
+    "PACKAGE.json"
+  ],
+  "addedFiles": [],
+  "removedFiles": [],
+  "inventoryFiles": 133,
+  "unchangedPluginFiles": 109,
+  "setupAndMarketplaceUnchanged": true,
+  "releaseGate": {
+    "outcome": "released",
+    "receiptSha256": "a954cd041ed4c4246b3e0c8a4eb87b7081648e5a0386c1b19f52da8673929ed4",
+    "profiles": [
+      {
+        "version": "0.7.5",
+        "profile": "full-access",
+        "engine": "0.3.3",
+        "completedAt": "2026-10-11 15:06:16 UTC",
+        "reusedFromArchiveSha256": "a3276a51b668495b7f7ed14b02bece4c740a5ba8e1652198ad35a6418edbe94e",
+        "candidateArchiveSha256": "fe75ae488ad33f84ed8242979f87f1c0e5aa3f54057a7802cea1e2ed1423de4b",
+        "documentationOnlyReuse": false,
+        "receiptSha256": "0cfccf717177fb90d4f52b9849c1f49dfc19b2753b7d03e230a5d9d83becc91f",
+        "nativeSha256": "ee11d4cfd771c37ce74465b7fc7b3162bd7b3544497c51d5d97efbec7518d92e",
+        "versionPromotion": {
+          "kind": "version-label-only",
+          "fromVersion": "0.7.5",
+          "toVersion": "1.0.0",
+          "basisArchiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+          "candidateArchiveSha256": "fe75ae488ad33f84ed8242979f87f1c0e5aa3f54057a7802cea1e2ed1423de4b",
+          "changedPaths": [
+            "plugins/bontaflowstack/.codex-plugin/plugin.json",
+            "plugins/bontaflowstack/catalog.json"
+          ],
+          "desktopJourneyRerun": false
+        }
+      }
+    ]
+  },
+  "retainedOriginalAssets": {
+    "archive": "BontaFlowStack-1.0.0-original-assets.zip",
+    "sha256": "f70443b0d45b0689ab2afd313e8242d6633ad0200a40bf2ffefc5c1fdfd66c49",
+    "files": [
+      {
+        "name": "BontaFlowStack-1.0.0.zip",
+        "sha256": "3e25b7dc6b5c0e9816b0494dac2acc06a24fd97f0842d31c610e5cc484d409f6",
+        "bytes": 629573
+      },
+      {
+        "name": "BontaFlowStack-1.0.0.zip.sha256",
+        "sha256": "97e1b8732265102379a5dc416bfdf1e9e53495ef153fc9c0d471d7f3369b9a92",
+        "bytes": 91
+      },
+      {
+        "name": "INSTALL-WINDOWS.md",
+        "sha256": "1708febb74b0428c2f7887bc338eefedb6cca33a1bce2b3eb8e591434af6ca50",
+        "bytes": 10693
+      },
+      {
+        "name": "RELEASE-RECEIPT.json",
+        "sha256": "78a4f0702e264915221353819793f7520684e5976e1e5f76d1a5bffea23819c8",
+        "bytes": 1550
+      },
+      {
+        "name": "SHA256SUMS",
+        "sha256": "ead0da84f64c5dd4fa9ed3262bcab4dd376a50c58297da464c258937376e04b5",
+        "bytes": 440
+      },
+      {
+        "name": "TELEPITES.md",
+        "sha256": "4f1f63c675432e5de22e4262bd186c67495a8374d5b88904361ad4d75512d64e",
+        "bytes": 10595
+      }
+    ]
+  },
+  "checks": {
+    "archiveInventory": "passed",
+    "documentationLinks": "passed",
+    "installationPowerShellSyntax": "parsed by Windows PowerShell; examples not executed",
+    "releaseFinalization": "passed",
+    "originalAssetsPreservation": "six original assets byte-identical"
+  },
+  "closedTestsRerun": false,
+  "nativeDesktopJourneyRerun": false,
+  "note": "Only README.md and TELEPITES.md content changed from the original 1.0.0 ZIP. PACKAGE.json contains their updated hashes. Original Desktop evidence retains its original version and scope. The release gate reuses the accepted 0.7.5 basis without relabeling native results."
+}
