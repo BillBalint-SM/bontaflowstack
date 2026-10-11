@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>BFS Desktop Full Access</title>
+<style>body{font:20px system-ui;margin:64px;max-width:800px}button{font:inherit;padding:16px 28px}output{display:block;margin-top:24px}</style>
+<h1>BFS Desktop Full Access</h1><p>This isolated page checks the ZIP-installed plugin through Codex Desktop.</p>
+<button id="choose">Choose</button><output id="result">Waiting for human choice</output>
+<script>document.querySelector('#choose').addEventListener('click',event=>{if(!event.isTrusted)return;document.querySelector('#result').textContent='Ready';document.querySelector('#choose').textContent='Ready';document.body.dataset.choice='Ready';document.body.dataset.chosenAt=new Date().toISOString();});</script></html>

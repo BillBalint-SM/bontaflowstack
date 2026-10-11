@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-10-11T16:38:18.655Z",
+  "scope": "Release gate only; reuses existing actual Codex Desktop 0.7.5 Full Access evidence",
+  "closedFunctionalTestsRerun": false,
+  "newDesktopTestRun": false,
+  "unitTests": {
+    "command": "node --test tests/release-gate.test.mjs tests/release-workflow.test.mjs",
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0,
+    "syntheticRejectionScenarios": 10
+  },
+  "actualPackageCases": [
+    {
+      "case": "missing-final",
+      "outcome": "blocked",
+      "code": "DESKTOP_EVIDENCE_MISSING",
+      "candidateSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+      "changedPaths": [],
+      "releaseOutputExists": false,
+      "diagnosticFile": "artifacts/release-gate-proof/missing-final.json",
+      "diagnosticSha256": "cd2307899726729b33c9c682bcfacc5d346e06e2499e6ddd6f8b1a48b132b967"
+    },
+    {
+      "case": "stale-final",
+      "outcome": "blocked",
+      "code": "DESKTOP_INPUTS_STALE",
+      "candidateSha256": "eb2557191160fe52d538a4381c6aa964e9a9f637bfe05dca30be75bacc5b0bd0",
+      "changedPaths": [
+        "plugins/bontaflowstack/scripts/bfstack.ps1"
+      ],
+      "releaseOutputExists": false,
+      "diagnosticFile": "artifacts/release-gate-proof/stale-final.json",
+      "diagnosticSha256": "9991ae020cb0830d50091082c07e78416c822c430fb8f2105f2e4a2c932d5d46"
+    },
+    {
+      "case": "valid-final",
+      "outcome": "released",
+      "code": null,
+      "candidateSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+      "changedPaths": [],
+      "releaseOutputExists": true,
+      "diagnosticFile": "artifacts/release-gate-proof/valid-final.json",
+      "diagnosticSha256": "889a0d9268bc84f897a4e07aaec5b4ee45fac15c03f22b252038284bb200fb6f"
+    }
+  ],
+  "contractSha256": "4e3c52eb0ec520c5a86b17b18465c3a81ed60c9fb1f55d24c9b6a31dfbe7a0a4",
+  "limits": [
+    "GitHub Actions workflow not executed",
+    "Only the declared Windows Full Access Desktop matrix is validated",
+    "Evidence is reviewed recorded data, not cryptographic host attestation"
+  ],
+  "checkedSource": {
+    "hashNormalization": "UTF-8 text with LF line endings",
+    "files": {
+      ".github/workflows/check.yml": "5360587b18e67568c91f5be5145445e6f28ff0f880d1243403f4c536f08f1ed6",
+      "scripts/build-package.ps1": "9a9bada2766025d13b41d8f4d869208a2135bbde3ce0d11bdedfe141c3cab17a",
+      "scripts/release.mjs": "1e0459fa69bb1797188847b1720dfc059e1dfdcfa2a29c571c2953d99ea441fa",
+      "scripts/release-gate.mjs": "1836e89dd34cd42c9dc41d40d144f38dc47e022a76e5d39aa76d56a2a75e1610",
+      "scripts/release-archive.ps1": "9fb9e9bd8bb9b2d2f2165613684a8040701e12f3c2e7026cd1aab9240d9452c4",
+      "scripts/release-guide-syntax.ps1": "a965b23abd079edcc1be33712026c6b4ba8e502b8e4fdf62d0ae29cc96eeb13a",
+      "release/policy.json": "149aa30c754a6b3a53cb32457952ad43e38d800ec6c3ce0d0f59740bee71c1ff",
+      "release/desktop-acceptance.md": "51df46c2bf6aca0890276d1e6625c0d8baaa549d2121e1ae8c7b436d60e8adad",
+      "release/desktop-fixture.html": "182ae478b0ab8d8155bc5c417bc5285c8b5d53aadceb2ca892e2f982d8791dd8",
+      "tests/release-fixtures.mjs": "161702998149890cc0bef06482264cd6e9e5d0ec8783d3506e655d0bb38e740e",
+      "tests/release-gate.test.mjs": "6fcedf1501372635b54b44839a8a28a41ad1f7f4a9fd28d1af3cf0fac608bcb2",
+      "tests/release-workflow.test.mjs": "723de9b67d76ae9768edf106ef42419041fd804a395ff812f924dee4ddc8b300"
+    }
+  },
+  "finalFormatting": "Only trailing blank lines removed after unit/integration tests; final real-package gate cases verified afterwards."
+}
