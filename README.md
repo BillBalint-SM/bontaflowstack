@@ -1,5 +1,7 @@
 # BontaFlowStack
 
+**English** · [Magyar](TELEPITES.md)
+
 ### From the first idea to the work you can ship.
 
 **34 connected skills for Codex Desktop.** Shape a product, design its interface,
@@ -13,7 +15,6 @@ left off—with project decisions and delivery evidence kept alongside the work.
 
 **[Download 1.0.0](https://github.com/BillBalint-SM/bontaflowstack/releases/tag/v1.0.0)**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
-· [Telepítés magyarul](TELEPITES.md)
 · [What's in this release](docs/bontaflowstack/RELEASE-1.0.0.md)
 
 ## Bring the whole product journey into your project
