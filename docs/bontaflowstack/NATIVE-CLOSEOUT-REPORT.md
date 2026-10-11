@@ -5,9 +5,116 @@ kiadása: engine 0.3.2, plugin 0.7.1; lásd a [changelogot](CHANGELOG.md).
 Az újraindítás utáni W01 előpróba (`01a12830-32b8-7be2-899d-8a9852f5f2e8`)
 ugyanazzal a runtime sharing violation hibával már a `whoami` előtt megállt.
 
+**Későbbi W01 lezárás: PASS natív MXC sandboxban.** A részletek lent;
+az eredeti elevated implementáció hibája ettől nem tekinthető kijavítottnak.
+
 Felhasználói elfogadás: W01 → G01 → B01 → R01; csak hiba esetén javítás és
 érintett ismétlés. Saját GitHub-tesztág és push külön engedélyezve.
-Nem futott teljes tesztkampány. Eredmény: **3 PASS, 1 BLOCKED**.
+Nem futott teljes tesztkampány. Az első kör eredménye: **3 PASS, 1 BLOCKED**.
+A későbbi W01- és asztali MXC-próbák lezárása az alábbi szakaszokban szerepel.
+
+## MXC a normál Codex-konfigurációban
+
+A felhasználó külön kérésére a `C:/Users/littl/.codex/config.toml` módosult:
+`windows.sandbox = "mxc"`, `default_permissions = "workspace-git"`.
+A `sandbox_mode = "danger-full-access"` sor kikerült, mert a régi beállítás
+felülírná a profilválasztást. A saját profil `:workspace`-ből örököl, a
+`:workspace_roots` alatti `.git` írását engedélyezi. A hálózati hozzáférés és
+az `approval_policy = "never"` megmaradt; a többi konfiguráció változatlan.
+A mentés és a szemantikai összehasonlítás ellenőrzött.
+
+- Mentés: `C:/Users/littl/.codex/config.toml.before-mxc-20261011T003531Z`.
+- Új konfiguráció SHA-256:
+  `2e22ec7c7df68054b80b51a642d95b68a84f970389470af35ea0de68733e9e1a`.
+- **Egy tényleges sandboxos commitpróba: PASS.** Az alkalmazás CLI-je a normál
+  konfigurációt olvasta; nem kapott `-c`, `--permission-profile` vagy `--sandbox`
+  felülírást. A fixture workspace-en belüli linked worktree-ben létrejött a
+  `07d9bb774f37b53972a91040667ee7bdb70f36a4` commit, pontosan a `probe.txt`
+  változásával. A worktree és a fixture fő checkoutja tiszta.
+- Ugyanebben a sandboxos scriptben a workspace-en kívüli írás `DENIED`,
+  a fájl nem jött létre. Ez a mentett alapkonfiguráció gyakorlati bizonyítéka.
+- Az első harness-indítás egy CLI-argumentumhibával, a sandbox futtatása előtt
+  megállt (`--include-managed-config` profil nélkül). A javított indítóval
+  futott a fenti egyetlen commit; az argumentumhiba bizonyítékát megtartottuk.
+
+Bizonyíték: `.tmp/mxc-normal-20261011/` alatt `config-receipt.json`,
+`launch.json`, `result.json`, `verified.json`, `verify.mjs`, `commit.ps1`.
+
+**Asztali profilváltás utáni célzott ellenőrzés: PASS.** A korábbi GUI-átállítás
+két kattintási kísérlete `SendInput sent 0 of 1 events; GetLastError=87` hibát
+adott. Ezután a felhasználó a „Válts workspace-git profilra” beszélgetésben
+jelezte a profilváltás elvégzését, és kérte a két célzott próbát.
+
+A `01a1287a-8c80-76e1-bfdd-a683c9b0762b` asztali chatben, külön jogosultság-
+vagy sandboxfelülírás nélkül futó `exec_command` próbák eredménye:
+
+- A fő repóhoz kapcsolt, elkülönített munkafában a `git add` és `git commit`
+  exit 0; commit `44719db821f1a0830a683a7acbd2d3bc9c90e0df`. Egyetlen új fájl:
+  `sandbox-commit-probe.txt`; a próbamunkafa tiszta.
+- A repó létező szülőkönyvtárában egy új próbafájl létrehozása
+  `System.UnauthorizedAccessException` hibával meghiúsult; fájl nem keletkezett.
+- A teszt utáni ellenőrzés szerint a fő HEAD, a fő munkafa státusza és a
+  jelentés akkori tartalma változatlan maradt. A jelen szakasz későbbi
+  dokumentációfrissítés, nem része a próba változatlansági állításának.
+
+A lezáráskor visszaolvastuk a chat tényleges parancskimeneteit és az alábbi
+helyi bizonyítékokat: `.tmp/mxc-desktop-profile-20261011/verified.json`,
+`commit-result.json`, `outside-write-result.json`, `before.json`.
+A commitot a Gitből is visszaellenőriztük, a külső fájl továbbra sem létezett.
+Új próbacommitot vagy külső írási kísérletet a lezáráskor nem futtattunk.
+
+Korlát: a próbacommitnál `-c core.hooksPath=NUL` volt érvényben; ez nem
+Git-hook-kompatibilitási bizonyíték. Nem vizsgáltuk az összes külső útvonalat,
+az újraindítás utáni profilmegőrzést vagy más asztali chat jogosultságait.
+Teljes tesztkampány nem futott. A kért célzott asztali működés igazolt;
+a korábbi „nyitott asztali lépés” státusz ezzel lezárult.
+
+Forrás a profil elsőbbségéhez és az örökléshez:
+[hivatalos permissions dokumentáció](https://learn.chatgpt.com/docs/permissions).
+Az asztali választás elsőbbsége a telepített alkalmazáskód vizsgálatából származik;
+az átállítás utáni asztali próba külön gyakorlati bizonyítéka fent szerepel.
+
+## W01 célzott javítás és ismétlés
+
+- Azonos elevated sandboxos `whoami`: npm Codex CLI `0.162.1` mellett
+  `setup refresh had errors` / runtime ACL sharing violation; az alkalmazás saját
+  `0.162.0-alpha.17.2` CLI-jével sikerült, `codexsandboxoffline` felhasználóként.
+- A helyi próbák `run.mjs` indítója most az alkalmazás `CODEX_CLI_PATH` értékét
+  használja, ha az elérhető, a hardcoded npm-es CLI helyett.
+- Az alkalmazás CLI-jével a natív chat eljutott a Gitig, de az elevated sandbox
+  az explicit Git write-rootok mellett is megtagadta az `index.lock` létrehozását.
+  Chatok: `01a1283c-f1e2-7393-960b-65220665e763`,
+  `01a12840-79fb-7c71-9273-196233de9f6c`.
+- Két saját fixture-könyvtár sandbox deny ACE-jeinek mentett, célzott javítása
+  nem oldotta meg az elevated próbát: új tiltás jelent meg. Az eredeti explicit
+  ACL-eket visszaállítottuk és ellenőriztük; az örökölt szabályokat a Windows
+  frissítette a szülőről. A kézi jogmódosítás nem része a végső megoldásnak.
+- A gépen a dokumentált `windows.sandbox=mxc` előpróba `MXC_OK`, exit 0.
+  A végső W01 az alkalmazás CLI-jének `codex sandbox` parancsával futott:
+  natív MXC, `:workspace`-ből származó saját profil, hálózat tiltva, explicit
+  írás csak a fixture közös Git-könyvtárára és a worktree Git-könyvtárára.
+  Nem használtunk full-access módot vagy külső commitot.
+- A végső script a workspace-en kívül megpróbált létrehozni egy saját
+  próba-fájlt: hozzáférés megtagadva, fájl nem jött létre. Ezután a sandboxban
+  átírta a `probe.txt` tartalmát, majd a `git add` és `git commit` is sikerült.
+  Commit: `885e08aba435db8ac619af8f13108d2ba4b78ff2`, szülő:
+  `5de819a3c35c3c82edb03fc9e512acad52d64844`. Egyetlen érintett fájl:
+  `probe.txt`; tartalom pontosan `after\n`; worktree tiszta.
+
+Bizonyíték: `.tmp/native-closeout-20261011/w01-mxc-launch.json`,
+`w01-mxc-result.json`, `w01-profile.mjs`, `w01-commit.ps1`,
+`w01-acl-before.json`, `w01-acl-repair.json` ugyanebben a könyvtárban.
+A végső próba közvetlen natív sandboxparancs volt; a fenti agent-chatok
+az elevated implementáció sikertelen próbáit őrzik.
+
+A [hivatalos Windows sandbox dokumentáció](https://learn.chatgpt.com/docs/windows/windows-sandbox)
+alapján MXC támogatott natív megoldás; ezen a gépen a fenti próba ténylegesen
+ellenőrizte. Ebben a korábbi körben a gépszintű Codex-beállítás még nem változott,
+a W01 indító választotta ki az MXC-t. A későbbi alapbeállítást lásd fent.
+Más gépen vagy a legacy elevated/npm CLI-vel nincs új PASS.
+Csak W01 és a hozzá szükséges diagnosztika futott; a G01/B01/R01 korábbi
+eredményeihez nem futtattunk újabb kampányt. BFS plugin-/engine-kód és kiadás
+nem változott.
 
 ## Vizsgált telepítés
 
