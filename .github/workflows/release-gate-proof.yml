@@ -1,0 +1,57 @@
+name: Release gate proof
+on:
+  push:
+    branches: ['codex/release-gate-proof-*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gate:
+    name: Desktop evidence / ${{ matrix.scenario }}
+    runs-on: windows-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [missing, stale, valid]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare reviewed immutable inputs
+        env:
+          BFS_RELEASE_DESKTOP_PROOF: ${{ secrets.BFS_RELEASE_DESKTOP_PROOF_075 }}
+        run: node scripts/ci-release-proof.mjs prepare ${{ matrix.scenario }}
+      - name: Run production release gate
+        id: gate
+        # Only this negative-control harness continues to inspect expected rejection.
+        continue-on-error: true
+        uses: ./.github/actions/finalize-release
+        with:
+          candidate: artifacts/ci-input/candidate.zip
+          evidence: artifacts/ci-input/evidence
+          output: artifacts/ci-final
+          report: artifacts/ci-result.json
+      - name: Assert expected gate result and output absence or identity
+        env:
+          BFS_GATE_OUTCOME: ${{ steps.gate.outcome }}
+        run: node scripts/ci-release-proof.mjs verify ${{ matrix.scenario }}
+      - name: Publish only the accepted release
+        if: success() && matrix.scenario == 'valid' && steps.gate.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-release-valid
+          path: artifacts/ci-final/0.7.5/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Retain public gate diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-diagnostics-${{ matrix.scenario }}
+          path: |
+            artifacts/ci-result.json
+            artifacts/ci-verification.json
+          if-no-files-found: ignore
+          retention-days: 30

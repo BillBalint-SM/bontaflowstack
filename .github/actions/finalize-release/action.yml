@@ -1,0 +1,29 @@
+name: Finalize verified release
+description: Promote the exact candidate only when the versioned Desktop evidence gate accepts it.
+inputs:
+  candidate:
+    description: Candidate ZIP path or a glob matching exactly one ZIP
+    required: true
+  evidence:
+    description: Desktop evidence bundle directory
+    required: true
+  output:
+    description: Final release directory
+    required: true
+  report:
+    description: Diagnostic JSON path
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: pwsh
+      env:
+        BFS_CANDIDATE: ${{ inputs.candidate }}
+        BFS_EVIDENCE: ${{ inputs.evidence }}
+        BFS_OUTPUT: ${{ inputs.output }}
+        BFS_REPORT: ${{ inputs.report }}
+      run: |
+        $candidateFiles = @(Get-Item -Path "$env:BFS_CANDIDATE" -ErrorAction Stop)
+        if ($candidateFiles.Count -ne 1) { throw 'Expected exactly one candidate ZIP.' }
+        node scripts/release.mjs finalize --candidate $candidateFiles[0].FullName --evidence "$env:BFS_EVIDENCE" --output "$env:BFS_OUTPUT" --report "$env:BFS_REPORT"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

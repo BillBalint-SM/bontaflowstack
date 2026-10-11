@@ -13,6 +13,8 @@ permissions:
   contents: read
 jobs:
   core:
+    # Dedicated release-proof pushes run only the three gate cases in release-gate-proof.yml.
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,12 +36,12 @@ jobs:
           node-version: '24'
       - run: node scripts/release.mjs prepare --source . --output artifacts/candidate --report artifacts/prepare-result.json
       - name: Require actual Desktop evidence and finalize
-        env:
-          BFS_RELEASE_EVIDENCE_DIRECTORY: ${{ inputs.desktop_evidence_directory }}
-        run: |
-          $candidate = (Get-ChildItem artifacts/candidate/*.zip).FullName
-          node scripts/release.mjs finalize --candidate $candidate --evidence "$env:BFS_RELEASE_EVIDENCE_DIRECTORY" --output artifacts/final --report artifacts/release-result.json
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        uses: ./.github/actions/finalize-release
+        with:
+          candidate: artifacts/candidate/*.zip
+          evidence: ${{ inputs.desktop_evidence_directory }}
+          output: artifacts/final
+          report: artifacts/release-result.json
       - uses: actions/upload-artifact@v4
         with:
           name: verified-release

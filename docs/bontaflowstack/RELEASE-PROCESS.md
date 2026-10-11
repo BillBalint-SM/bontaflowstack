@@ -100,8 +100,18 @@ a standard hibakimeneten jelenik meg, és nincs kiadási művelet.
 A [Package checks workflow](../../.github/workflows/check.yml) megtartja a meglévő
 forrás- és csomagellenőrzéseket, és futtatja az új kiadási kapu célzott tesztjeit.
 A kézzel indítható kiadási job csak sikeres `core` után indul, ugyanazt a
-`finalize` kaput használja, és csak utána tölthet fel `verified-release` artifactot.
+[`finalize-release` lépést](../../.github/actions/finalize-release/action.yml)
+használja, és csak utána tölthet fel `verified-release` artifactot.
 Hibánál a diagnosztika külön artifact marad.
+
+A [külön GitHub-kapupróba](../../.github/workflows/release-gate-proof.yml) három
+esetet futtat: hiányzó, elavult és érvényes bizonyíték. A dedikált
+`codex/release-gate-proof-*` ág push eseményén csak ez fut; a teljes termékteszt
+kimarad. Más ágak és pull requestek szokásos ellenőrzése nem változik.
+A negatív esetek a közös kiadási lépés hibáját és a kiadási könyvtár hiányát
+követelik meg. Csak az érvényes eset tölthet fel kiadási artifactot.
+Az [ellenőrzött bemenetek leírása](../../release/ci/README.md) rögzíti a két ZIP
+eredetét és a privát Desktop-bizonyíték secretként történő átadását.
 
 A `desktop_evidence_directory` bemenetnek az adott checkoutban elérhető,
 adatvédelmileg átnézett bizonyítékcsomagra kell mutatnia. A workflow nem gyárt

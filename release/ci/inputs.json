@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "valid": {
+    "file": "release/ci/BontaFlowStack-0.7.5.zip",
+    "sha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899"
+  },
+  "stale": {
+    "file": "release/ci/BontaFlowStack-0.7.5-stale.zip",
+    "sha256": "eb2557191160fe52d538a4381c6aa964e9a9f637bfe05dca30be75bacc5b0bd0"
+  },
+  "evidence": {
+    "receipt.json": "0cfccf717177fb90d4f52b9849c1f49dfc19b2753b7d03e230a5d9d83becc91f",
+    "native.json": "11f59da00a8b8be4d878720174e5c462c4161c7b4a679631bc69175f95f1a676"
+  }
+}
