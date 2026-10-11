@@ -5,11 +5,35 @@ A [38156928938-as GitHub Actions-futás](https://github.com/BillBalint-SM/bontaf
 ág: `codex/release-gate-proof-20261011`. Ez külön ellenőrzési ág;
 a változtatások nem kerültek beolvasztásra a `main` ágba.
 
-| Desktop-bizonyíték | A tényleges kiadási kapu eredménye | Kiadási könyvtár | Kiadási artifact feltöltése |
+## A vizsgált 0.7.5-ös kiadás megfelelősége
+
+Az **érvényes** állapot azt jelenti, hogy a vizsgált ZIP-hez a deklarált
+Desktop-környezetben minden kötelező bizonyíték rendelkezésre áll és naprakész.
+A [tényleges kiadási eset](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715551)
+alapján:
+
+- [x] Nincs hiányzó kötelező Desktop-bizonyíték.
+- [x] Nincs elavult kötelező Desktop-bizonyíték.
+- [x] Az igazolt pluginfájlok, verzió, környezet, profil és próbaeljárás egyeznek a kiadási követelményekkel.
+- [x] A tényleges Full Access Desktop-használat bizonyítéka megvan.
+- [x] A GitHubról letöltött kiadási ZIP azonos az ellenőrzött ZIP-pel.
+
+Ezek a pipák a rögzített 0.7.5-ös ZIP-re és a deklarált Windows/Full Access
+környezetre érvényesek. Nem állítják, hogy egy későbbi változtatás után sem
+keletkezhet hiány vagy elavulás.
+
+## Elkülönített ellenpróbák a kapu működésére
+
+Az alábbi első két sorhoz szándékosan hibás tesztbemenetet adtunk: az egyikből
+kihagytuk a bizonyítékot, a másikban külön csomagpéldányt módosítottunk.
+Ezek a kapu ellenpróbái; a fenti kiadás megfelelőségi pipáit a harmadik eset
+eredménye támasztja alá.
+
+| Ellenpróba bemenete | A tényleges kiadási kapu eredménye | Kiadási könyvtár | Kiadási artifact feltöltése |
 | --- | --- | --- | --- |
-| [Hiányzó](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715800) | `DESKTOP_EVIDENCE_MISSING`, kilépési kód 1 | Nem jött létre | Kihagyva |
-| [Elavult](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715798) | `DESKTOP_INPUTS_STALE`, kilépési kód 1; eltérés: `plugins/bontaflowstack/scripts/bfstack.ps1` | Nem jött létre | Kihagyva |
-| [Érvényes](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715551) | `outcome=released`, kilépési kód 0 | Létrejött | `verified-release-valid` elkészült |
+| [Szándékosan kihagyott bizonyíték](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715800) | `DESKTOP_EVIDENCE_MISSING`, kilépési kód 1 | Nem jött létre | Kihagyva |
+| [Módosított tesztcsomag, régi bizonyíték](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715798) | `DESKTOP_INPUTS_STALE`, kilépési kód 1; eltérés: `plugins/bontaflowstack/scripts/bfstack.ps1` | Nem jött létre | Kihagyva |
+| [Kiadási ZIP, teljes és naprakész bizonyíték](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715551) | `outcome=released`, kilépési kód 0 | Létrejött | `verified-release-valid` elkészült |
 
 Mindhárom job a kiadási workflow által is használt
 [közös finalize-release actiont](../../.github/actions/finalize-release/action.yml)

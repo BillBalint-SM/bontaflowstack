@@ -7,56 +7,6 @@
   "workflowCommit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
   "branch": "codex/release-gate-proof-20261011",
   "conclusion": "success",
-  "cases": [
-    {
-      "scenario": "missing",
-      "assertions": "passed",
-      "gateOutcome": "blocked",
-      "gateCode": "DESKTOP_EVIDENCE_MISSING",
-      "archiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
-      "releaseOutputExists": false,
-      "runId": "38156928938",
-      "runAttempt": "1",
-      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
-      "newDesktopTestRun": false,
-      "closedFunctionalTestsRerun": false,
-      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715800",
-      "publishStep": "skipped",
-      "diagnosticSha256": "b7544c710ab7636fad8492051f52c513bbcd86fc91662b0ba6ec001a24c95201"
-    },
-    {
-      "scenario": "stale",
-      "assertions": "passed",
-      "gateOutcome": "blocked",
-      "gateCode": "DESKTOP_INPUTS_STALE",
-      "archiveSha256": "eb2557191160fe52d538a4381c6aa964e9a9f637bfe05dca30be75bacc5b0bd0",
-      "releaseOutputExists": false,
-      "runId": "38156928938",
-      "runAttempt": "1",
-      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
-      "newDesktopTestRun": false,
-      "closedFunctionalTestsRerun": false,
-      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715798",
-      "publishStep": "skipped",
-      "diagnosticSha256": "c2e04154f737de493db45db45d37afca9d160a2f2055008e2edc1d8f933f4d8d"
-    },
-    {
-      "scenario": "valid",
-      "assertions": "passed",
-      "gateOutcome": "released",
-      "gateCode": null,
-      "archiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
-      "releaseOutputExists": true,
-      "runId": "38156928938",
-      "runAttempt": "1",
-      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
-      "newDesktopTestRun": false,
-      "closedFunctionalTestsRerun": false,
-      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715551",
-      "publishStep": "success",
-      "diagnosticSha256": "91c5fe9872ba8ef148cf4fa8fd7b9cd7821c21fcf608a569af16583635192f86"
-    }
-  ],
   "artifacts": [
     {
       "id": 11709405209,
@@ -108,5 +58,82 @@
     "GitHub warned that the v4 actions target deprecated Node 20; this run executed them on Node 24.",
     "Artifacts retained for 30 days; this summary stays versioned.",
     "No public GitHub Release or tag created; accepted package is a workflow artifact."
+  ],
+  "releaseAssessment": {
+    "scope": "The released 0.7.5 ZIP and its declared Windows Full Access Desktop environment",
+    "sourceScenario": "valid",
+    "sourceJobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715551",
+    "sourceDiagnosticSha256": "91c5fe9872ba8ef148cf4fa8fd7b9cd7821c21fcf608a569af16583635192f86",
+    "archiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+    "environment": {
+      "application": "Codex Desktop",
+      "os": "windows-x64",
+      "desktopVersion": "26.1007.2314.0",
+      "cliVersion": "0.162.0-alpha.17.2"
+    },
+    "requiredProfiles": [
+      "full-access"
+    ],
+    "missingRequiredDesktopEvidence": [],
+    "staleRequiredDesktopEvidence": [],
+    "checks": {
+      "allRequiredDesktopEvidencePresent": true,
+      "allRequiredDesktopEvidenceCurrent": true,
+      "validatedRuntimeInputsMatchCandidate": true,
+      "downloadedReleaseMatchesValidatedZip": true
+    },
+    "interpretation": "Checks describe the released candidate. The missing/stale scenarios are intentionally invalid control inputs; their successful assertions are not release-readiness checks.",
+    "derivedFromExistingRun": true,
+    "newTestsRun": false
+  },
+  "cases": [
+    {
+      "scenario": "missing",
+      "assertions": "passed",
+      "gateOutcome": "blocked",
+      "gateCode": "DESKTOP_EVIDENCE_MISSING",
+      "archiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+      "releaseOutputExists": false,
+      "runId": "38156928938",
+      "runAttempt": "1",
+      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
+      "newDesktopTestRun": false,
+      "closedFunctionalTestsRerun": false,
+      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715800",
+      "publishStep": "skipped",
+      "diagnosticSha256": "b7544c710ab7636fad8492051f52c513bbcd86fc91662b0ba6ec001a24c95201"
+    },
+    {
+      "scenario": "stale",
+      "assertions": "passed",
+      "gateOutcome": "blocked",
+      "gateCode": "DESKTOP_INPUTS_STALE",
+      "archiveSha256": "eb2557191160fe52d538a4381c6aa964e9a9f637bfe05dca30be75bacc5b0bd0",
+      "releaseOutputExists": false,
+      "runId": "38156928938",
+      "runAttempt": "1",
+      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
+      "newDesktopTestRun": false,
+      "closedFunctionalTestsRerun": false,
+      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715798",
+      "publishStep": "skipped",
+      "diagnosticSha256": "c2e04154f737de493db45db45d37afca9d160a2f2055008e2edc1d8f933f4d8d"
+    },
+    {
+      "scenario": "valid",
+      "assertions": "passed",
+      "gateOutcome": "released",
+      "gateCode": null,
+      "archiveSha256": "3628c15d1ab99e8c1d87b42523a62812d3c3500653f931fca2c32af6b06ad899",
+      "releaseOutputExists": true,
+      "runId": "38156928938",
+      "runAttempt": "1",
+      "commit": "95900ec7e79b315b787d6fc8414fe0cea5596bdb",
+      "newDesktopTestRun": false,
+      "closedFunctionalTestsRerun": false,
+      "jobUrl": "https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38156928938/job/114521715551",
+      "publishStep": "success",
+      "diagnosticSha256": "91c5fe9872ba8ef148cf4fa8fd7b9cd7821c21fcf608a569af16583635192f86"
+    }
   ]
 }

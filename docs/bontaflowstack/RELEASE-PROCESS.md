@@ -5,13 +5,19 @@ A `scripts/build-package.ps1 -Release` ugyanezt a kaput hívja. Nincs `force`,
 `skip` vagy automatikus profilváltás. A folyamat Windows x64, Node.js 24 és
 Windows PowerShell 5.1 mellett készült; külső npm-csomagot nem igényel.
 
+**Érvényes kiadás:** az adott ZIP-re és a deklarált környezetre minden kötelező
+bizonyíték megvan és naprakész. A kiadási jelentés tételesen azt igazolja,
+hogy nincs hiányzó vagy elavult kötelező elem. Pipa csak az ellenőrzött
+feltétel teljesülésére adható. A hiány vagy eltérés nyitott teendő marad,
+amíg a javítás és a szükséges bizonyítékpótlás meg nem történik.
+
 | Kötelező feltétel | Megvalósítás | Kiadáshoz szükséges eredmény |
 | --- | --- | --- |
 | 1. Verziókezelt, ismételhető folyamat | `scripts/release.mjs`, két PowerShell-segéd, `release/policy.json` | Egyetlen előkészítés–bizonyítékrögzítés–ellenőrzés–véglegesítés út; nincs `.tmp`-beli kiadási program. |
-| 2. Változáshoz kötött bizonyíték | Fájlonkénti SHA256, verzió, host, profil, próbaeljárás | A változatlan ellenőrzés újrahasznosul; az érintett, elavult bizonyíték elutasítva. |
+| 2. Változáshoz kötött bizonyíték | Fájlonkénti SHA256, verzió, host, profil, próbaeljárás | Nincs elavult kötelező bizonyíték; a változatlan, érvényes ellenőrzés újrahasznosul. |
 | 3. Valódi Desktop-használat | [Natív próbaeljárás](../../release/desktop-acceptance.md), eredeti MCP-eredmények és két kép | ZIP-telepítés, projektkötés, látható böngésző, emberi Choose → Ready, vezérlés-visszavétel és leállítás a deklarált profilban. |
 | 4. Pontos hibadiagnózis | Minden kapufutás JSON-jelentése | Hibakód, szakasz, ismert verzió/környezet, érintett profil/fájl; az eredeti hiba megmarad. |
-| 5. Bizonyíték nélküli kiadás tiltása | `finalize` és a CI kiadási jobja | Csak sikeres kapu után jelenhet meg a végleges verziókönyvtár és a `RELEASE-RECEIPT.json`. |
+| 5. Teljes és naprakész kiadási bizonyíték | `finalize` és a CI kiadási jobja | Nincs hiányzó vagy elavult kötelező elem; minden feltétel teljesülése után készülhet végleges kiadási kimenet. |
 
 ## Használat
 

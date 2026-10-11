@@ -6,7 +6,18 @@ A kezdeti helyi ellenőrzéskor a GitHub Actions workflow még nem futott.
 Az ezt követő, külön kért GitHub-igazolás eredménye:
 [RELEASE-GATE-GITHUB.md](RELEASE-GATE-GITHUB.md).
 
-## Megfigyelt eredmények
+## A vizsgált kiadás megfelelősége
+
+A változatlan 0.7.5-ös kiadási ZIP és a deklarált Desktop-környezet esetén:
+
+- [x] Nincs hiányzó kötelező Desktop-bizonyíték.
+- [x] Nincs elavult kötelező Desktop-bizonyíték.
+- [x] A kiadási kimenet az ellenőrzött ZIP-pel azonos.
+
+## Az elkülönített kapupróbák eredménye
+
+Az első két sor szándékosan hiányos, illetve módosított tesztbemenetet használ;
+a kiadási ZIP megfelelőségét a harmadik sor igazolja.
 
 | Eset | Tényleges eredmény | Végleges kiadási könyvtár |
 | --- | --- | --- |
