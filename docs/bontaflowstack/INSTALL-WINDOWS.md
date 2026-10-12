@@ -3,8 +3,8 @@
 [Magyar útmutató](../../TELEPITES.md) · [Claude Code-részletek](INSTALL-CLAUDE-CODE.md)
 
 The single standard install route is the exact-version npm setup command. Version
-**1.1.0-rc.1 is an unpublished release candidate**; the registry command will
-work after publication, but it is not available to install from public npm yet.
+**1.1.0-rc.1 is a published release candidate**. The exact-version registry command
+was tested with both host CLIs; authenticated Claude session acceptance remains pending.
 
 ```powershell
 npx bontaflowstack@1.1.0-rc.1 setup
@@ -95,7 +95,7 @@ data. Back up and remove those separately only when you intend to erase them; se
 
 | Symptom | Action |
 | --- | --- |
-| npm reports `404` or `not published` | Version 1.1.0-rc.1 is still unpublished. Wait for its registry release. |
+| npm reports `404` or `not published` | Check the exact version and registry with `npm view bontaflowstack@1.1.0-rc.1 version --registry=https://registry.npmjs.org`. This version is published. |
 | No host CLI is detected | Install the host and add its CLI to `PATH`, then open a new PowerShell window. |
 | Plugin version is old after setup | Start a new host session and inspect the installed version and plugin path. |
 | Engine works in terminal but not in host | Check the adapter's `install-state.json` and run the host's BFS doctor command; do not guess a redirected app data path. |

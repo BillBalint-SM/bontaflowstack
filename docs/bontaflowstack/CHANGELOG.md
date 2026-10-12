@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0-rc.1 — universal npm release candidate, 2026-10-13
+
+- Publish `npx bontaflowstack@1.1.0-rc.1 setup` as the single standard install
+  route for Codex and Claude Code; omitting `setup` also starts installation.
+- Detect installed hosts, register 34 skills per adapter, prepare shared pinned
+  engines, and retain versioned files and shared state outside the npx cache.
+- Add the Claude native session/subagent, hook and MCP adapter. Raster image
+  generation/editing is excluded from Claude as agreed; authenticated native
+  session acceptance remains pending, so this is an RC.
+- Verify the public registry payload and actual registry npx installation with
+  both host CLIs. See [release evidence and limits](RELEASE-1.1.0-rc.1.md),
+  including the registry-assigned `latest` alias.
+
 ## 1.0.0 — public release, 2026-10-11
 
 - Promote the validated 0.7.5 implementation to 1.0.0. Only the plugin manifest

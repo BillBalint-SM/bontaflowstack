@@ -1,17 +1,18 @@
 # Universal npm installer and Claude Code port validation — 2026-10-13
 
-Local candidate on branch `codex/claude-code-port`, based on
-`1ec7d3e9c78b40cf45d1b44b6217eeb30ba57dd7`. This is not a published release or
-completed native Claude acceptance. The accepted scope excludes raster image
+Published RC source: `cd2e21ef8f947e0196e600f679e5cb54c1ee4dc6`, tagged
+`v1.1.0-rc.1` in the public repository. This does not establish completed
+native Claude acceptance. The accepted scope excludes raster image
 generation/editing; see [scope and mechanics](CLAUDE-CODE-PORT.md).
 
 ## Universal npm candidate 1.1.0-rc.1
 
 The user selected npm as the single distribution route for the entire package,
 including Codex and Claude Code. Each generated adapter contains 34 skills.
-The candidate is not yet published; `npm whoami` now confirms the authenticated
-publisher account. Authentication alone does not establish publishing rights or
-a successful registry release.
+The candidate is published on npm. Registry integrity and an actual registry
+npx installation with both host CLIs passed; see the [release report](RELEASE-1.1.0-rc.1.md).
+The registry also assigned `latest` and rejected its removal with E400. The
+version remains an RC with native acceptance pending.
 
 | Check | Observed result | Boundary |
 | --- | --- | --- |
@@ -26,6 +27,11 @@ a successful registry release.
 | Final focused installer checks | 16 passed, exit 0 | `.tmp/npm-final-installer-check.log`; includes failed-registration recovery, state selection and persistence, and the Windows PowerShell module-path regression assertion. |
 | npm packaging and release rejection checks | Four checks passed | `.tmp/npm-universal-package-check.log`; real npm pack, both host manifests, shared HOST preservation, altered tarball/version/tag refusal. No test publishes a package. |
 | Focused code review | No further concrete finding after repairs | Read-only review; not native session acceptance. |
+| Public npm registry install | Nine commands passed, exit 0 | `.tmp/npm registry smoke/result.json`; exact-version registry npx command, fresh cache, both real host CLIs, shared-state doctors and isolated uninstalls. Reused the previously built engine; no authenticated model session. |
+| Registry publication verification | Version, SHA-512 integrity and `rc` tag match | `.tmp/rc-registry-verified.json`; also reports the unexpected `latest` alias. |
+| CI fixture repairs | 18 targeted tests passed, exit 0 | `.tmp/rc-ci-fixture-check.log`; real Git with global/system config disabled, canonical Windows paths and forced checkout conversion. |
+| Actual Windows short-path replay | 18 targeted tests passed, exit 0 | `.tmp/rc-ci-native-temp-check.log`; 8.3 TEMP alias outside the repository, `realpathSync.native`, no global/system Git configuration. The first canonicalization attempt still failed on CI and was corrected. |
+| Registry verifier repair | Three targeted tests passed, exit 0 | `.tmp/rc-registry-verifier-check.log`; actual npm 12 singleton-array response shape, mismatches and registry-assigned tags. |
 
 The first real npx repeat exposed a Codex cache activation `Access is denied`
 error when re-adding an unchanged enabled release. A regression assertion failed
@@ -38,8 +44,8 @@ the final 110-test gate above passed.
 
 The exact candidate payload is 199,711 bytes, SHA-256
 `f6fbd7a979f3b49d0eeccce07fd02da4303b0e93d2ba9bfbb0225376d0686280`.
-This hash identifies the locally tested package, not a registry publication.
-The single user command after publication is `npx bontaflowstack@1.1.0-rc.1 setup`.
+This hash identifies the locally tested and now published package; its SHA-512
+integrity matches the registry. The single user command is `npx bontaflowstack@1.1.0-rc.1 setup`.
 Historical ZIP release evidence remains historical and is not transferred to npm.
 
 ## Earlier Claude-only npm checks — 2026-10-13
@@ -110,12 +116,12 @@ remain unverified. Synthetic events cannot establish those behaviors.
 The earlier engine tests reused an existing engine; the npm tests above now
 include a fresh download/build and real browser checks. Optional external
 DESIGN.md/impeccable providers remain untested.
-No repository push, publication, deployment or persistent installation into
-the user's actual Claude configuration was performed.
+The RC and source have now been published as recorded above. No persistent
+installation into the user's actual Claude configuration was performed.
 
 The isolated CLI test was uninstalled successfully. Its remaining temporary
 configuration directory `.tmp/claude-isolated-config-20261012` was retained:
 automatic command review rejected recursive cleanup with `blocked by policy`
-without a more specific reason. It is excluded from the delivered ZIP.
+without a more specific reason. It is excluded from the npm package.
 
 Use [the installation guide](INSTALL-CLAUDE-CODE.md) for the candidate package.

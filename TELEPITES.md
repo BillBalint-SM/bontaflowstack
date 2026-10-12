@@ -9,12 +9,12 @@ tervezd meg a felületét, építsd meg az elfogadott terv alapján, és ellenő
 böngészőben. Később ott folytathatod, ahol abbahagytad: a projektdöntések és az
 elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 
-[![Kiadás](https://img.shields.io/github/v/release/BillBalint-SM/bontaflowstack)](https://github.com/BillBalint-SM/bontaflowstack/releases/latest)
+[![npm RC](https://img.shields.io/npm/v/bontaflowstack/rc)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.1)
 [![Licenc: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Hostok: Codex és Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**npm-jelölt: `1.1.0-rc.1` — még nincs publikálva.**
+**Publikált npm-kiadásjelölt: `1.1.0-rc.1`.**
 · [Telepítés lépésről lépésre](#telepítés-windowsra)
 · [Korábbi 1.0.0-s bizonyítékok](docs/bontaflowstack/RELEASE-1.0.0.md)
 
@@ -44,8 +44,7 @@ a megfelelő belépési pont kiválasztását. Magyarul is kérheted a munkát.
 ## Kezdd itt
 
 **Szükséges:** Windows x64, Node.js 24+ npm-mel, Git és legalább egy támogatott
-host CLI-vel a PATH-on: Codex vagy Claude Code. Az `1.1.0-rc.1` npm-jelölt még
-nincs publikálva; a parancs a publikálás után lesz elérhető:
+host CLI-vel a PATH-on: Codex vagy Claude Code. A publikált RC telepítése:
 
 ```powershell
 npx bontaflowstack@1.1.0-rc.1 setup
@@ -172,9 +171,9 @@ a visszaolvasást és a lezárást. Ez a futás 0.7.5-tel történt; az eredeti 
 
 ## Telepítés Windowsra
 
-Az aktuális egyetlen telepítési út az npm csomag pontos verziója. A **1.1.0-rc.1**
-jelölt még nem jelent meg a nyilvános npm-registryben, ezért a következő parancs
-csak a publikálása után fog működni:
+Az aktuális egyetlen telepítési út az npm-csomag pontos verziója. A **1.1.0-rc.1**
+kiadásjelölt elérhető a nyilvános npm-registryben; az onnan indított telepítést
+mindkét host CLI-jével ellenőriztük. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.1.0-rc.1.md).
 
 ```powershell
 npx bontaflowstack@1.1.0-rc.1 setup

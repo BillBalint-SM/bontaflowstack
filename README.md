@@ -9,12 +9,12 @@ interface, build from an accepted plan, check it in a real browser, and pick up
 where you left off—with project decisions and delivery evidence kept alongside
 the work.
 
-[![Release](https://img.shields.io/github/v/release/BillBalint-SM/bontaflowstack)](https://github.com/BillBalint-SM/bontaflowstack/releases/latest)
+[![npm RC](https://img.shields.io/npm/v/bontaflowstack/rc)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Hosts: Codex and Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**npm candidate: `1.1.0-rc.1` — not yet published.**
+**Published npm release candidate: `1.1.0-rc.1`.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
 · [Telepítés magyarul](TELEPITES.md)
 
@@ -40,8 +40,7 @@ You can ask in your own language.
 ## Start here
 
 **Requirements:** Windows x64, Node.js 24+ with npm, Git, and at least one supported
-host installed with its CLI on `PATH`: Codex or Claude Code. The npm candidate is
-not yet published, so this exact-version command will work after publication:
+host installed with its CLI on `PATH`: Codex or Claude Code. Install the published RC:
 
 ```powershell
 npx bontaflowstack@1.1.0-rc.1 setup
@@ -171,9 +170,10 @@ as a new 1.0.0 run.
 
 ## Current candidate and compatibility evidence
 
-The combined npm installer is at unpublished version **1.1.0-rc.1**. It is not
-available from the public npm registry yet; the command above is the intended
-single install route after publication. The earlier Codex 1.0.0 release and its
+The combined npm installer **1.1.0-rc.1** is available from the public npm registry.
+The command above is the single standard install route and passed an actual
+registry installation with both host CLIs. See the [RC release report](docs/bontaflowstack/RELEASE-1.1.0-rc.1.md).
+The earlier Codex 1.0.0 release and its
 evidence remain historical and do not establish authenticated Claude session
 behavior. Raster image generation/editing is outside the accepted Claude scope;
 supplied-image understanding and authored HTML/SVG remain supported.

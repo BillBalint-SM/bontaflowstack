@@ -58,9 +58,18 @@ OIDC-vel. A workflow npm CLI 11.21.0-t használ, mert az npm dokumentációja ez
 [Trusted publishing](https://docs.npmjs.com/trusted-publishers/) és
 [dist-tag](https://docs.npmjs.com/adding-dist-tags-to-packages/) útmutatóját.
 
-A publikálást ebben a feladatban nem futtattuk. Az npm autentikációt, csomag
-létezését, OIDC-beállítást és registry-visszaellenőrzést tényleges npm-fiókkal
-csak a publikáláskor lehet igazolni.
+Az első publikálás megtörtént a `bontaflow` fiókkal: `1.1.0-rc.1`, explicit `rc`
+címkével. A registry-integritás és a registryből indított telepítés igazolt;
+lásd a [kiadási jelentést](RELEASE-1.1.0-rc.1.md). Az OIDC-beállítás és az abból
+végzett kiadás még nincs igazolva.
+
+Az npm a feltöltés után feldolgozási késést jelzett. Ilyenkor ne publikáld újra
+ugyanazt a verziót: a megőrzött artifacttal futtasd újra a `verify` parancsot.
+A verifier az npm objektum- és egyetlen elemből álló tömbválaszát is kezeli.
+Az első kiadásnál a registry `latest` címkét is rendelt az RC-hez, majd annak
+törlését E400-zal elutasította. A verifier ezt külön figyelmeztetésben és
+`registryAssignedLatest` mezőben jelzi; nem nevezi stabilnak az RC-t és nem
+engedélyez stabil publikálást. A felhasználói parancs a pontos RC-verziót rögzíti.
 
 ## Korábbi ZIP-alapú Codex kiadási kapu (történeti)
 

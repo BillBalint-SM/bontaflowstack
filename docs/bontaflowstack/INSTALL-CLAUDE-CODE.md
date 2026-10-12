@@ -1,8 +1,8 @@
 # Claude Code with the universal BontaFlowStack installer
 
-Codex and Claude Code share one installer. The npm candidate is
-**`bontaflowstack@1.1.0-rc.1`**, currently unpublished. The following command is
-the intended install route once that exact version is available in npm:
+Codex and Claude Code share one installer. The published npm release candidate is
+**`bontaflowstack@1.1.0-rc.1`**. Its registry installation passed with both host CLIs;
+authenticated Claude session acceptance remains pending. Install it with:
 
 ```powershell
 npx bontaflowstack@1.1.0-rc.1 setup

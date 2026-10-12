@@ -14,7 +14,7 @@ setup/config/telepítés kezdődik... nem kell zip vagy bármi más formátum.�
 npx bontaflowstack@1.1.0-rc.1 setup
 ```
 
-A verzió helyi kiadásjelölt; a registry-parancs csak publikálás után használható.
+A verzió publikált kiadásjelölt; a registry-parancs mindkét host CLI-jével sikeres próbán ment át.
 A `setup` elhagyása ugyanazt a folyamatot indítja. A telepítő felismeri a
 telepített Codexet és Claude Code-ot, és mindegyik elérhető hosthoz regisztrálja
 a megfelelő adaptert. A `--host codex|claude|all` az explicit választás.
@@ -69,7 +69,13 @@ rögzíti. A kiadás lépései a [release-folyamatban](RELEASE-PROCESS.md) talá
 
 Nyilvános cél: [BillBalint-SM/bontaflowstack](https://github.com/BillBalint-SM/bontaflowstack).
 A munkapéldány `origin` remote-ja a `bontaflowstack-workbook` repóra mutat;
-publikáláskor a célrepo külön ellenőrizendő. Jelenleg nincs igazolt npm-publikáció.
+publikáláskor a célrepo külön ellenőrizendő. Az `1.1.0-rc.1` npm-publikáció,
+a registry-integritás és a registryből végzett telepítés igazolt; a forrás és
+a `v1.1.0-rc.1` tag a nyilvános repo része. A tag forrása `cd2e21ef8f947e0196e600f679e5cb54c1ee4dc6`.
+Az npm a kért `rc` mellett `latest` címkét is adott, törlésére E400-at adott;
+ez nem stabil minősítés. Nyitott: a pontos npm-csomaggal végzett teljes natív
+hostelfogadás és az npm Trusted Publisher beállítása/valódi OIDC-kiadási próba.
+Lásd a [kiadási jelentést](RELEASE-1.1.0-rc.1.md).
 
 Források: [npm npx](https://docs.npmjs.com/cli/v11/commands/npx/),
 [npm bin](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/#bin),
