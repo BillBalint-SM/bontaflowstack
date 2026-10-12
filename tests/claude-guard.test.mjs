@@ -7,7 +7,7 @@ import { context } from '../plugins/bontaflowstack/core/state.mjs';
 import { guard, preTool, classify } from '../plugins/bontaflowstack/core/guard.mjs';
 
 function fixture(t) {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'bfs-claude-guard-'));
+  const temp = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'bfs-claude-guard-'));
   const project = path.join(temp, 'project with space'); fs.mkdirSync(project);
   const ctx = context(project, { ...process.env, BFS_STATE_HOME:path.join(temp, 'state'), CODEX_THREAD_ID:'claude-guard-fixture' });
   t.after(() => fs.rmSync(temp, { recursive:true, force:true }));

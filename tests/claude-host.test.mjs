@@ -14,7 +14,7 @@ import {workflow} from '../plugins/bontaflowstack/core/workflow.mjs';
 import {loadCatalog} from '../plugins/bontaflowstack/core/catalog.mjs';
 
 function fixture(t) {
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-claude-'));
+  const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'bfs-claude-'));
   const project=path.join(root,'project');fs.mkdirSync(project);
   const env={...process.env,BFS_STATE_HOME:path.join(root,'state')};delete env.CLAUDE_CODE_SESSION_ID;
   const event=(extra={})=>({session_id:'session-a',cwd:project,hook_event_name:'PreToolUse',tool_name:'Read',tool_input:{file_path:'brief.md'},...extra});

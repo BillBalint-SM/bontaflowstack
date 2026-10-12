@@ -11,10 +11,10 @@ import { workflow } from '../plugins/bontaflowstack/core/workflow.mjs';
 import { delivery } from '../plugins/bontaflowstack/core/delivery.mjs';
 
 function fixture(t) {
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-task-graph-'));
+  const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'bfs-task-graph-'));
   t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
   const repo=path.join(root,'repo');fs.mkdirSync(repo);fs.writeFileSync(path.join(repo,'plan.md'),'accepted\n');
-  for(const args of [['init','--quiet'],['add','plan.md'],['-c','user.name=Acceptance','-c','user.email=acceptance@localhost','commit','--quiet','-m','base']]) {
+  for(const args of [['init','--quiet'],['config','user.name','Acceptance'],['config','user.email','acceptance@localhost'],['add','plan.md'],['commit','--quiet','-m','base']]) {
     const r=spawnSync('git',args,{cwd:repo,encoding:'utf8',windowsHide:true});assert.equal(r.status,0,r.stderr);
   }
   const env={...process.env,BFS_STATE_HOME:path.join(root,'state'),CODEX_THREAD_ID:'coordinator'};
@@ -68,6 +68,7 @@ test('bind and record require the real isolated worktree, owner workflow and sco
   tasks(resumed,'adopt',{planId:plan.planId,taskId:'a',workflowId:run.id,confirm:'resume'},f.catalog);
   assert.throws(()=>tasks(worker,'record',{planId:plan.planId,taskId:'a',summary:'forged',evidenceId:'forged'},f.catalog));
   spawnSync('git',['config','core.autocrlf','true'],{cwd:worktree,encoding:'utf8'});
+  fs.writeFileSync(path.join(worktree,'plan.md'),'force checkout conversion\n');
   spawnSync('git',['checkout','--force','--','plan.md'],{cwd:worktree,encoding:'utf8'});
   assert.match(fs.readFileSync(path.join(worktree,'plan.md'),'utf8'),/\r\n/,'worker checkout should exercise CRLF conversion');
   assert.equal(spawnSync('git',['status','--porcelain'],{cwd:worktree,encoding:'utf8'}).stdout.trim(),'','CRLF conversion of a tracked input should remain clean');
