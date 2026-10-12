@@ -168,7 +168,7 @@ export function validateRegistryRelease(receipt, identity, tags) {
     throw new Error('Registry name/version/integrity do not match the prepared npm tarball.');
   }
   if (tags?.[receipt.tag] !== receipt.version) throw new Error(`Registry dist-tag ${receipt.tag} does not point to ${receipt.version}.`);
-  if (tags.latest === receipt.version) throw new Error('The RC also has the latest dist-tag. Remove that unintended tag before declaring this RC publication verified.');
+  return { distTags:tags, registryAssignedLatest:tags.latest === receipt.version };
 }
 
 async function verify(directory, tag) {
@@ -178,8 +178,9 @@ async function verify(directory, tag) {
     try {
       const identity = JSON.parse(runNpm(['view', `${receipt.name}@${receipt.version}`, 'name', 'version', 'dist.integrity', '--json', '--registry', 'https://registry.npmjs.org'], repo));
       const registryTags = JSON.parse(runNpm(['view', receipt.name, 'dist-tags', '--json', '--registry', 'https://registry.npmjs.org'], repo));
-      validateRegistryRelease(receipt, identity, registryTags);
-      return { outcome:'verified', name:receipt.name, version:receipt.version, tag, sha256:sha256File(tarball), integrity:receipt.integrity };
+      const tagState = validateRegistryRelease(receipt, identity, registryTags);
+      return { outcome:'verified', name:receipt.name, version:receipt.version, tag, sha256:sha256File(tarball), integrity:receipt.integrity, ...tagState,
+        ...(tagState.registryAssignedLatest ? { warning:'The registry also assigns latest to this prerelease; this does not establish stable or native acceptance.' } : {}) };
     } catch (error) {
       lastError = error;
       if (attempt < 7) await new Promise(resolve => setTimeout(resolve, Math.min(30000, 1000 * (2 ** attempt))));

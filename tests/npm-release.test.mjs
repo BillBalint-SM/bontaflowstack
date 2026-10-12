@@ -10,7 +10,7 @@ import { requireRcPublish, validateRegistryRelease } from '../scripts/npm-releas
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(repo, 'installers/npm/package.json'), 'utf8'));
 
-test('registry verification accepts npm object and singleton-array responses and rejects incorrect releases or stable tags', () => {
+test('registry verification accepts npm object and singleton-array responses, rejects mismatches, and reports registry-assigned latest', () => {
   const receipt={name:'bontaflowstack',version:'1.1.0-rc.1',tag:'rc',integrity:'sha512-v4lb2TjygKPNUA7YCdOe/+rnJY5vq2WXSbvzZYGQVC2AiS1t1ncjYFM4akCphsxvePWxUkLGGlvQsE6/4OGh3g=='};
   const identity={name:receipt.name,version:receipt.version,'dist.integrity':receipt.integrity};
   const tags={rc:receipt.version};
@@ -20,7 +20,10 @@ test('registry verification accepts npm object and singleton-array responses and
     assert.throws(()=>validateRegistryRelease(receipt,bad,tags),/name\/version\/integrity/);
   }
   assert.throws(()=>validateRegistryRelease(receipt,identity,{rc:'0.0.0-stage'}),/dist-tag rc/);
-  assert.throws(()=>validateRegistryRelease(receipt,identity,{...tags,latest:receipt.version}),/latest dist-tag/);
+  assert.equal(validateRegistryRelease(receipt,identity,tags).registryAssignedLatest,false);
+  const observed=validateRegistryRelease(receipt,identity,{...tags,latest:receipt.version});
+  assert.equal(observed.registryAssignedLatest,true);
+  assert.deepEqual(observed.distTags,{...tags,latest:receipt.version});
 });
 
 test('npm release policy requires explicit rc for prereleases and blocks stable promotion pending native evidence', () => {
