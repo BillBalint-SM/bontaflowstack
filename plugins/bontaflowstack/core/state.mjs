@@ -3,6 +3,9 @@ import path from 'node:path';
 import os from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const installStateFile = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'install-state.json');
 
 export const digest = value => createHash('sha256').update(value).digest('hex');
 export const now = () => new Date().toISOString();
@@ -52,7 +55,17 @@ export function context(cwd = process.cwd(), env = process.env) {
   const common = top.status === 0 ? git(workspace, ['rev-parse', '--path-format=absolute', '--git-common-dir']) : null;
   const anchor = common?.status === 0 ? canonical(common.stdout.trim()) : workspace;
   const key = value => digest(process.platform === 'win32' ? value.toLowerCase() : value);
-  const home = path.resolve(env.BFS_STATE_HOME || path.join(env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'BontaFlowStack', 'state', 'v2'));
+  let pinnedHome = null;
+  if (!env.BFS_STATE_HOME) {
+    const installed = readJson(installStateFile);
+    if (installed !== null) {
+      object(installed);
+      requireValue(installed.schema === 1, 'Unsupported install-state schema');
+      pinnedHome = text(installed.stateHome, 'installed stateHome', 4096);
+      requireValue(path.isAbsolute(pinnedHome), 'Installed stateHome must be an absolute path');
+    }
+  }
+  const home = path.resolve(env.BFS_STATE_HOME || pinnedHome || path.join(env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'BontaFlowStack', 'state', 'v2'));
   const projectId = key(anchor), workspaceId = key(workspace);
   const projectDir = path.join(home, 'projects', projectId);
   const workspaceDir = path.join(projectDir, 'workspaces', workspaceId);

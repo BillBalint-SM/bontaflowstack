@@ -34,7 +34,7 @@ test('catalog rejects duplicate names, broken references and invalid QA settings
 test('public skill list and invocation routes agree',()=>{
   assert.doesNotThrow(()=>checkPublicSkills(catalog,readme,policies));
   for(const skills of ['','`bfs-router`, `bfs-router`','`unknown-skill`']) {
-    const changed=readme.replace('| Routing | `bfs-router` |',`| Routing | ${skills} |`);
+    const changed=readme.replace(/^\| `bfs-router` \|/m,`| ${skills} |`);
     assert.notEqual(changed,readme);
     assert.throws(()=>checkPublicSkills(catalog,changed,policies),/README skill table differs/);
   }

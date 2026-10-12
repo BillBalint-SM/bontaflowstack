@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { changeJson, readJson, requireValue, canonical, within, digest, now, identifier } from './state.mjs';
 import { contextHook } from './context.mjs';
+import { parseBash } from './parse-bash.mjs';
 
 const parser = fileURLToPath(new URL('./parse-command.ps1', import.meta.url));
 const blank = () => ({ schema: 1, warnings: false, boundary: null });
@@ -53,11 +54,16 @@ export function classify(command, cwd, root, shell = '') {
   cwd = canonical(cwd); root = canonical(root);
   // ponytail: only exact read-only status commands skip the measured parser startup;
   // keep all other syntax in the native parser, extend only for measured frequent reads.
-  if (/^git status(?: --short| --porcelain)?\s*$/i.test(command)) return null;
-  const result = spawnSync(process.platform === 'win32' ? 'powershell.exe' : 'pwsh', ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',parser],
-    { input: command, encoding: 'utf8', windowsHide: true, timeout: 8000, maxBuffer: 1024 * 1024 });
-  if (result.error || result.status !== 0) return { decision: 'ask', reason: 'Command could not be inspected while guard warnings are enabled' };
-  const parsed = JSON.parse(result.stdout);
+  const bash = typeof shell === 'string' && /(?:^|[\\/])bash(?:\.exe)?$/i.test(shell.trim());
+  if (!bash && /^git status(?: --short| --porcelain)?\s*$/i.test(command)) return null;
+  let parsed;
+  if (bash) parsed = parseBash(command);
+  else {
+    const result = spawnSync(process.platform === 'win32' ? 'powershell.exe' : 'pwsh', ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',parser],
+      { input: command, encoding: 'utf8', windowsHide: true, timeout: 8000, maxBuffer: 1024 * 1024 });
+    if (result.error || result.status !== 0) return { decision: 'ask', reason: 'Command could not be inspected while guard warnings are enabled' };
+    parsed = JSON.parse(result.stdout);
+  }
   if (!parsed.valid) return { decision: 'ask', reason: 'Command syntax is outside the supported parser; inspect it before execution' };
   for (const item of parsed.commands) {
     const name = path.basename(item.name || '').replace(/\.exe$/i, '').toLowerCase();
@@ -91,7 +97,10 @@ export function classify(command, cwd, root, shell = '') {
         return { decision: 'ask', reason: 'This Git command can discard work or rewrite remote history; confirm its exact scope' };
       }
     }
-    if (!name || ['iex','invoke-expression'].includes(name) || /(?:encodedcommand|frombase64string)/i.test(joined)) return { decision: 'ask', reason: 'Dynamic command execution needs inspection while guard warnings are enabled' };
+    if (!name || ['iex','invoke-expression'].includes(name) ||
+        (bash && (['eval','source','.','sudo','doas','command','builtin','env','exec','nohup','xargs','time','nice','timeout','setsid','bash','sh'].includes(name) ||
+          (name === 'find' && args.some(a => ['-exec','-execdir','-delete'].includes(a))))) ||
+        /(?:encodedcommand|frombase64string)/i.test(joined)) return { decision: 'ask', reason: 'Dynamic command execution needs inspection while guard warnings are enabled' };
     if (['cmd','powershell','pwsh','bash','sh'].includes(name) && /(?:^|\s)(?:-c|-command|\/c)\s/i.test(joined)) return { decision: 'ask', reason: 'Inspect the nested shell command before execution' };
   }
   if (/\b(?:drop\s+(?:database|table)|truncate\s+table|kubectl\s+delete|terraform\s+destroy)\b/i.test(command)) return { decision: 'ask', reason: 'This operation may destroy service data or infrastructure' };
@@ -124,10 +133,11 @@ export function preTool(ctx, event) {
       if (!within(current, canonical(path.resolve(event.cwd, target)))) return response('deny', 'Edit target is outside the active boundary');
     }
   }
-  if (state.warnings && (tool === 'Bash' || /(?:^|[._])exec_command$/.test(tool))) {
+  if (state.warnings && (tool === 'Bash' || tool === 'PowerShell' || /(?:^|[._])exec_command$/.test(tool))) {
     const command = args.cmd ?? args.command;
     requireValue(typeof command === 'string', 'Missing shell command');
-    const decision = classify(command, args.workdir || event.cwd, ctx.workspace, args.shell);
+    const shell = tool === 'Bash' ? 'bash' : tool === 'PowerShell' ? 'powershell' : args.shell;
+    const decision = classify(command, args.workdir || event.cwd, ctx.workspace, shell);
     if (decision?.decision === 'deny') return response('deny',decision.reason);
     if (decision) {
       const key = digest(JSON.stringify([ctx.taskId,ctx.workspaceId,event.cwd,tool,args]));

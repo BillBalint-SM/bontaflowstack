@@ -10,7 +10,7 @@ Modes: `route` for execution, `guide` for advice, `setup` for installation/proje
 
 ## Setup
 
-1. Read [guard](../../references/guard.md) before running `scripts/setup.ps1` or any setup doctor check, including core-only setup: these report native hook readiness. Then run the installed plugin's setup script. Core setup checks Node.js and the catalog. Add `-WithEngines` for requested browser/render/design capabilities; `-InstallPrerequisites` permits installing missing Node.js through Windows Package Manager. Explain missing dependencies and verify doctor for each requested capability; core readiness does not certify engines.
+1. Read [guard](../../references/guard.md), then use the host's core doctor interface to inspect each requested capability and native hook readiness. The npm installer already prepares the host adapters and shared engines; healthy installations need no second installation from this chat. If installation or repair is needed, use the single terminal entry `npx bontaflowstack@<exact-version> setup`, with the version from the loaded catalog or a verified published release. Do not offer internal PowerShell scripts or manual skill copying as alternative installation paths. Explain missing prerequisites and host trust prompts; file readiness does not certify native hook or browser behavior.
 2. After technical checks, reuse effective preferences:
    - Saved `question-presentation`: keep it without asking again.
    - Absent: ask "How would you like to answer BFS decision questions?" Offer available panels (recommended) or chat, with consequences and built-in free text under HOST rules.

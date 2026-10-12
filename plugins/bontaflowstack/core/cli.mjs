@@ -25,8 +25,9 @@ function inputArgs(argv) {
   }
   return { args, input };
 }
-export function run(argv) {
-  const { args, input } = inputArgs(argv);
+export function run(argv, {context: hostContext, input: hostInput} = {}) {
+  requireValue(hostInput === undefined || !argv.includes('--input'), 'Supply JSON input once');
+  const parsed = inputArgs(argv), args = parsed.args, input = hostInput === undefined ? parsed.input : object(hostInput);
   const [command = 'doctor', action, ...extra] = args;
   if (command === 'hook') {
     const event = Object.keys(input).length ? input : object(JSON.parse(fs.readFileSync(0,'utf8').replace(/^\uFEFF/,'')));
@@ -46,15 +47,15 @@ export function run(argv) {
   };
   const catalog = loadCatalog();
   if (command === 'catalog') return action === 'resolve' ? resolveSkill(extra[0] || input.skill,catalog) : catalog;
+  const ctx = hostContext ?? context();
   if (command === 'read') {
     const skill = resolveSkill(action || input.skill,catalog);
     const source = fs.readFileSync(path.join(pluginRoot,'skills',skill.id,'SKILL.md'),'utf8');
     const host = fs.readFileSync(path.join(pluginRoot,'HOST.md'),'utf8'), hostSha256 = digest(host);
     requireValue(input.knownHostSha256 === undefined || /^[a-f0-9]{64}$/.test(input.knownHostSha256), 'Invalid known HOST SHA-256');
     return { skill:skill.id, ...selection(skill,{mode:skill.mode,coverage:input.mode === undefined ? skill.coverage : undefined,...input}), hostSha256,
-      ...(input.knownHostSha256 === hostSha256 ? {} : {host}), instructions:source, contentSha256:digest(source), context:contextForRead(context(),catalog) };
+      ...(input.knownHostSha256 === hostSha256 ? {} : {host}), instructions:source, contentSha256:digest(source), context:contextForRead(ctx,catalog) };
   }
-  const ctx = context();
   if (command === 'context') { requireValue(action === 'show', 'Unknown context action'); return essentialContext(ctx,catalog); }
   if (command === 'doctor' || command === 'check') {
     const engine = engines(ctx,'status');
@@ -63,7 +64,7 @@ export function run(argv) {
     else requireValue(input.coverage === undefined && input.mode === undefined, 'Select a skill for mode or coverage');
     const requirements = skill?.modes[skill.mode] || [];
     const missing = requirements.filter(name => !engine.capabilities[name]?.ready);
-    let hooks = { observed: false, reason: 'Review and trust the plugin hooks with /hooks, then use a new Codex chat.' };
+    let hooks = { observed: false, reason: ctx.host === 'claude-code' ? 'Enable the Claude plugin hooks and verify a native PreToolUse event in this session.' : 'Review and trust the plugin hooks with /hooks, then use a new Codex chat.' };
     if (ctx.taskId) {
       try { hooks.observed = guard(ctx,'status').hookObservedRecently; } catch (error) { hooks.reason = error.message; }
     }

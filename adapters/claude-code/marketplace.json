@@ -1,0 +1,15 @@
+{
+  "name": "bontaflowstack-local",
+  "owner": {
+    "name": "Bálint Bilisics (BontaFlow)"
+  },
+  "description": "The BontaFlowStack Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "bontaflowstack",
+      "source": ".",
+      "description": "Business, product, design and development workflows for Claude Code.",
+      "version": "{{VERSION}}"
+    }
+  ]
+}

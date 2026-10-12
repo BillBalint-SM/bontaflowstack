@@ -1,6 +1,75 @@
-# Kötelező kiadási folyamat
+# npm terjesztés és kiadási kapu
 
-A kiadás egyetlen belépője a `node scripts/release.mjs` a forrásrepo gyökerében.
+## Jelenlegi felhasználói terjesztés: egy npm-csomag két hosthoz
+
+A felhasználói telepítési artefaktum a `bontaflowstack` npm-csomag pontos
+verziójú `.tgz` fájlja. A csomag egyetlen `npx bontaflowstack@<verzió> setup`
+parancsa a Codex és a Claude Code plugint is telepíti. Új felhasználói ZIP-et
+nem készítünk és nem publikálunk. A `plugins/bontaflowstack/engines/*.zip` a
+csomag belső, ellenőrzőösszeggel rögzített motorarchívuma; nem telepítőcsomag.
+
+A jelenlegi `1.1.0-rc.1` kiadásjelölt csak az `rc` npm dist-taggel publikálható.
+Ez nem jelent teljes natív hostelfogadást. A korábbi Codex `1.0.0` ZIP-bizonyíték
+annak az eredeti csomagnak és futásnak a történeti bizonyítéka; nem igazolja a
+két-hostos npm artefaktumot vagy a Claude Code natív viselkedését. Stabil npm
+verzió kiadását a jelenlegi eszköz blokkolja, amíg nincs az egzakt npm `.tgz`-re
+futtatott és rögzített natív Codex- és Claude Code-elfogadási kapu.
+
+### Kiadásjelölt készítése és ellenőrzése
+
+Windows x64-en, Node.js 24+-szal és npm 11.21.0+-szal futtasd a projektellenőrzést,
+majd készíts egy új, még nem létező kiadási könyvtárat a verziótagból:
+
+```powershell
+node --test tests/npm-package.test.mjs tests/npm-release.test.mjs
+node scripts/npm-release.mjs prepare --output artifacts/npm-release/1.1.0-rc.1 --tag rc --release-tag v1.1.0-rc.1
+```
+
+A `prepare` elkészíti a két host pluginját, valódi `npm pack`-ot futtat,
+megőrzi a pontos `.tgz` bájtjait, és `release.json` fájlban rögzíti a nevet,
+verziót, RC taget, forrástagot, SHA256-ot, npm SHA512-integritást és a csomagolt
+fájlokat. Létező könyvtárat nem ír felül. A csomag tartalmát és a SHA256-ot
+ellenőrizd publikálás előtt.
+
+### Publikálás
+
+Első npm publikáláskor a csomagnak már léteznie kell a registryben, mielőtt a
+Trusted Publisher beállítható. Ezért az első RC-t a kiadási könyvtárból,
+interaktívan, a tulajdonosi npm-fiókkal kell publikálni:
+
+```powershell
+node scripts/npm-release.mjs publish --artifact artifacts/npm-release/1.1.0-rc.1 --tag rc
+```
+
+A parancs csak a `prepare` során létrehozott `.tgz`-t publikálja, és előtte
+ellenőrzi annak változatlanságát. Elutasítja a hiányzó vagy eltérő verziót,
+forrástagot, integritást és a prerelease `latest` taggel való publikálását.
+Sikeres publikálás után összeveti a registry név/verzió/integritás adatait a
+helyi `.tgz`-vel, majd ellenőrzi, hogy az `rc` dist-tag a verzióra mutat.
+Publikálási hiba esetén őrizd meg a kiadási könyvtárat; egy npm-verzió nem
+írható felül.
+
+Az első sikeres publikálás után az npm csomagbeállításainál konfiguráld a
+GitHub Actions Trusted Publishert a `BillBalint-SM/bontaflowstack` repóhoz és
+`.github/workflows/npm-publish.yml` workflow-hoz. Ezután a védett pontos
+`v<verzió>` taggel indított manuális workflow ellenőrzi és publikálja az RC-t
+OIDC-vel. A workflow npm CLI 11.21.0-t használ, mert az npm dokumentációja ezt
+írja elő a Trusted Publisherrel végzett dist-tag műveletekhez. Lásd az npm
+[Trusted publishing](https://docs.npmjs.com/trusted-publishers/) és
+[dist-tag](https://docs.npmjs.com/adding-dist-tags-to-packages/) útmutatóját.
+
+A publikálást ebben a feladatban nem futtattuk. Az npm autentikációt, csomag
+létezését, OIDC-beállítást és registry-visszaellenőrzést tényleges npm-fiókkal
+csak a publikáláskor lehet igazolni.
+
+## Korábbi ZIP-alapú Codex kiadási kapu (történeti)
+
+Az alábbi `scripts/release.mjs` folyamat a korábbi Codex ZIP-disztribúcióhoz,
+Desktop-bizonyítékhoz és a már publikált 1.0.0-hoz tartozik. Megmarad a
+történeti bizonyítékok, a kapuimplementáció és a tesztjei reprodukálására;
+nem az új felhasználói terjesztési vagy npm-stabil kiadási út.
+
+Korábban a kiadás egyetlen belépője a `node scripts/release.mjs` volt a forrásrepo gyökerében.
 A `scripts/build-package.ps1 -Release` ugyanezt a kaput hívja. Nincs `force`,
 `skip` vagy automatikus profilváltás. A folyamat Windows x64, Node.js 24 és
 Windows PowerShell 5.1 mellett készült; külső npm-csomagot nem igényel.

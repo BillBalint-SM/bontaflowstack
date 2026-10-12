@@ -46,6 +46,9 @@ try {
     if ((Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash -ne $Sha256) { throw 'Engine archive checksum does not match. No source was executed.' }
     if (-not (Test-Path -LiteralPath (Join-Path $installRoot 'engine.json'))) {
         if (Test-Path -LiteralPath $installRoot) { throw "An incomplete installation exists at $installRoot. Inspect it before retrying; it was preserved." }
+        $stagingRoot = [IO.Path]::GetFullPath((Join-Path $installBase ('.staging-' + [guid]::NewGuid().ToString())))
+        if (-not $stagingRoot.StartsWith($installBase + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'Engine staging target escapes the installation directory.' }
+        if (Test-Path -LiteralPath $stagingRoot) { throw "Engine staging target already exists: $stagingRoot" }
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $zip = [IO.Compression.ZipFile]::OpenRead($Archive)
         try {
@@ -54,17 +57,24 @@ try {
             foreach ($entry in $zip.Entries) {
                 $name = $entry.FullName.Replace('\','/')
                 if ($name.StartsWith('/') -or $name -match '(^|/)\.\.?(/|$)|:|[<>"|?*]' -or (($entry.ExternalAttributes -shr 16) -band 0xF000) -eq 0xA000) { throw "Unsafe archive entry: $name" }
-                $target = [IO.Path]::GetFullPath((Join-Path $installRoot $name))
-                if (-not $target.StartsWith($installRoot + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase) -or -not $seen.Add($target)) { throw "Invalid or repeated archive entry: $name" }
+                $target = [IO.Path]::GetFullPath((Join-Path $stagingRoot $name))
+                if (-not $target.StartsWith($stagingRoot + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase) -or -not $seen.Add($target)) { throw "Invalid or repeated archive entry: $name" }
                 $size += $entry.Length
                 if ($size -gt 536870912 -or $seen.Count -gt 10000) { throw 'Engine source archive exceeds the supported size.' }
             }
         } finally { $zip.Dispose() }
-        [IO.Compression.ZipFile]::ExtractToDirectory($Archive,$installRoot)
-        $build = Join-Path $installRoot 'scripts/build.ps1'
+        [IO.Directory]::CreateDirectory($stagingRoot) | Out-Null
+        if ((Get-Item -LiteralPath $stagingRoot -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw "Engine staging path is a link: $stagingRoot" }
+        [IO.Compression.ZipFile]::ExtractToDirectory($Archive,$stagingRoot)
+        $build = Join-Path $stagingRoot 'scripts/build.ps1'
         if (-not (Test-Path -LiteralPath $build)) { throw 'The archive has no engine build entry point.' }
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $build -Install -InstallBrowser
-        if ($LASTEXITCODE -ne 0) { throw "Engine build failed ($LASTEXITCODE). Files were preserved at $installRoot." }
+        if ($LASTEXITCODE -ne 0) { throw "Engine build failed ($LASTEXITCODE). Staging files were preserved at $stagingRoot." }
+        $stagedManifest = Join-Path $stagingRoot 'engine.json'
+        if (-not (Test-Path -LiteralPath $stagedManifest -PathType Leaf)) { throw "Engine build did not produce engine.json. Staging files were preserved at $stagingRoot." }
+        $stagedMetadata = Get-Content -LiteralPath $stagedManifest -Raw | ConvertFrom-Json
+        if ($stagedMetadata.version -ne $lock.version) { throw "Built engine version differs from the selected release. Staging files were preserved at $stagingRoot." }
+        [IO.Directory]::Move($stagingRoot,$installRoot)
     }
     $manifest = Join-Path $installRoot 'engine.json'
     $metadata = Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json

@@ -1,0 +1,8 @@
+{
+  "name": "bontaflowstack",
+  "version": "{{VERSION}}",
+  "description": "Business, product, design and development workflows for Claude Code.",
+  "author": {
+    "name": "Bálint Bilisics (BontaFlow)"
+  }
+}

@@ -4,23 +4,24 @@
 
 ### From the first idea to the work you can ship.
 
-**34 connected skills for Codex Desktop.** Shape a product, design its interface,
-build from an accepted plan, check it in a real browser, and pick up where you
-left off—with project decisions and delivery evidence kept alongside the work.
+**34 connected skills for Codex and Claude Code.** Shape a product, design its
+interface, build from an accepted plan, check it in a real browser, and pick up
+where you left off—with project decisions and delivery evidence kept alongside
+the work.
 
 [![Release](https://img.shields.io/github/v/release/BillBalint-SM/bontaflowstack)](https://github.com/BillBalint-SM/bontaflowstack/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
-![Host: Codex Desktop](https://img.shields.io/badge/Host-Codex_Desktop-222222)
+![Hosts: Codex and Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**[Download 1.0.0](https://github.com/BillBalint-SM/bontaflowstack/releases/tag/v1.0.0)**
+**npm candidate: `1.1.0-rc.1` — not yet published.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
-· [What's in this release](docs/bontaflowstack/RELEASE-1.0.0.md)
+· [Telepítés magyarul](TELEPITES.md)
 
 ## Bring the whole product journey into your project
 
 You have an idea to test, a screen to improve, or a feature to finish.
-BontaFlowStack gives Codex focused ways to carry that work forward:
+BontaFlowStack gives Codex and Claude Code focused ways to carry that work forward:
 
 - **Find the next useful step.** Turn a rough brief into a customer problem,
   specification, design direction, or implementation plan.
@@ -38,31 +39,31 @@ You can ask in your own language.
 
 ## Start here
 
-**Requirements:** Windows x64, Codex Desktop, Node.js 24+ with npm, and a Codex CLI
-that supports plugin installation. Browser setup also needs internet access.
-Git is needed for Git operations.
+**Requirements:** Windows x64, Node.js 24+ with npm, Git, and at least one supported
+host installed with its CLI on `PATH`: Codex or Claude Code. The npm candidate is
+not yet published, so this exact-version command will work after publication:
 
-1. Download [BontaFlowStack-1.0.0.zip](https://github.com/BillBalint-SM/bontaflowstack/releases/download/v1.0.0/BontaFlowStack-1.0.0.zip)
-   and its [SHA256 file](https://github.com/BillBalint-SM/bontaflowstack/releases/download/v1.0.0/BontaFlowStack-1.0.0.zip.sha256).
-   Choose these release assets, rather than GitHub's automatic source-code archive.
-2. Follow the [installation guide](docs/bontaflowstack/INSTALL-WINDOWS.md) to verify
-   the checksum, extract into a permanent folder and register the local plugin.
-3. Fully restart Codex Desktop, open your project and ask:
-
-```text
-$bfs-router Set up BontaFlowStack for this project, including browser, render and design capabilities. Use the installed 1.0.0 plugin.
+```powershell
+npx bontaflowstack@1.1.0-rc.1 setup
 ```
 
-Then bring it a real task:
+Running the same pinned package without `setup` starts the same flow. By default,
+setup detects Codex and/or Claude Code and configures every detected host. Use
+`--host codex` or `--host claude` to select one, or `--host all` to require both.
+It installs versioned host adapters outside the npm cache and prepares the
+browser/render engine. Internet access is needed for engine dependencies and
+Chromium; a signed-in host account is needed to run model-driven workflows.
+
+After setup, start a fresh session. In Codex, open your project and ask:
 
 ```text
-$bfs-router I want a booking page for my service business. Help me define the
-first useful version, compare design directions, and plan the implementation.
+$bfs-router Help me plan a booking page for my service business. Start by clarifying the customer problem and the smallest useful first version.
 ```
 
-The guide includes upgrades, rollback and expected results at every step.
-Keep your preferred Codex permission profile; the documented Full Access route
-does not require a switch to on-request.
+In Claude Code, start with `/bontaflowstack:bfs-router`. The guide covers host
+detection, updates, recovery and expected results. Setup does not grant hook
+trust or change host permissions; review hooks through each host's normal trust
+interface when prompted.
 
 ## Pick the skill that fits
 
@@ -130,24 +131,27 @@ and the [command reference](plugins/bontaflowstack/references/commands.md).
 
 Ask BFS to open a page visibly. When a site needs your input, take over the
 browser, complete the step yourself, and ask the agent to resume. The packaged
-`bfs-browser` connection uses the project selected in Codex and keeps Chromium's
-sandbox enabled.
+`bfs` browser connection uses the selected project and keeps Chromium's sandbox
+enabled.
 
 [See the browser workflow](plugins/bontaflowstack/references/browser.md).
 
 ## Your project's context stays local
 
 The core uses Node.js standard-library modules. Decisions, workflow progress,
-checkpoints and browser state live in a local state store; engine files are
-installed separately. Existing project instructions are preserved during setup.
+checkpoints and browser state live in a shared local state store; engine files are
+installed separately. Setup pins the same state root for each detected host, so
+their different Windows app storage paths do not split BFS data. Existing project
+instructions are preserved.
 
-The ZIP includes the checksum-pinned **0.3.3 engine source archive**. Browser
+The package includes the checksum-pinned **0.3.3 engine source archive**. Browser
 dependencies and Chromium download during setup. Optional design integrations
 can be added when their specific features are needed.
 
 Read [local data, backup and removal](docs/bontaflowstack/LOCAL-DATA.md).
-Optional hooks require Codex's normal trust approval; the guard is a scoped
-warning/edit check, not an operating-system security boundary.
+Optional hooks require each host's normal trust approval; setup does not bypass
+it. The guard is a scoped warning/edit check, not an operating-system security
+boundary.
 
 ## What 1.0.0 is based on
 
@@ -164,6 +168,18 @@ as a new 1.0.0 run.
 
 [Evidence and compatibility scope](docs/bontaflowstack/RELEASE-1.0.0.md)
 · [Changelog](docs/bontaflowstack/CHANGELOG.md)
+
+## Current candidate and compatibility evidence
+
+The combined npm installer is at unpublished version **1.1.0-rc.1**. It is not
+available from the public npm registry yet; the command above is the intended
+single install route after publication. The earlier Codex 1.0.0 release and its
+evidence remain historical and do not establish authenticated Claude session
+behavior. Raster image generation/editing is outside the accepted Claude scope;
+supplied-image understanding and authored HTML/SVG remain supported.
+
+[Candidate and validation limits](docs/bontaflowstack/INSTALL-CLAUDE-CODE.md)
+· [Historical 1.0.0 evidence](docs/bontaflowstack/RELEASE-1.0.0.md)
 
 ## Help shape what comes next
 

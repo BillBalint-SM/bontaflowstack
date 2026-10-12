@@ -4,7 +4,7 @@
 
 ### Az első ötlettől az átadható eredményig.
 
-**34 egymáshoz kapcsolódó skill a Codex Desktophoz.** Formálj terméket az ötletedből,
+**34 egymáshoz kapcsolódó skill a Codexhez és a Claude Code-hoz.** Formálj terméket az ötletedből,
 tervezd meg a felületét, építsd meg az elfogadott terv alapján, és ellenőrizd valódi
 böngészőben. Később ott folytathatod, ahol abbahagytad: a projektdöntések és az
 elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
@@ -12,11 +12,11 @@ elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 [![Kiadás](https://img.shields.io/github/v/release/BillBalint-SM/bontaflowstack)](https://github.com/BillBalint-SM/bontaflowstack/releases/latest)
 [![Licenc: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
-![Host: Codex Desktop](https://img.shields.io/badge/Host-Codex_Desktop-222222)
+![Hostok: Codex és Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**[Az 1.0.0 letöltése](https://github.com/BillBalint-SM/bontaflowstack/releases/tag/v1.0.0)**
+**npm-jelölt: `1.1.0-rc.1` — még nincs publikálva.**
 · [Telepítés lépésről lépésre](#telepítés-windowsra)
-· [A kiadás részletei](docs/bontaflowstack/RELEASE-1.0.0.md)
+· [Korábbi 1.0.0-s bizonyítékok](docs/bontaflowstack/RELEASE-1.0.0.md)
 
 Ezen az oldalon együtt találod a BontaFlowStack bemutatóját, a skillek listáját
 és a teljes magyar telepítési útmutatót. A projekt alapértelmezett főoldala az
@@ -25,7 +25,7 @@ Ezen az oldalon együtt találod a BontaFlowStack bemutatóját, a skillek list�
 ## Vidd végig a terméked útját a saját projektedben
 
 Van egy kipróbálandó ötleted, egy javítandó képernyőd vagy egy befejezésre váró
-funkciód? A BontaFlowStack célzott munkamódszereket ad a Codexnek ezekhez:
+funkciód? A BontaFlowStack célzott munkamódszereket ad a Codexnek és a Claude Code-nak ezekhez:
 
 - **Találd meg a következő hasznos lépést.** A kezdeti elképzelésből legyen
   megfogalmazott ügyfélprobléma, specifikáció, tervezési irány vagy fejlesztési terv.
@@ -43,31 +43,30 @@ a megfelelő belépési pont kiválasztását. Magyarul is kérheted a munkát.
 
 ## Kezdd itt
 
-**Szükséges:** Windows x64, Codex Desktop, Node.js 24+ npm-mel és a plugintelepítést
-támogató Codex CLI. A böngésző beállításához internet, a Git-műveletekhez Git is kell.
+**Szükséges:** Windows x64, Node.js 24+ npm-mel, Git és legalább egy támogatott
+host CLI-vel a PATH-on: Codex vagy Claude Code. Az `1.1.0-rc.1` npm-jelölt még
+nincs publikálva; a parancs a publikálás után lesz elérhető:
 
-1. Töltsd le a [BontaFlowStack-1.0.0.zip](https://github.com/BillBalint-SM/bontaflowstack/releases/download/v1.0.0/BontaFlowStack-1.0.0.zip)
-   fájlt és a hozzá tartozó [SHA256-fájlt](https://github.com/BillBalint-SM/bontaflowstack/releases/download/v1.0.0/BontaFlowStack-1.0.0.zip.sha256).
-   Ezeket a kiadási fájlokat válaszd, ne a GitHub automatikus „Source code” archívumát.
-2. Kövesd a [lenti telepítési lépéseket](#telepítés-windowsra): ellenőrizd az
-   ellenőrzőösszeget, bontsd ki tartós könyvtárba, és regisztráld a plugint.
-3. Teljesen indítsd újra a Codex Desktopot, nyisd meg a saját projektedet, és küldd el:
-
-```text
-$bfs-router Állítsd be a BontaFlowStacket ehhez a projekthez, a böngésző-, render- és designképességekkel együtt. A telepített 1.0.0-s plugint használd.
+```powershell
+npx bontaflowstack@1.1.0-rc.1 setup
 ```
 
-Utána jöhet a saját feladatod:
+Ugyanez a rögzített csomag `setup` nélkül is elindítja a beállítást. Alapértelmezésben
+a telepítő felismeri a Codexet és/vagy a Claude Code-ot, és minden megtalált hostot
+beállít. Egyetlen hosthoz használd a `--host codex` vagy `--host claude` kapcsolót;
+a `--host all` mindkettő meglétét kéri. A csomag verziózott hostadaptereket telepít
+az npm-cache-en kívül, és előkészíti a böngésző/render motort. A motorfüggőségekhez
+és a Chromiumhoz internet kell; a munkafolyamatok futtatásához bejelentkezett hostfiók.
+
+Telepítés után nyiss új munkamenetet. Codexben a saját projektedben küldd el:
 
 ```text
-$bfs-router Időpontfoglaló oldalt szeretnék a szolgáltatásomhoz. Segíts meghatározni
-az első használható változatot, összehasonlítani a tervezési irányokat és megtervezni
-a megvalósítást.
+$bfs-router Segíts megtervezni egy időpontfoglaló oldalt a szolgáltatásomhoz. Először tisztázzuk az ügyfélproblémát és a legkisebb hasznos első változatot.
 ```
 
-A telepítési rész a frissítést, a visszaállítást és az egyes lépések elvárt eredményét
-is tartalmazza. Megtarthatod a választott Codex-jogosultsági profilt: a dokumentált
-Full Access használathoz nem kell on-request módra váltanod.
+Claude Code-ban a `/bontaflowstack:bfs-router` paranccsal kezdd. A telepítő nem
+ad hook-bizalmat, és nem módosítja a host jogosultságait; a hookokat a host szokásos
+bizalmi felületén kell áttekinteni és jóváhagyni, ha erre kér.
 
 ## Válassz a feladatodhoz illő skillt
 
@@ -135,8 +134,8 @@ A [katalógus](plugins/bontaflowstack/catalog.json) és a
 
 Kérd meg a BFS-t, hogy látható ablakban nyisson meg egy oldalt. Amikor a webhely
 a te közreműködésedet igényli, vedd át a böngészőt, végezd el a lépést, majd kérd
-az agent folytatását. A csomag `bfs-browser` kapcsolata a Codexben kiválasztott
-projektet használja, és bekapcsolva tartja a Chromium sandboxját.
+az agent folytatását. A csomag `bfs` böngészőkapcsolata a kiválasztott projektet
+használja, és bekapcsolva tartja a Chromium sandboxját.
 
 [A böngészős munkafolyamat részletei](plugins/bontaflowstack/references/browser.md).
 
@@ -146,13 +145,13 @@ A core a Node.js standard könyvtárára épül. A döntések, a munkafolyamatok
 a checkpointok és a böngésző állapota helyi állapottárba kerülnek; a motorok
 fájljai külön települnek. A beállítás megőrzi a meglévő projektutasításokat.
 
-A ZIP tartalmazza az ellenőrzőösszeggel rögzített **0.3.3-as motor forrásarchívumát**.
+A csomag tartalmazza az ellenőrzőösszeggel rögzített **0.3.3-as motor forrásarchívumát**.
 A böngésző függőségei és a Chromium a beállítás során töltődnek le. Az opcionális
 designintegrációkat akkor adhatod hozzá, amikor szükség van a képességeikre.
 
 [Helyi adatok, mentés és eltávolítás](docs/bontaflowstack/LOCAL-DATA.md).
-Az opcionális hookok a Codex szokásos bizalmi jóváhagyását igénylik. A guard
-feladatra korlátozott figyelmeztetést és szerkesztési ellenőrzést ad; nem
+Az opcionális hookok mindkét hoston a natív bizalmi jóváhagyást igénylik; a
+telepítő ezt nem kerüli meg. A guard feladatra korlátozott figyelmeztetést és szerkesztési ellenőrzést ad; nem
 operációs rendszer szintű biztonsági határ.
 
 ## Mire épül az 1.0.0?
@@ -173,197 +172,103 @@ a visszaolvasást és a lezárást. Ez a futás 0.7.5-tel történt; az eredeti 
 
 ## Telepítés Windowsra
 
-Az alábbi útmutató az **1.0.0-s ZIP-csomaghoz** készült. Nem igényel fejlesztői
-checkoutot, személyes gépútvonalat vagy korábbi BFS-telepítést.
-A Codex saját jogosultsági profilját megtarthatod; a Chromium sandboxja bekapcsolva marad.
-Az [angol telepítési útmutató](docs/bontaflowstack/INSTALL-WINDOWS.md) külön is elérhető.
+Az aktuális egyetlen telepítési út az npm csomag pontos verziója. A **1.1.0-rc.1**
+jelölt még nem jelent meg a nyilvános npm-registryben, ezért a következő parancs
+csak a publikálása után fog működni:
 
-### 1. Előfeltételek
+```powershell
+npx bontaflowstack@1.1.0-rc.1 setup
+```
 
-- Windows x64, Codex Desktop és bejelentkezett Codex-fiók.
-- Node.js **24 vagy újabb**, a hozzá tartozó npm-mel, a PATH-on.
-- Codex CLI, amelyben van `plugin marketplace` és `plugin add` parancs.
-- Internet a böngészőmotor npm-függőségei és a Chromium letöltéséhez.
-  A 0.3.3-as motor forrásarchívuma már a csomagban van.
-- Git csak Git-alapú projektmunkához kell; a ZIP telepítéséhez nem.
+Ugyanez a parancs `setup` nélkül is elindítja a beállítást. Ne tölts le ZIP-et,
+ne másold kézzel a plugint, és ne regisztrálj külön marketplace-et.
 
-Normál Windows PowerShellben, a Desktopot használó Windows-fiókkal:
+### Előfeltételek
+
+- Windows x64.
+- Node.js 24 vagy újabb, npm-mel és a Git for Windows.
+- Codex és/vagy Claude Code a CLI-vel a `PATH` környezeti változóban.
+- Internet a motorfüggőségek és Chromium letöltéséhez.
+- Bejelentkezett hostfiók a modellalapú workflow-k használatához; a telepítéshez nem kell bejelentkezés.
+
+Ellenőrizd PowerShellben:
 
 ```powershell
 node --version
 npm.cmd --version
-codex --version
-codex --no-daemon plugin --help
+git --version
+Get-Command codex,claude -ErrorAction SilentlyContinue
 ```
 
-**Elvárt:** Node 24+, működő npm, és a Codex pluginparancsainak súgója.
-Az igazolt környezet Desktop `26.1007.2314.0`, CLI `0.162.0-alpha.17.2`.
-Ez a ténylegesen vizsgált verziópár, nem bizonyított minimális követelmény.
+Legalább az egyik host CLI-jének meg kell jelennie. Alapértelmezésben a setup
+felismeri mindkét telepített hostot és mindegyikhez regisztrál. Választhatod az
+egyiket `--host codex` vagy `--host claude` kapcsolóval, illetve kérheted mindkettőt
+`--host all` kapcsolóval. A `all` hibaüzenettel leáll, ha valamelyik host hiányzik.
 
-Hiányzó Node esetén telepíts a [hivatalos oldalról](https://nodejs.org/en/download).
-Hiányzó Codex CLI esetén az OpenAI
-[hivatalos útmutatója](https://developers.openai.com/codex/cli/)
-alapján használható:
+### Telepítés és első indítás
+
+Futtasd az egyetlen telepítési parancsot:
 
 ```powershell
-npm.cmd install -g @openai/codex@latest
+npx bontaflowstack@1.1.0-rc.1 setup
 ```
 
-Ezután nyisd újra a PowerShellt és a Codexet. Ne az alkalmazás gyorsítótárából
-kimásolt `codex.exe`-t indítsd. Ha a CLI nem ismeri a pluginparancsokat vagy
-a `--no-daemon` kapcsolót, előbb frissítsd.
+Siker esetén az installer kiírja a verziót, a regisztrált hostokat és a tartós
+telepítési könyvtárakat. A csomag a verziózott hostfájlokat az npm-cache-en kívül,
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.1\hosts` alatt tartja.
+Az installer egyetlen már létező BFS-állapotgyökeret automatikusan újrahasznál,
+beleértve a Windows Store által átirányított LocalAppData útvonalat is. Ha nincs
+korábbi adat, az alapértelmezett gyökér `%LOCALAPPDATA%\BontaFlowStack\state\v2`.
+Ha két különböző gyökérben is van adat, a telepítés a hostok beállítása előtt leáll;
+állítsd be a `BFS_STATE_HOME` változót az általad kiválasztott meglévő útvonalra.
+Az adatok nem olvadnak össze. Minden host `install-state.json` fájlja a kiválasztott
+közös útvonalat rögzíti.
 
-### 2. Ellenőrzés és kibontás
+Nyiss új munkamenetet, és kezdd a hostnak megfelelő routerrel:
 
-A [GitHub Release oldalról](https://github.com/BillBalint-SM/bontaflowstack/releases/tag/v1.0.0)
-töltsd le a két összetartozó fájlt:
+- Codex: `$bfs-router`
+- Claude Code: `/bontaflowstack:bfs-router`
 
-- `BontaFlowStack-1.0.0.zip`
-- `BontaFlowStack-1.0.0.zip.sha256`
+A routerrel állítsd be a böngésző- és rendermotort, ha ezekre is szükséged van.
+A csomag előkészíti a rögzített motorverziót; a Chromium és a függőségek letöltése
+eltarthat. A `doctor` fájlellenőrzése önmagában nem bizonyítja a böngészőindítást.
 
-Az alábbi példa a Letöltések mappával számol. Ha máshová mentetted őket,
-csak a `$downloadDir` értékét módosítsd. A cél egy új, tartós könyvtár legyen.
+### Trust és engedélyek
 
-```powershell
-$downloadDir = Join-Path $env:USERPROFILE 'Downloads'
-$archive = Join-Path $downloadDir 'BontaFlowStack-1.0.0.zip'
-$checksum = "$archive.sha256"
-$expected = ((Get-Content -LiteralPath $checksum -Raw).Trim() -split '\s+')[0]
-if ($expected -notmatch '^[a-fA-F0-9]{64}$') { throw 'Invalid checksum file.' }
-$actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash
-if ($actual -ine $expected) { throw 'Checksum mismatch. Stop installation.' }
-
-$packageDir = Join-Path $env:USERPROFILE 'Tools/BontaFlowStack/1.0.0'
-if (Test-Path -LiteralPath $packageDir) { throw 'Destination exists. Choose a new empty directory.' }
-Unblock-File -LiteralPath $archive
-Expand-Archive -LiteralPath $archive -DestinationPath $packageDir
-Set-Location -LiteralPath $packageDir
-```
-
-**Elvárt:** nincs hiba; a kibontott mappában megtalálható a `README.md`,
-a `TELEPITES.md`, a `.agents/plugins/marketplace.json` és a
-`plugins/bontaflowstack` könyvtár. Eltérő ellenőrző összegnél ne folytasd.
-
-A fenti nevű kiadási fájlokat használd. A GitHub automatikus „Source code”
-archívuma fejlesztői forrás, nem a véglegesített telepítési csomag.
-
-### 3. A plugin telepítése
-
-**Első telepítésnél** ugyanabban a PowerShell-ablakban:
-
-```powershell
-codex --no-daemon plugin marketplace add $packageDir --json
-if ($LASTEXITCODE -ne 0) { throw 'Marketplace registration failed.' }
-codex --no-daemon plugin add bontaflowstack@bontaflowstack --json
-if ($LASTEXITCODE -ne 0) { throw 'Plugin installation failed.' }
-```
-
-**Elvárt:** a telepítés eredményében `bontaflowstack@bontaflowstack`,
-**1.0.0** és a telepített plugin könyvtára szerepel.
-Ha a `bontaflowstack` marketplace már létezik, a lenti frissítési lépéseket használd.
-
-A kibontott csomag könyvtárát tartsd meg: ez a regisztrált helyi forrás.
-
-### 4. Betöltés és a böngészőmotor beállítása
-
-1. Mentsd az aktív munkádat, majd teljesen lépj ki a Codex Desktopból és indítsd újra.
-   Egy új üzenet önmagában nem cserélte le a már futó régi MCP-kapcsolatot.
-2. A **saját projekted könyvtárában** nyiss chatet, ne a plugin kibontási könyvtárában.
-3. Tartsd meg a választott jogosultsági profilt. Ha a Codex kéri,
-   a normál plugin/MCP-kezelőben engedélyezd a `bfs-browser` kapcsolatot.
-4. Küldd el:
-
-```text
-$bfs-router Állítsd be a BontaFlowStacket ehhez a projekthez, a böngésző-, render- és designképességekkel együtt. A telepített 1.0.0-s plugint használd.
-```
-
-**Elvárt:** a router a telepített plugin setupját futtatja `-WithEngines`
-kapcsolóval. Ellenőrzi a mellékelt motorarchívumot, telepíti a rögzített
-függőségeket és a Chromiumot, majd késznek jelzi a core és browser/render képességeket.
-Várd meg a letöltések végét. A Desktopból futtatott beállítás ugyanannak a hostnak
-az állapottárát használja, mint a plugin kapcsolata.
-
-Csak tervezési/core használathoz hagyd el a böngésző/render/design kérést.
-A core nem igényel npm-függőségeket.
-
-A router megőrzi a meglévő projektutasításokat. Hiányzó issue-tracker- vagy
-szakterületi forrásnál előbb kérdez, és csak a válasz alapján készíti el
-a hiányzó projektútmutatót. A panel/chat preferenciakérdésnél válassz kedved szerint.
-Az opcionális impeccable és Google DESIGN.md hiánya nem akadályozza az alap
-böngésző-, render- és designmunkát.
-
-Ha használni akarod a guard védelmét, a Codex `/hooks` felületén tekintsd át és
-hagyd jóvá a **PreToolUse** és **Stop** hookokat.
-A plugin telepítése önmagában nem ad nekik natív bizalmat.
-[Részletes hookleírás](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks)
-
-### 5. Tényleges használat ellenőrzése
-
-Ugyanabban a projektchatben:
-
-```text
-$bfs-browse A telepített plugin böngészőjével nyisd meg láthatóan a https://example.com oldalt. Előbb írd ki a kapcsolat verzióját, projektjét és jogosultsági állapotát. Olvasd vissza az oldal címét, majd állítsd le csak ennek a feladatnak a böngészőjét.
-```
-
-| Ellenőrzés | Elvárt, helyes eredmény |
-| --- | --- |
-| Plugin | 1.0.0 |
-| Projekt | A Codexben kiválasztott projekt; `bindingSource=host-workspace` |
-| Jogosultság | A választott profil nem változik; Full Access esetén a host `type=disabled` értéket ad |
-| Motor | 0.3.3, browser ready |
-| Valós használat | Látható böngésző, visszaolvasott Example Domain cím |
-| Leállítás | A feladat saját böngészője bezárul, állapota stopped |
-
-Hálózati hibát külön kell jelezni. A `doctor` vagy a fájlok megléte még nem
-bizonyítja a böngészőindítást. Bejelentkezésnél kérj látható átadást, te írd be
-az adatokat, majd kérd a folytatást.
-
-A projektkönyvtáron kívüli útvonalhoz külön, tényleges hostjóváhagyás kell.
-A nem támogatott vagy elutasított jóváhagyás nem ad hozzáférést.
+Az installer nem módosít hostjogosultságot és nem hagy jóvá hookokat. Ha a Codex
+vagy Claude Code hook-trustot kér, olvasd át a hookokat a host natív felületén,
+és csak saját döntésed alapján hagyd jóvá. Ne kapcsold be a trust-bypass módot.
+Tartsd meg a választott permission profilt; a böngésző Chromium sandboxja maradjon bekapcsolva.
 
 ### Frissítés és visszaállítás
 
-Bontsd ki az új, ellenőrzött csomagot új verziókönyvtárba. A `$packageDir`
-változóban annak abszolút útvonala legyen. A régi könyvtárat és a szükséges
-[helyi adatokat](docs/bontaflowstack/LOCAL-DATA.md) őrizd meg.
+Frissítéshez futtasd ugyanazt a parancsot egy új, pontos csomagverzióval, például
+`npx bontaflowstack@1.1.0-rc.2 setup`, ha az a verzió már megjelent. A telepítő a
+régi hostverziókat és a közös `state/v2` adatot megőrzi; egyszerre egy setupot futtass.
+Visszaállításhoz a korábbi, ismert verzió parancsát használd, ha az elérhető.
 
-Csak a BFS regisztrációját cseréld:
+### Eltávolítás
 
-```powershell
-codex --no-daemon plugin marketplace remove bontaflowstack
-if ($LASTEXITCODE -ne 0) { throw 'Could not remove the old BFS marketplace registration.' }
-codex --no-daemon plugin marketplace add $packageDir --json
-if ($LASTEXITCODE -ne 0) { throw 'Could not register the selected BFS directory.' }
-codex --no-daemon plugin add bontaflowstack@bontaflowstack --json
-if ($LASTEXITCODE -ne 0) { throw 'Could not install the selected BFS version.' }
-```
+A pluginregisztrációt a host saját plugin-kezelőjével távolítsd el. Codexben a
+`bontaflowstack@bontaflowstack` plugin, Claude Code-ban a
+`bontaflowstack@bontaflowstack-npx` plugin és a `bontaflowstack-npx` marketplace
+tartozik ehhez a telepítéshez. A verziózott
+telepítési fájlok és a közös állapottár megmaradnak; törlésük külön, tudatos adatkezelési
+művelet, lásd a [helyi adatok útmutatóját](docs/bontaflowstack/LOCAL-DATA.md).
 
-Ezután teljes Desktop-kilépés/újraindítás és verzióellenőrzés következik.
-Változó motorverziónál kérd újra a motor beállítását a Desktopból.
-
-Visszaállításhoz ugyanezt a regisztrációs/telepítési sorrendet használd a korábbi,
-ellenőrzött könyvtárral. A régebbi verzió ismert hibái is visszatérhetnek:
-a 0.7.3/0.7.4 nem tartalmazza ezt az igazolt Full Access Desktop-javítást.
-
-### Gyakori elakadások
+### Elakadások
 
 | Jelenség | Teendő |
 | --- | --- |
-| Nincs `node` vagy `codex` | Telepítsd az előfeltételt, nyisd újra az alkalmazásokat, ellenőrizd a fenti verzióparancsokkal. |
-| `no complete local package` CLI-hiba | Használd a fenti `--no-daemon` parancsokat vagy a teljes standalone CLI-t. |
-| Már létező marketplace | A BFS-re korlátozott frissítési sorrendet használd. |
-| Még mindig régi verzió látszik | A telepítés eredményét ellenőrizd, majd ténylegesen lépj ki a Desktopból és indítsd újra. |
-| `project=null` vagy jóváhagyási hiba | Nyisd meg a valós projektet; ellenőrizd a 1.0.0 verziót és a host workspace-adatát. Ne válts profilt kerülőútként. |
-| Terminálban van motor, Desktopban nincs | A telepített routerrel a Desktopból futtasd a setupot; a Windows alkalmazáscsomag más LOCALAPPDATA-helyet használhat. |
-| Egyedi `BFS_STATE_HOME` | A Desktop és a telepítő ugyanazt az értéket örökölje. Alapesetben hagyd beállítatlanul. |
-| Hiányzik a böngészőeszköz | Engedélyezd a plugin MCP-kapcsolatát a Codex normál felületén. |
-| `CreateWindowStationW` | A csomag host MCP-kapcsolatát használd, ne shellből indított helyettesítőt. A sandboxot hagyd bekapcsolva; őrizd meg a pontos hibát, ha az MCP-út is elbukik. |
-| Checksumeltérés | Állj meg, kérd le újra a ZIP-et és a hozzá tartozó ellenőrző összeget. |
-| npm/Chromium letöltési hiba | A jelzett hálózati/proxyhibát rendezd, majd ismételd a telepítőt. Offline böngészőbináris nincs a ZIP-ben. |
+| A parancs `not published` vagy `404` hibát ad | A `1.1.0-rc.1` még nem publikus npm-csomag; várd meg a registry-kiadást. |
+| Nincs host CLI a PATH-on | Telepítsd és nyisd újra a PowerShellt; ellenőrizd a `Get-Command codex,claude` kimenetét. |
+| Régi verzió töltődik be | Indíts új hostmunkamenetet, majd ellenőrizd a pluginverziót és a `readFromFolder` útvonalat. |
+| A motor a terminálból elérhető, hostból nem | A telepítő és az adapter a közös `install-state.json` útvonalat használja; futtasd a hostból a `doctor` ellenőrzést, és őrizd meg a kimenetet. |
+| Hook-trustot kér a host | Vizsgáld át és hagyd jóvá a natív felületen; az installer nem tudja ezt helyetted megtenni. |
+| npm vagy Chromium letöltési hiba | Őrizd meg a pontos hálózati/proxyhibát, rendezd, majd ismételd meg a rögzített verzió setupját. |
 
-Eltávolításhoz a Codex plugin-kezelőjét használd. A helyi memória, checkpointok,
-böngészőadatok és motorok megmaradnak; mentésüket és célzott törlésüket a
-[helyi adatok útmutatója](docs/bontaflowstack/LOCAL-DATA.md) írja le.
+Az angol [Windows telepítési útmutató](docs/bontaflowstack/INSTALL-WINDOWS.md)
+és a [Claude Code részletei](docs/bontaflowstack/INSTALL-CLAUDE-CODE.md) ugyanazt az npm-belépőt írják le.
 
 ## Alakítsd te is a folytatást
 

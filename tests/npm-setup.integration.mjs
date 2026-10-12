@@ -1,0 +1,198 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash, randomUUID } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
+  console.log('SKIP: set BFS_RUN_NPM_SETUP_INTEGRATION=1 to run real npm pack/npx setup for Codex and Claude (downloads pinned browser engines).');
+} else {
+  assert.equal(process.platform, 'win32', 'native setup integration is Windows-only');
+  const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const evidenceDir = path.join(repo, '.tmp', `npm-setup-integration-${randomUUID()}`);
+  const packageRoot = path.join(evidenceDir, 'source-package');
+  const upgradeRoot = path.join(evidenceDir, 'synthetic-upgrade-package');
+  const packDir = path.join(evidenceDir, 'packed');
+  const stateHome = path.join(evidenceDir, 'shared-state');
+  const npmCache = path.join(evidenceDir, 'npm-cache');
+  const env = {
+    ...process.env,
+    LOCALAPPDATA:path.join(evidenceDir, 'LocalAppData'),
+    USERPROFILE:path.join(evidenceDir, 'UserProfile'),
+    CODEX_HOME:path.join(evidenceDir, 'Codex'),
+    CLAUDE_CONFIG_DIR:path.join(evidenceDir, 'Claude'),
+    BFS_STATE_HOME:stateHome,
+    npm_config_cache:npmCache,
+    npm_config_yes:'true',
+  };
+  for (const directory of [evidenceDir, env.LOCALAPPDATA, env.USERPROFILE, env.CODEX_HOME, env.CLAUDE_CONFIG_DIR, stateHome, packDir, npmCache]) fs.mkdirSync(directory, { recursive:true });
+
+  const commandLogs = [];
+  function execute(name, command, args, { cwd = repo, allowFailure = false, commandEnv = env } = {}) {
+    const result = spawnSync(command, args, { cwd, env:commandEnv, encoding:'utf8', windowsHide:true, timeout:45 * 60 * 1000, maxBuffer:32 * 1024 * 1024 });
+    const record = { name, command, args, cwd, status:result.status, signal:result.signal, error:result.error?.message, stdout:result.stdout || '', stderr:result.stderr || '' };
+    fs.writeFileSync(path.join(evidenceDir, `${name}.stdout.log`), record.stdout);
+    fs.writeFileSync(path.join(evidenceDir, `${name}.stderr.log`), record.stderr);
+    commandLogs.push({ name, command, args, cwd, status:result.status, signal:result.signal, error:result.error?.message });
+    if (result.error) throw result.error;
+    if (!allowFailure) assert.equal(result.status, 0, `${name} failed (${result.status ?? result.signal}): ${record.stderr || record.stdout}`);
+    return record;
+  }
+  function resolveNpmCli(fileName) {
+    const candidates = [
+      process.env.npm_execpath && path.join(path.dirname(process.env.npm_execpath), fileName),
+      env.APPDATA && path.join(env.APPDATA, 'npm', 'node_modules', 'npm', 'bin', fileName),
+      path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', fileName),
+    ].filter(Boolean);
+    return candidates.find(file => fs.statSync(file, { throwIfNoEntry:false })?.isFile());
+  }
+  function findNative(name) {
+    const result = execute(`where-${name}`, 'where.exe', [name], { allowFailure:true });
+    assert.equal(result.status, 0, `Install ${name} and make it available on PATH before opting in.`);
+    const file = result.stdout.trim().split(/\r?\n/)[0];
+    assert.ok(file && fs.statSync(file, { throwIfNoEntry:false })?.isFile(), `Could not resolve ${name} from PATH.`);
+    return file;
+  }
+  function npx(name, archive, args = []) {
+    const cli = resolveNpmCli('npx-cli.js');
+    assert.ok(cli, 'Could not locate npm\'s npx-cli.js.');
+    return execute(name, process.execPath, [cli, '--yes', '--package', archive, '--', 'bontaflowstack', ...args], { cwd:evidenceDir });
+  }
+  function pack(name, source) {
+    const cli = resolveNpmCli('npm-cli.js');
+    assert.ok(cli, 'Could not locate npm\'s npm-cli.js.');
+    const result = execute(name, process.execPath, [cli, 'pack', '--json', '--pack-destination', packDir], { cwd:source });
+    const payload = JSON.parse(result.stdout);
+    const details = Array.isArray(payload) ? payload[0] : payload?.bontaflowstack ?? Object.values(payload)[0];
+    assert.ok(details?.filename, 'npm pack did not return its tarball filename.');
+    const archive = path.join(packDir, details.filename);
+    assert.ok(fs.statSync(archive).isFile());
+    return { archive, sha256:createHash('sha256').update(fs.readFileSync(archive)).digest('hex'), details };
+  }
+  function updateVersion(root, version) {
+    const update = file => {
+      const value = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (Object.hasOwn(value, 'version')) value.version = version;
+      if (Array.isArray(value.plugins)) for (const plugin of value.plugins) if (Object.hasOwn(plugin, 'version')) plugin.version = version;
+      fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
+    };
+    update(path.join(root, 'package.json'));
+    update(path.join(root, 'hosts', 'codex', 'plugins', 'bontaflowstack', 'catalog.json'));
+    update(path.join(root, 'hosts', 'codex', 'plugins', 'bontaflowstack', '.codex-plugin', 'plugin.json'));
+    update(path.join(root, 'hosts', 'claude', 'catalog.json'));
+    update(path.join(root, 'hosts', 'claude', '.claude-plugin', 'plugin.json'));
+    update(path.join(root, 'hosts', 'claude', '.claude-plugin', 'marketplace.json'));
+  }
+
+  const codex = findNative('codex.exe'), claude = findNative('claude.exe');
+  const build = execute('build-source-package', process.execPath, [path.join(repo, 'scripts', 'build-npm-package.mjs'), '--output', packageRoot]);
+  assert.match(build.stdout, /"hosts":\["codex","claude"\]/);
+  const firstTarball = pack('npm-pack-first', packageRoot);
+  const firstInstall = npx('npx-first-noargs', firstTarball.archive);
+  assert.match(firstInstall.stdout, /installed at .*1\.1\.0-rc\.1/i);
+  const repeatInstall = npx('npx-repeat-noargs', firstTarball.archive);
+  assert.match(repeatInstall.stdout, /installed at .*1\.1\.0-rc\.1/i);
+
+  const versionRoot = path.join(env.LOCALAPPDATA, 'BontaFlowStack', 'npm', 'versions');
+  const firstRoot = path.join(versionRoot, '1.1.0-rc.1');
+  const firstCodexRoot = path.join(firstRoot, 'hosts', 'codex', 'plugins', 'bontaflowstack');
+  const firstClaudeRoot = path.join(firstRoot, 'hosts', 'claude');
+  for (const root of [firstCodexRoot, firstClaudeRoot]) {
+    const pin = JSON.parse(fs.readFileSync(path.join(root, 'install-state.json'), 'utf8'));
+    assert.equal(pin.schema, 1);
+    assert.equal(pin.stateHome, stateHome);
+  }
+
+  fs.cpSync(packageRoot, upgradeRoot, { recursive:true });
+  updateVersion(upgradeRoot, '9.9.9-test.1');
+  const upgradeTarball = pack('npm-pack-upgrade', upgradeRoot);
+  const upgradedInstall = npx('npx-synthetic-upgrade', upgradeTarball.archive);
+  assert.match(upgradedInstall.stdout, /installed at .*9\.9\.9-test\.1/i);
+  const upgradedRoot = path.join(versionRoot, '9.9.9-test.1');
+  const codexRoot = path.join(upgradedRoot, 'hosts', 'codex', 'plugins', 'bontaflowstack');
+  const claudeRoot = path.join(upgradedRoot, 'hosts', 'claude');
+  assert.ok(fs.existsSync(path.join(firstCodexRoot, 'catalog.json')), 'prior version must remain available');
+  assert.ok(fs.existsSync(path.join(firstClaudeRoot, 'catalog.json')), 'prior version must remain available');
+
+  const codexPlugins = JSON.parse(execute('codex-plugin-list-after-upgrade', codex, ['--no-daemon','plugin','list','--json']).stdout).installed;
+  const codexRecord = codexPlugins.find(item => item.pluginId === 'bontaflowstack@bontaflowstack');
+  assert.equal(codexRecord?.version, '9.9.9-test.1');
+  assert.equal(codexRecord?.enabled, true);
+  assert.equal(codexRecord?.installed, true);
+  const claudePlugins = JSON.parse(execute('claude-plugin-list-after-upgrade', claude, ['plugin','list','--json']).stdout);
+  const claudeRecord = claudePlugins.find(item => item.id === 'bontaflowstack@bontaflowstack-npx' && item.scope === 'user');
+  assert.equal(claudeRecord?.version, '9.9.9-test.1');
+  assert.equal(claudeRecord?.enabled, true);
+  assert.equal(path.resolve(claudeRecord?.readFromFolder || ''), path.resolve(claudeRoot));
+
+  const codexMarkets = JSON.parse(execute('codex-marketplace-list-after-upgrade', codex, ['--no-daemon','plugin','marketplace','list','--json']).stdout).marketplaces;
+  assert.equal(path.resolve(codexMarkets.find(item => item.name === 'bontaflowstack')?.root || ''), path.resolve(path.join(upgradedRoot, 'hosts', 'codex')));
+  const claudeMarkets = JSON.parse(execute('claude-marketplace-list-after-upgrade', claude, ['plugin','marketplace','list','--json']).stdout);
+  assert.equal(path.resolve(claudeMarkets.find(item => item.name === 'bontaflowstack-npx')?.path || ''), path.resolve(path.join(upgradedRoot, 'hosts', 'claude')));
+
+  const downgradedInstall = npx('npx-original-archive-downgrade', firstTarball.archive);
+  assert.match(downgradedInstall.stdout, /installed at .*1\.1\.0-rc\.1/i);
+  const downgradedCodex = JSON.parse(execute('codex-plugin-list-after-downgrade', codex, ['--no-daemon','plugin','list','--json']).stdout).installed.find(item => item.pluginId === 'bontaflowstack@bontaflowstack');
+  assert.equal(downgradedCodex?.version, '1.1.0-rc.1');
+  assert.equal(downgradedCodex?.enabled, true);
+  assert.equal(downgradedCodex?.installed, true);
+  const downgradedClaude = JSON.parse(execute('claude-plugin-list-after-downgrade', claude, ['plugin','list','--json']).stdout).find(item => item.id === 'bontaflowstack@bontaflowstack-npx' && item.scope === 'user');
+  assert.equal(downgradedClaude?.version, '1.1.0-rc.1');
+  assert.equal(downgradedClaude?.enabled, true);
+  assert.equal(path.resolve(downgradedClaude?.readFromFolder || ''), path.resolve(firstClaudeRoot));
+
+  const priorState = path.join(stateHome, 'projects', 'fixture', 'keep.json');
+  fs.mkdirSync(path.dirname(priorState), { recursive:true });
+  fs.writeFileSync(priorState, 'state survives uninstall');
+  for (const pluginRoot of [firstCodexRoot, firstClaudeRoot]) {
+    const doctorEnv = { ...env, LOCALAPPDATA:path.join(evidenceDir, 'RedirectedLocalAppData') };
+    delete doctorEnv.BFS_STATE_HOME;
+    const result = execute(`doctor-${path.basename(pluginRoot)}`, process.execPath, [path.join(pluginRoot, 'core', 'cli.mjs'), 'doctor', 'bfs-browse'], { cwd:evidenceDir, commandEnv:doctorEnv });
+    const doctor = JSON.parse(result.stdout);
+    assert.equal(doctor.core.ready, true);
+    assert.equal(doctor.engines.installed, true);
+    assert.equal(fs.existsSync(path.join(doctorEnv.LOCALAPPDATA, 'BontaFlowStack', 'state', 'v2', 'engines.json')), false, 'doctor should have used the pinned shared state, not redirected LOCALAPPDATA');
+  }
+
+  execute('codex-plugin-remove', codex, ['--no-daemon','plugin','remove','bontaflowstack@bontaflowstack','--json']);
+  execute('claude-plugin-uninstall', claude, ['plugin','uninstall','bontaflowstack@bontaflowstack-npx','--scope','user']);
+  execute('codex-marketplace-remove', codex, ['--no-daemon','plugin','marketplace','remove','bontaflowstack','--json']);
+  execute('claude-marketplace-remove', claude, ['plugin','marketplace','remove','bontaflowstack-npx']);
+  const remainingCodex = JSON.parse(execute('codex-plugin-list-after-uninstall', codex, ['--no-daemon','plugin','list','--json']).stdout).installed;
+  assert.equal(remainingCodex.some(item => item.pluginId === 'bontaflowstack@bontaflowstack'), false);
+  const remainingClaude = JSON.parse(execute('claude-plugin-list-after-uninstall', claude, ['plugin','list','--json']).stdout);
+  assert.equal(remainingClaude.some(item => item.id === 'bontaflowstack@bontaflowstack-npx'), false);
+  assert.equal(fs.readFileSync(priorState, 'utf8'), 'state survives uninstall');
+  assert.equal(fs.existsSync(path.join(stateHome, 'engines.json')), true);
+
+  const cacheRemoved = `${npmCache}-removed`;
+  const packageRemoved = `${packageRoot}-removed`;
+  const upgradeRemoved = `${upgradeRoot}-removed`;
+  fs.renameSync(npmCache, cacheRemoved);
+  fs.renameSync(packageRoot, packageRemoved);
+  fs.renameSync(upgradeRoot, upgradeRemoved);
+  for (const root of [firstCodexRoot, firstClaudeRoot, codexRoot, claudeRoot]) assert.ok(fs.existsSync(path.join(root, 'catalog.json')));
+
+  const report = {
+    status:'passed',
+    sourcePackageRemoved:true,
+    npmCacheRemoved:true,
+    npxEntryTested:true,
+    nativeHosts:['codex','claude'],
+    firstVersion:'1.1.0-rc.1',
+    upgradedVersion:'9.9.9-test.1',
+    downgradedVersion:'1.1.0-rc.1',
+    tarballs:[{ path:firstTarball.archive, sha256:firstTarball.sha256 }, { path:upgradeTarball.archive, sha256:upgradeTarball.sha256 }],
+    stateHome,
+    installedRoots:[firstCodexRoot,firstClaudeRoot,codexRoot,claudeRoot],
+    activeRootsAfterDowngrade:[firstCodexRoot,firstClaudeRoot],
+    nativeRegistrationsRemoved:true,
+    pinnedStateSurvivedRedirectedLocalAppData:true,
+    userStatePreserved:true,
+    commandLogs,
+    scope:'Real npm pack and npx CLI with real Codex and Claude CLIs. Temporary host configs and npm cache were isolated under this evidence directory. Fresh pinned engine and browser assets are retained for later verification.'
+  };
+  fs.writeFileSync(path.join(evidenceDir, 'result.json'), `${JSON.stringify(report, null, 2)}\n`);
+  console.log(JSON.stringify({ status:'passed', evidence:path.join(evidenceDir, 'result.json') }));
+}

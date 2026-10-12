@@ -1,7 +1,25 @@
 # BontaFlowStack domain
 
-BontaFlowStack is a Windows x64 Codex plugin for business and product development,
+BontaFlowStack is a Windows x64 plugin package for Codex and Claude Code, for business and product development,
 design, implementation, testing, documentation and delivery.
+
+A separate Claude Code package is generated from that canonical source for
+Windows x64. It adds native session/subagent ownership, MCP calls and lifecycle
+hooks while reusing the shared core. Native Claude acceptance is still pending;
+see `docs/bontaflowstack/CLAUDE-CODE-PORT.md`. The user accepted excluding raster
+image generation/editing from this port; image understanding and authored
+HTML/SVG remain within scope.
+
+The only current distribution route for the whole package is
+`npx bontaflowstack@<exact-version> setup`; omitting `setup` also starts installation.
+The local npm candidate is 1.1.0-rc.1, built with `scripts/build-npm-package.mjs`.
+It detects Codex and Claude Code, registers each installed host, persists versioned
+files outside the npx cache, and prepares the shared pinned engines. Each plugin
+pins the same state directory so Desktop environment redirection does not split
+the new installation. Native host trust remains a human host action.
+No npm publication has occurred. ZIP release records describe historical releases;
+they do not establish acceptance of this npm candidate. See
+`docs/bontaflowstack/RELEASE-PROCESS.md` for the current publishing route.
 
 ## Terms
 

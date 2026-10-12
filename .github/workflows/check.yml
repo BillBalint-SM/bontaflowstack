@@ -2,17 +2,6 @@ name: Package checks
 on:
   push:
   pull_request:
-  workflow_dispatch:
-    inputs:
-      desktop_evidence_directory:
-        description: Reviewed Desktop evidence bundle directory available in this checkout
-        required: true
-        default: release/evidence
-        type: string
-      basis_candidate:
-        description: Optional accepted ZIP for a version-label-only promotion
-        required: false
-        type: string
 permissions:
   contents: read
 jobs:
@@ -28,34 +17,4 @@ jobs:
       # These source artifacts are candidates, never final releases.
       - run: ./scripts/build-package.ps1 -OutputDirectory artifacts/source-check
       - run: ./scripts/test-package.ps1 -Archive (Get-ChildItem artifacts/source-check/*-source.zip).FullName
-      - run: node --test tests/release-gate.test.mjs tests/release-workflow.test.mjs tests/release-promotion.test.mjs
-  release:
-    if: github.event_name == 'workflow_dispatch'
-    needs: core
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: node scripts/release.mjs prepare --source . --output artifacts/candidate --report artifacts/prepare-result.json
-      - name: Require actual Desktop evidence and finalize
-        uses: ./.github/actions/finalize-release
-        with:
-          candidate: artifacts/candidate/*.zip
-          evidence: ${{ inputs.desktop_evidence_directory }}
-          basis-candidate: ${{ inputs.basis_candidate }}
-          output: artifacts/final
-          report: artifacts/release-result.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: verified-release
-          path: artifacts/final/
-          if-no-files-found: error
-      - name: Retain release diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-diagnostics
-          path: artifacts/*-result.json
-          if-no-files-found: ignore
+      - run: node --test tests/npm-release.test.mjs tests/release-gate.test.mjs tests/release-workflow.test.mjs tests/release-promotion.test.mjs

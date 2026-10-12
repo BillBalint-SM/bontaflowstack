@@ -1,0 +1,44 @@
+name: Publish BontaFlowStack npm candidate
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Exact protected source tag, for example v1.1.0-rc.1
+        required: true
+        type: string
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+      - name: Use npm CLI with OIDC dist-tag support
+        run: npm install --global npm@11.21.0
+      - name: Confirm selected source tag is the package prerelease
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          $package = Get-Content installers/npm/package.json -Raw | ConvertFrom-Json
+          if ($env:RELEASE_TAG -ne "v$($package.version)") { throw 'The selected Git tag must exactly match the installer package version.' }
+          if ($package.version -notmatch '-[A-Za-z0-9]') { throw 'This workflow publishes prereleases only; stable publication needs the dual-host native acceptance gate.' }
+      - name: Run repository checks
+        run: node scripts/check.mjs
+      - name: Verify npm release policy and tarball safety
+        run: node --test tests/npm-release.test.mjs
+      - name: Prepare exact npm tarball
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: node scripts/npm-release.mjs prepare --output artifacts/npm-release --tag rc --release-tag $env:RELEASE_TAG
+      - name: Publish and verify the same tarball
+        run: node scripts/npm-release.mjs publish --artifact artifacts/npm-release --tag rc
