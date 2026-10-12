@@ -161,24 +161,31 @@ function prepare(outputValue, tag, releaseTag) {
   }
 }
 
+export function validateRegistryRelease(receipt, identity, tags) {
+  const single = value => Array.isArray(value) && value.length === 1 ? value[0] : value;
+  identity = single(identity); tags = single(tags);
+  if (identity?.name !== receipt.name || identity?.version !== receipt.version || identity?.['dist.integrity'] !== receipt.integrity) {
+    throw new Error('Registry name/version/integrity do not match the prepared npm tarball.');
+  }
+  if (tags?.[receipt.tag] !== receipt.version) throw new Error(`Registry dist-tag ${receipt.tag} does not point to ${receipt.version}.`);
+  if (tags.latest === receipt.version) throw new Error('The RC also has the latest dist-tag. Remove that unintended tag before declaring this RC publication verified.');
+}
+
 async function verify(directory, tag) {
   const { receipt, tarball } = getArtifact(directory, tag);
   let lastError;
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < 8; attempt++) {
     try {
       const identity = JSON.parse(runNpm(['view', `${receipt.name}@${receipt.version}`, 'name', 'version', 'dist.integrity', '--json', '--registry', 'https://registry.npmjs.org'], repo));
-      if (identity.name !== receipt.name || identity.version !== receipt.version || identity['dist.integrity'] !== receipt.integrity) {
-        throw new Error('Registry name/version/integrity do not match the prepared npm tarball.');
-      }
-      const resolvedTag = JSON.parse(runNpm(['view', receipt.name, `dist-tags.${tag}`, '--json', '--registry', 'https://registry.npmjs.org'], repo));
-      if (resolvedTag !== receipt.version) throw new Error(`Registry dist-tag ${tag} does not point to ${receipt.version}.`);
+      const registryTags = JSON.parse(runNpm(['view', receipt.name, 'dist-tags', '--json', '--registry', 'https://registry.npmjs.org'], repo));
+      validateRegistryRelease(receipt, identity, registryTags);
       return { outcome:'verified', name:receipt.name, version:receipt.version, tag, sha256:sha256File(tarball), integrity:receipt.integrity };
     } catch (error) {
       lastError = error;
-      if (attempt < 4) await new Promise(resolve => setTimeout(resolve, 1000 * (2 ** attempt)));
+      if (attempt < 7) await new Promise(resolve => setTimeout(resolve, Math.min(30000, 1000 * (2 ** attempt))));
     }
   }
-  throw new Error(`Registry verification did not converge after five attempts: ${lastError?.message || 'unknown error'}`);
+  throw new Error(`Registry verification did not converge after eight attempts: ${lastError?.message || 'unknown error'}. Do not republish; rerun verify after registry processing finishes.`);
 }
 
 async function publish(directory, tag) {

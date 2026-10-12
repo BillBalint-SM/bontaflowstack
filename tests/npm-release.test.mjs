@@ -5,10 +5,23 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { requireRcPublish } from '../scripts/npm-release.mjs';
+import { requireRcPublish, validateRegistryRelease } from '../scripts/npm-release.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(repo, 'installers/npm/package.json'), 'utf8'));
+
+test('registry verification accepts npm object and singleton-array responses and rejects incorrect releases or stable tags', () => {
+  const receipt={name:'bontaflowstack',version:'1.1.0-rc.1',tag:'rc',integrity:'sha512-v4lb2TjygKPNUA7YCdOe/+rnJY5vq2WXSbvzZYGQVC2AiS1t1ncjYFM4akCphsxvePWxUkLGGlvQsE6/4OGh3g=='};
+  const identity={name:receipt.name,version:receipt.version,'dist.integrity':receipt.integrity};
+  const tags={rc:receipt.version};
+  assert.doesNotThrow(()=>validateRegistryRelease(receipt,identity,tags));
+  assert.doesNotThrow(()=>validateRegistryRelease(receipt,[identity],[tags]));
+  for(const bad of [[],[identity,identity],{...identity,'dist.integrity':'changed'},{...identity,version:'0.0.0-stage'}]) {
+    assert.throws(()=>validateRegistryRelease(receipt,bad,tags),/name\/version\/integrity/);
+  }
+  assert.throws(()=>validateRegistryRelease(receipt,identity,{rc:'0.0.0-stage'}),/dist-tag rc/);
+  assert.throws(()=>validateRegistryRelease(receipt,identity,{...tags,latest:receipt.version}),/latest dist-tag/);
+});
 
 test('npm release policy requires explicit rc for prereleases and blocks stable promotion pending native evidence', () => {
   assert.doesNotThrow(() => requireRcPublish('1.1.0-rc.1', 'rc'));
