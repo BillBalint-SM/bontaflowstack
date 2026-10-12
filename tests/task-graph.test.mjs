@@ -11,8 +11,8 @@ import { workflow } from '../plugins/bontaflowstack/core/workflow.mjs';
 import { delivery } from '../plugins/bontaflowstack/core/delivery.mjs';
 
 function fixture(t) {
-  const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'bfs-task-graph-'));
-  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
+  const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-task-graph-'));
+  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync.native(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
   const repo=path.join(root,'repo');fs.mkdirSync(repo);fs.writeFileSync(path.join(repo,'plan.md'),'accepted\n');
   for(const args of [['init','--quiet'],['config','user.name','Acceptance'],['config','user.email','acceptance@localhost'],['add','plan.md'],['commit','--quiet','-m','base']]) {
     const r=spawnSync('git',args,{cwd:repo,encoding:'utf8',windowsHide:true});assert.equal(r.status,0,r.stderr);
