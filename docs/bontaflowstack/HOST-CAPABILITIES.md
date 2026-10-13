@@ -1,6 +1,8 @@
 # A négy új host képességprofilja
 
-Állapot: 2026-10-13; fejlesztési jelöltek, nem elfogadott vagy publikált portok.
+Állapot: 2026-10-14; Copilot és OpenCode kötelező alapja elfogadott az E68
+utáni bizonyíték-összeállítás szerint. Gemini és Cursor még nyitott; új port
+nincs publikálva. A módonkénti jelölések továbbra is a saját natív bizonyítékot mutatják.
 A módleltár forrása a [skillkatalógus](../../plugins/bontaflowstack/catalog.json).
 A táblázat minden módot név szerint felsorol; egy sor azonos feltételű módokat
 csoportosít. A katalógus és e lista egyezését a `host-capabilities` ellenőrzés vizsgálja.

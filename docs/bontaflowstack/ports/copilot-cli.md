@@ -1,14 +1,16 @@
 # GitHub Copilot CLI port — Windows x64
 
-Státusz: megvalósítás folyamatban; a csomag natív skillfelfedezése és BFS status hívása igazolt,
-a teljes port még nincs elfogadva. Hivatalos dokumentáció ellenőrizve: 2026-10-13.
+Státusz: a kötelező alap elfogadott Windows x64 / Copilot CLI 1.0.96 alatt,
+az E68 utáni A01–A10 bizonyíték-összeállítás szerint; még nincs publikálva.
+Hivatalos dokumentáció ellenőrizve: 2026-10-13.
 Részletes bizonyíték: [megvalósítási napló](../HOST-EXPANSION-IMPLEMENTATION.md).
 A telepített npm-jelöltben a memória/pause/új-session/adopt és másik projekt
 elkülönítési útja, továbbá a natív browser/render/Impeccable és PNG-átadás sikeres.
 A natív tervezés/megvalósítás/ellenőrzés próba is sikeres (E48), valamint az
 azonos session folyamatleállítás utáni folytatása (E50). Két egyidejű session
 böngészőjének külön lapállapota, session-cookie-ja és saját leállítása is igazolt
-(E54). Az emberi böngészős átadás és a teljes A01–A10 elfogadás még nyitott.
+(E54). Az emberi böngészős átadás és ugyanazon session folytatása E68-ban
+sikeres. A pontos elfogadási határokat a megvalósítási napló A01–A10 táblázata adja.
 Közös keretek és A01–A10: [hostbővítési terv](../HOST-EXPANSION-PLAN.md).
 Mind a 75 mód aktuális besorolása: [képességprofil](../HOST-CAPABILITIES.md).
 A VS Code Copilot és a felhős coding agent nem része ennek a portnak.
@@ -65,7 +67,8 @@ A Copilot hook valódi session-/tool-adatait a hívás argumentumaihoz kötjük;
 A hook/MCP folyamatpróbák igazolják a hamis, lejárt és idegen munkamenethez kötött
 kérések elutasítását. Natív npm-próba igazolja a két session/Git-worktree közös
 memóriáját, külön tulajdonát és a shell-cwd utáni projektmegtartást (E52).
-A teljes A04, különösen a hostok közötti izoláció még nincs elfogadva.
+E58 a két host nyilvános hook/callback–MCP-határán igazolja az elkülönítést;
+ez nem két párhuzamos natív modellfutás.
 A PascalCase aliasok eltérő eszközneveit nem mossuk össze.
 
 ## P04 — Lezárás, folytatás, guardhatárok

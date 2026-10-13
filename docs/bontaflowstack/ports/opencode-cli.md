@@ -1,6 +1,8 @@
 # OpenCode CLI port — Windows x64
 
-Státusz: megvalósítás folyamatban; a teljes port még nincs elfogadva. Hivatalos dokumentáció ellenőrizve: 2026-10-13.
+Státusz: a kötelező alap elfogadott Windows x64 / OpenCode CLI 1.19.0 V1 alatt,
+az E68 utáni A01–A10 bizonyíték-összeállítás szerint; még nincs publikálva.
+Hivatalos dokumentáció ellenőrizve: 2026-10-13.
 A natív V1 callback–MCP és BFS-adapter részpróbák eredményei: [megvalósítási napló](../HOST-EXPANSION-IMPLEMENTATION.md).
 A generált csomag mind a 34 skilljének felfedezése és a natív modell státuszhívása
 igazolt. Az npm setup/ismétlés/frissítés és JSONC-megőrzés valódi CLI-próbája sikeres.
@@ -14,8 +16,10 @@ a felhasználó engedélyeinek átírásával.
 A natív böngészőinterakció, két renderelt PNG modellnek átadása és saját
 böngészőleállítás E56-ban igazolt. Ugyanez a próba az Impeccable-hívás hibás
 argumentumán megállt; az egyhívásos ismétlés időkorlátba futott az első tool előtt.
-A teljes engine-próba nem sikeres. A további ellenőrzés a specifikáció
-közös bizonyítékot felhasználó, platformeltérésekre korlátozott elvét követi.
+A teljes saját engine-próba nem sikeres. Az elfogadás a specifikáció közös
+bizonyítékot felhasználó elvét követi: Impeccable E42, emberi átadás E68.
+Ezeket nem nevezzük OpenCode-ban végzett natív próbának; a saját híváshiba
+fent megmarad. A pontos összeállítás a megvalósítási napló A01–A10 táblázata.
 Közös keretek és A01–A10: [hostbővítési terv](../HOST-EXPANSION-PLAN.md).
 Mind a 75 mód aktuális besorolása: [képességprofil](../HOST-CAPABILITIES.md).
 A Desktop és a WSL alatti Linux-futtatás nem helyettesíti a natív Windows CLI-próbát.

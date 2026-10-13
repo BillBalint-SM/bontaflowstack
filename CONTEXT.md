@@ -220,6 +220,18 @@ supported npm-to-IDE readback was identified; private cache data is insufficient
 for stories 41/42. Both CI runs at 75b2dd6 passed. Preserve the human handoff
 page and do not retry the quota-blocked Cursor model while access is unchanged.
 
+E68 now passes the shared human browser handoff in native Copilot CLI 1.0.96:
+actual user click and session cookie, same-session resume, fresh DOM read without
+reload, own-browser stop, unchanged configuration and no failed tools. Earlier
+timeout and malformed model status calls remain recorded as failed attempts.
+The implementation log maps A01–A10 for Copilot and OpenCode using the agreed
+shared-evidence rule; P05/P07 and O05/O07 are now complete at their documented
+Windows/version limits, without publication. OpenCode's own malformed Impeccable
+call is not relabeled successful. Runtime/hook/skill files match the tested
+candidates; current HOST differences only concern installation guidance.
+Gemini's model journey and Cursor's hook/policy/marketplace requirements remain
+open. The full 54-story/36-item objective is not complete.
+
 ## Terms
 
 - **BFS host:** one concrete application surface; CLI, IDE and cloud variants are separate compatibility targets.

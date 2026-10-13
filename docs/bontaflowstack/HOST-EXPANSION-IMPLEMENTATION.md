@@ -1,7 +1,9 @@
 # Hostbővítés — megvalósítási és bizonyítéki napló
 
 Az elfogadott [specifikáció](HOST-EXPANSION-SPEC.md) és a [GitHub #4](https://github.com/BillBalint-SM/bontaflowstack/issues/4)
-mind az 54 felhasználói története és 36 munkatétele a hatókör része. **Egyetlen új port sem elfogadott még.**
+mind az 54 felhasználói története és 36 munkatétele a hatókör része. **A Copilot és
+OpenCode kötelező alapja az E68 utáni összeállítás szerint elfogadott; Gemini és
+Cursor még nyitott. Egyik új port sincs publikálva.**
 A forrásvizsgálat, a szintetikus hook/MCP-próba és a valódi hostfutás külön bizonyíték.
 Ezek a részpróbák nem helyettesítik a telepített npm-csomag teljes feladatútját.
 A [képességprofil](HOST-CAPABILITIES.md) a katalógus mind a 34 skilljét és 75 módját
@@ -717,6 +719,51 @@ felhasználható, a host saját hiányzó működését külön kell kezelni.
     A `75b2dd6` commit mindkét Windows Node 24 CI-futása sikeres:
     `38474807054` és `38474813494`. Új natív modellpróba nem indult.
 
+68. A közös emberi böngészős átadás és ugyanazon session folytatása sikeres
+    Copilot CLI 1.0.96 alatt, a tényleges npm-jelöltből:
+    `bfs-copilot-setup-6PjOtW/human-handoff-teQtRQ/result.json`.
+    A natív skill/HOST/preferences olvasást látható connect, egyszeri navigáció,
+    snapshot és handoff követte. A felhasználó kattintását session-cookie-val
+    érkező kérés és saját megerősítése igazolta. A natív resume után friss
+    snapshot mutatta a `BFS_COPILOT_HUMAN_HANDOFF_OK` jelet; a lapot nem
+    töltöttük újra. A session/task azonosság megmaradt, a saját böngésző
+    leállt, a sandbox és a konfiguráció megőrzése igazolt. Hibás eszközhívás
+    nem volt. Ez lezárja a közös A07-próbát; nem állít natív Cursor-resume-ot.
+
+    Két korábbi kísérlet nem sikeres: az első emberi kattintás nélkül lejárt;
+    a másodikban a modell hibás `core status` hívása az átadás előtt megállt.
+    Az ott megérkezett kattintás nem igazolta a folytatást. A végső próba
+    pontos státuszeszközt nevezett meg, és csak a tényleges várakozáskor
+    engedte a gombot. A tesztvezérlő változott, a BFS-termékkód nem.
+
+    A mostani build 94 Copilot- és 92 OpenCode-fájljának összevetésekor a
+    kiadási verziómezők egységesítése után csak a HOST telepítési útmutatója
+    tért el a vizsgált példányoktól; a runtime, hook/MCP és skillek egyeztek.
+    A korábbi sikeres setup/context/engine/workflow/recovery/worktree/isolation
+    rekordokat visszaolvastuk. Újabb modellmátrix vagy közös kapu nem indult.
+
+### Copilot és OpenCode alapelfogadás — E68 után
+
+A felhasználó által elfogadott közösbizonyíték-szabállyal a két port kötelező
+alapja elfogadott a vizsgált Windows x64/verzióhatáron. Ez nem npm-kiadás,
+nem minden mód külön natív próbája, és nem a teljes négyportos munka lezárása.
+
+| Feltétel | Copilot CLI 1.0.96 | OpenCode CLI 1.19.0 V1 |
+| --- | --- | --- |
+| A01, A08 telepítés, frissítés, megőrzés | E25/E27/E46 natív setup és helyreállítás | E33/E53 natív setup, JSONC és policymegőrzés; közös helyreállítás |
+| A02 skillek és reprezentatív feladatút | E28/E48 natív health és terv–implementálás–ellenőrzés | E36/E55 natív health/context; E48 közös workflow, K02 módleltár |
+| A03 memória és folytatás | E40/E50 | E55 |
+| A04 elkülönítés | E52/E54 natív worktree/böngésző, E58 hosthatár | E55 natív projektelkülönítés, E58 hosthatár; közös böngészőmag E54 |
+| A05 hibás hívás, tiltás, megszakítás | E7/E47/E50 és adapterkapu | E5/E9/E58 és adapterkapu |
+| A06 motorok | E42 natív browser/render/Impeccable | E56 natív browser/render/kép; E42 közös, helyes argumentumú Impeccable; saját E56 híváshiba megőrzött korlát |
+| A07 emberi átadás | E68 natív ugyanazon-session folytatás | E68 közös változatlan böngészőmotor; nem OpenCode-natív átadás |
+| A09 extrák és korlátok | HOST és teljes képességprofil; párhuzamos extra kizárva | HOST, V1-verzióhatár és képességprofil; szabad modell engedélyfeltétele E55 |
+| A10 csomag és regresszió | npm-jelölt, E68 forrás-összevetés, E59 és 25475ac CI | npm-jelölt, E68 forrás-összevetés, E59 és 25475ac CI |
+
+Az OpenCode saját helyes argumentumú Impeccable-modellhívása továbbra sem
+igazolt; a közös bizonyítékot nem nevezzük natív OpenCode-sikernek. Gemini
+modellútja, Cursor hookhibája és 41/42. története továbbra is nyitott.
+
 Az OpenCode-specifikus leképezések forrásai a [V1 plugin API](https://docs.opencode.ai/docs/plugins/),
 a kiadott `@opencode-ai/plugin@1.19.0` típusok és az adott tag
 [tool callback hívásai](https://github.com/anomalyco/opencode/blob/v1.19.0/packages/opencode/src/session/tools.ts),
@@ -780,7 +827,7 @@ elfogadás, a végső közös review és az átadás nyilvántartása.
 | K04 | kész | mind a négy build és 34 skill felfedezése; teljes módleltár K02-ben. Cursor együttélés C01/C02 |
 | K05 | folyamatban | npm-setup, részhiba és közös megszakítás/helyreállítás ellenőrizve; Cursor együttélés E61/E64 sikeres, 41/42. történet még nyitott |
 | K06 | kész | közös mag + négy adapterhatár; E40/E50/E52/E54/E55 natív részeredmények, E58 hostok közötti memória/tulajdon. Nem állítunk natív két-hostos böngészőpróbát |
-| K07 | vár | tényleges npm-csomagból teljes A01–A10 elfogadás |
+| K07 | részben kész | Copilot/OpenCode A01–A10 alapelfogadás E68 összeállításával; Gemini és Cursor nyitott |
 | K08 | vár | igazolt végállapot dokumentálása és kiadás-előkészítés |
 | G01 | kész | natív pozitív, tiltási, hibás kilépési és timeout próba; cwd/helyreállítás a Gemini adapterhatáron és közös magban |
 | G02 | folyamatban | extension build és 34 skill natív felfedezése kész; modellbeli aktiválás kvótahiba miatt nem igazolt |
@@ -793,9 +840,9 @@ elfogadás, a végső közös review és az átadás nyilvántartása.
 | P02 | kész | Agent Plugins 1.0 csomag, 34 skill, módprofil; E28/E40/E48 natív health/context/terv–implementálás–ellenőrzés |
 | P03 | kész | natív MCP/session/cwd/worktree; E58 másik host kötésének és tulajdonának elutasítása a nyilvános határon |
 | P04 | kész | E40/E50/E52 pause/új session/adopt, leállított folyamat folytatása és worktree-kezelés; meglévő toolhiba-határtesztek |
-| P05 | folyamatban | natív browser/render/Impeccable, PNG-modellátadás és két élő session böngészőizolációja sikeres; egy közös emberi átadás még kell, újabb hostmátrix és extra funkció nem |
+| P05 | kész | E42 natív browser/render/Impeccable, E54 két élő session izolációja, E68 emberi átadás és ugyanazon session folytatása |
 | P06 | kész | natív npm setup/ismétlés/frissítés/cache-függetlenség; tiltás/ütközés, motorfázis/forráscsere megszakítás és közös regisztrációs részhiba/helyreállítás |
-| P07 | vár | teljes Copilot-elfogadás |
+| P07 | kész | kötelező alap elfogadva az E68 utáni A01–A10 táblázat szerint; nincs kiadás vagy natív párhuzamos extra |
 | C01 | folyamatban | E61/E64 teljes helyi csomag natív státusz- és memóriahívása importált BFS mellett sikeres; tiltó adminpolicy és pontos marketplace-névütközés még nyitott |
 | C02 | kész | Cursor csomag, 34 skill, módprofil; E61 komponensbetöltés, E64 natív memória-skillút az importált BFS mellett |
 | C03 | kész | prefixelés, BOM/Windows-útvonal, chat/workspace és idegen kötés a nyilvános hook/MCP-határon; E8 natív minimum. A teljes csomag C01/C07-ben nyitott |
@@ -807,9 +854,9 @@ elfogadás, a végső közös review és az átadás nyilvántartása.
 | O02 | kész | V1 plugin, 34 skill natív felfedezése, módprofil, JSONC/idegen skill megőrzése; E36 health út |
 | O03 | kész | natív státusz/health/context; E58 idegen hostkötés és workflow-módosítás elutasítása a nyilvános határon |
 | O04 | kész | idle/error/deleted és új prompt szerződéspróbái, csak saját aktív lépés megszakítása; E55 natív mentés/folytatás, E58 hostok közötti lifecycle-elkülönítés |
-| O05 | folyamatban | E56: natív browser/render/PNG-modellátadás és saját cleanup igazolt; Impeccable MCP-hívás és emberi átadás még nem |
+| O05 | kész | E56 natív browser/render/PNG és cleanup; közös Impeccable E42 és emberi átadás E68. Az E56 saját Impeccable-hívás hibája külön megmarad |
 | O06 | kész | E33/E53 tényleges npm setup/ismétlés/frissítés/cache-függetlenség; JSONC/tiltás/idegen skill megőrzése; közös setup-részhiba kapui |
-| O07 | vár | teljes OpenCode-elfogadás |
+| O07 | kész | kötelező alap elfogadva az E68 utáni A01–A10 táblázat szerint, V1 és dokumentált engedélyfeltételek mellett |
 
 ## Felhasználói történetek elfogadása
 
@@ -851,8 +898,8 @@ A feltételeket a kész megvalósítási tételekből és a nyitott részekből 
 | 27 | E42/E56 valódi Copilot/OpenCode böngészőinterakció; E65 Cursor kattintás/snapshot/saját cleanup | Cursor időszakos hookhibája; Gemini skill/model út |
 | 28 | E42/E56 valódi render és képmelléklet; E57 képszámlálás; E65 Cursor két render és natív képolvasás | Ugyanazok a hostbelépési hiányok, mint 27-nél |
 | 29 | Mind a négy tényleges npm setup automatikus Impeccable; E42/E65 sikeres natív MCP; közös engine/MCP exitkód-szerződés | E56 OpenCode modell rossz argumentumot adott; helyes natív ismétlés tool előtt timeoutolt |
-| 30 | Közös browser handoff/resume rendelkezésre áll; E65 aktuális Cursor-jelöltből látható böngésző és handoff sikeres; E66 emberi kattintás és cookie igazolt | Ugyanazon session natív folytatása a Cursor használati kerete miatt még nincs igazolva; nem négyszeres ismétlés |
-| 31 | E54 két élő Copilot böngésző külön cookie/DOM/cleanup; E58 eltérő hosttask és izolált lifecycle | Az emberi átadás 30 szerint nyitott; natív két-hostos böngészőpróbát nem állítunk |
+| 30 | E68 közös handoff/resume: valódi emberi kattintás, ugyanazon Copilot-session, megmaradt DOM/cookie, saját cleanup | Cursor saját folytatása E66 óta nem igazolt; a közös motorpróbát nem ismételjük négyszer |
+| 31 | E54 két élő Copilot böngésző külön cookie/DOM/cleanup; E58 eltérő hosttask és izolált lifecycle; E68 emberi átadás | Natív két-hostos böngészőpróbát nem állítunk |
 | 32 | Párhuzamos mód csak bizonyított gyermekazonossággal; új portoknál a profil X | Nincs kötelező új alagentfunkció a vállalt alapban |
 | 33 | Soros működés és nem igazolt párhuzamos extra külön jelölve minden HOST-ban | Nincs külön nyitott megvalósítás |
 | 34 | Raszteres generálás/szerkesztés nem ígért; képolvasás és szerkesztett HTML/SVG külön szerepel | Képértelmezés host-/modellfeltételeit nem általánosítjuk |
@@ -873,7 +920,7 @@ A feltételeket a kész megvalósítási tételekből és a nyitott részekből 
 | 49 | Nyilvános setup CLI, hook/callback és JSON-RPC határok; valódi npm/host feladatutak | Új privát teszt-API nem készült |
 | 50 | E19/E25/E29/E33/E46/E51/E53 valódi npm pack/npx, cache nélkül tartós csomag; E63/E64 frissített Cursor csomag és memória-skillút | Gemini csomagolt skill/model út; a teljes motoros elfogadás külön nyitott |
 | 51 | E59: a megváltozott közös MCP/telepítő Codex/Claude ellenőrzése sikeres a közös kapuban | Az elfogadott 1.1.0 natív előfizetéses próbáját nem nyitjuk újra |
-| 52 | Portonkénti 07-es elfogadás; egyetlen új port sincs hamisan támogatottnak minősítve | Végső, külön portelfogadások |
+| 52 | P07 és O07 alapelfogadás kész az E68 utáni, közös és natív bizonyítékokat megkülönböztető táblázattal | G07 és C07 még nyitott |
 | 53 | A helyi fejlesztés nem indított npm-publikálást, tagelést vagy issue-lezárást | Új kiadás csak külön felhasználói döntéssel |
 | 54 | E49/E53/E57/E60: három megosztható, rögzített mezőjű diagnosztikai formátum; 23 eredményíró bekötve, 3 canary próba és 8 tényleges korábbi rekord összegzése sikeres | Nincs további diagnosztikai fejlesztési hiány; csak a dokumentált összegzések oszthatók meg, a privát runtime-könyvtárak nem |
 
