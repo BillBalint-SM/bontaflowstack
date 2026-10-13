@@ -1,7 +1,10 @@
 # Cursor IDE port — Windows x64
 
-Státusz: implementált fejlesztési jelölt; csomag/setup, natív státuszhívás és az
-importált BFS melletti együttélés ellenőrizve (E61); teljes skillfeladatút még nyitott.
+Státusz: implementált fejlesztési jelölt; csomag/setup és importált BFS melletti
+együttélés ellenőrizve (E61), natív memória-skillút sikeres (E64). A browser,
+render és Impeccable út E65-ben lefutott, időszakos üres hookválaszok utáni
+ismétlésekkel. Ennek oka, az emberi átadás folytatása és az adminpolicy/
+marketplace-felismerés nyitott; a teljes port még nincs elfogadva.
 Hivatalos dokumentáció ellenőrizve: 2026-10-13.
 Közös keretek és A01–A10: [hostbővítési terv](../HOST-EXPANSION-PLAN.md).
 Mind a 75 mód aktuális besorolása: [képességprofil](../HOST-CAPABILITIES.md).

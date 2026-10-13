@@ -188,6 +188,18 @@ and an independent read-only core query matched. This closes the missing basic
 Cursor skill/model path, not browser/render or adminpolicy acceptance. No npm
 publication occurred; PR #5 remains draft for the recorded open requirements.
 
+E65 records the native Cursor browse/render/Impeccable journey in that same
+installed candidate and chat. Browser interaction, 1280x800 and 375x800 renders,
+native image reads and the expected Impeccable warning completed; the first
+browser was stopped. Four production preToolUse calls returned empty stdout
+with exit code 0 and were blocked by failClosed; retries completed the journey.
+The native log shows only PowerShell module-preparation CLIXML on stderr for
+those calls, not an established cause. Do not claim a clean run or change the
+guard based on that hypothesis. A later visible connect/goto/handoff succeeded;
+the human button and resume verification remain pending. Both Windows Node 24
+CI runs passed at b0d95e8 (38470164941 and 38470170746). No common-gate rerun is
+needed for these evidence-only documentation updates.
+
 ## Terms
 
 - **BFS host:** one concrete application surface; CLI, IDE and cloud variants are separate compatibility targets.

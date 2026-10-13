@@ -643,6 +643,34 @@ felhasználható, a host saját hiányzó működését külön kell kezelni.
     Terminálparancsot nem kértünk a Cursortól. Ez egy konkrét skillfeladatút
     bizonyítéka; nem böngésző/render- vagy adminpolicy-elfogadás.
 
+65. Ugyanebben a telepített Cursor-jelöltben és Agent chatben a `bfs-browse`
+    böngészős feladatút, a két render és az Impeccable-vizsgálat **lefutott**,
+    de nem hibamentesen (3 perc 9 másodperc). A saját helyi oldalon friss
+    snapshot után kattintás történt, az új snapshot tartalmazta a
+    `BFS_BROWSER_CLICK_OK` jelet. A 1280×800 és 375×800 render `completed`,
+    üres hibalistával és vízszintes túlcsordulás nélkül; a két PNG fejlécét
+    külön is ellenőriztük, és a Cursor natív képolvasója mindkettőt megnyitotta.
+    Az Impeccable a szándékosan megadott `Inter` betűtípusra `overused-font`
+    figyelmeztetést adott, 2 kilépési kóddal. A natív státusz a tényleges
+    sessiont/projektet és bekapcsolt Chromium sandboxot adta vissza, majd a
+    saját böngésző leállt. A postToolUse-napló eredményei külön visszaolvasva
+    egyeztek a felületen látottakkal; a rögzített mezőjű összegzés elkészült.
+
+    Négy éles `preToolUse` hívás üres kimenettel, 0 kilépési kóddal tért
+    vissza (1980–7548 ms), ezért a Cursor `failClosed` miatt megtagadta őket.
+    Ezek egy Read, két skillbetöltés és egy browser text hívás voltak;
+    a későbbi ismétlések/snapshot után a feladat befejeződött. A stderr csak
+    PowerShell modul-előkészítési CLIXML-üzenetet tartalmazott. **Az ok nincs
+    igazolva**, a hook változatlan; ezt nem nevezzük javított vagy tiszta E2E-
+    futásnak. A [hivatalos hookleírás](https://cursor.com/docs/hooks) szerinti
+    failClosed-megtagadás megfigyelt, a védelmet nem kapcsoltuk ki.
+
+    Ezután a látható `connect` → `goto` → `snapshot` → `handoff` út sikeres,
+    a böngésző nyitva várja az ember tesztgombos kattintását. A `resume` és
+    ugyanazon sessionben történő visszaolvasás még nincs igazolva.
+    A `b0d95e8` commit mindkét Windows Node 24 CI-futása sikeres:
+    `38470164941` és `38470170746`. Közös tesztkaput nem ismételtünk.
+
 Az OpenCode-specifikus leképezések forrásai a [V1 plugin API](https://docs.opencode.ai/docs/plugins/),
 a kiadott `@opencode-ai/plugin@1.19.0` típusok és az adott tag
 [tool callback hívásai](https://github.com/anomalyco/opencode/blob/v1.19.0/packages/opencode/src/session/tools.ts),
@@ -679,8 +707,9 @@ ez nem a tényleges tiltó feltétel automatikus felismerése.
 
 Egy elfogadási hiánycsoport: Gemini csomagolt skill/model útja kvótába ütközött,
 a Cursor új azonosítóinak normál IDE-együttélése E61-ben, memória-skillútja
-E64-ben azóta sikeres; a motoros IDE-feladatút még nyitott,
-és a látható emberi böngészős átadás még nem igazolt. Az OpenCode saját sikeres
+E64-ben azóta sikeres; a motoros IDE-feladatút E65-ben lefutott, de az ott
+megfigyelt időszakos üres hookválasz oka és az emberi folytatás nyitott.
+Az OpenCode saját sikeres
 Impeccable-modellhívásának hiánya külön rögzített bizonyítéki korlát; a közös,
 helyes argumentumú út E42 és a setup E53 bizonyítéka felhasználható, ezért ez
 önmagában nem indokol újabb teljes hosttesztet. A review nem igazolt további
@@ -723,8 +752,8 @@ elfogadás, a végső közös review és az átadás nyilvántartása.
 | C01 | folyamatban | E61/E64 teljes helyi csomag natív státusz- és memóriahívása importált BFS mellett sikeres; tiltó adminpolicy és pontos marketplace-névütközés még nyitott |
 | C02 | kész | Cursor csomag, 34 skill, módprofil; E61 komponensbetöltés, E64 natív memória-skillút az importált BFS mellett |
 | C03 | kész | prefixelés, BOM/Windows-útvonal, chat/workspace és idegen kötés a nyilvános hook/MCP-határon; E8 natív minimum. A teljes csomag C01/C07-ben nyitott |
-| C04 | folyamatban | session/workspace helyreállítás és guard folyamatpróbája sikeres; natív negatív próbák még kellenek |
-| C05 | vár | motorok és IDE-feladatút |
+| C04 | folyamatban | session/workspace helyreállítás és guard folyamatpróbája sikeres; E65 natív failClosed-megtagadás megfigyelt, az üres válasz oka nyitott |
+| C05 | folyamatban | E65 natív browser/render/Impeccable és képolvasás lefutott, időszakos hookhibák után; látható handoff kész, emberi folytatás vár |
 | C06 | folyamatban | tényleges npm setup/ismétlés/frissítés, közös rollback és motorok; E61 normál natív státuszhívás és import-együttélés. Adminpolicy/azonos nevű marketplace-felismerés még nyitott |
 | C07 | vár | teljes Cursor-elfogadás |
 | O01 | kész | rögzített V1 API; E5/E9 tényleges callback/MCP módosítás és tiltás; megszakításkezelés O04 |
@@ -772,10 +801,10 @@ A feltételeket a kész megvalósítási tételekből és a nyitott részekből 
 | 24 | Közös egyszer használható/argumentumhoz kötött, lejáró kötés; E58 idegen host megtagadva | Ez BFS-állapotvédelem, nem általános host- vagy OS-sandbox |
 | 25 | Portleírások külön rögzítik a hook- és timeout-határokat; E7/E9 és adapterhatártesztek | Nem állítunk minden shellhívásra garantált hostoldali blokkolást |
 | 26 | Setup nem ír trust/allow policyt; hook nem ad natív engedélyt; megőrzési tesztek | A host saját emberi jóváhagyása szükséges marad |
-| 27 | E42/E56 valódi Copilot/OpenCode böngészőinterakció; közös browser/MCP megvalósítás; E61 Cursor alap híváskötés | Cursor és Gemini reprezentatív skill/model út |
-| 28 | E42/E56 valódi render és képmelléklet; E57 helyes minimális képszámlálás | Ugyanazok a hostbelépési hiányok, mint 27-nél |
-| 29 | Mind a négy tényleges npm setup automatikus Impeccable; E42 sikeres natív MCP; közös engine/MCP exitkód-szerződés | E56 OpenCode modell rossz argumentumot adott; helyes natív ismétlés tool előtt timeoutolt |
-| 30 | Közös browser handoff/resume rendelkezésre áll; történeti engine-próbák külön határral | Aktuális csomagból egy tényleges emberi átadás/folytatás még kell; nem négyszeres ismétlés |
+| 27 | E42/E56 valódi Copilot/OpenCode böngészőinterakció; E65 Cursor kattintás/snapshot/saját cleanup | Cursor időszakos hookhibája; Gemini skill/model út |
+| 28 | E42/E56 valódi render és képmelléklet; E57 képszámlálás; E65 Cursor két render és natív képolvasás | Ugyanazok a hostbelépési hiányok, mint 27-nél |
+| 29 | Mind a négy tényleges npm setup automatikus Impeccable; E42/E65 sikeres natív MCP; közös engine/MCP exitkód-szerződés | E56 OpenCode modell rossz argumentumot adott; helyes natív ismétlés tool előtt timeoutolt |
+| 30 | Közös browser handoff/resume rendelkezésre áll; E65 aktuális Cursor-jelöltből látható böngésző és handoff sikeres | Emberi kattintás és ugyanazon session folytatása még kell; nem négyszeres ismétlés |
 | 31 | E54 két élő Copilot böngésző külön cookie/DOM/cleanup; E58 eltérő hosttask és izolált lifecycle | Az emberi átadás 30 szerint nyitott; natív két-hostos böngészőpróbát nem állítunk |
 | 32 | Párhuzamos mód csak bizonyított gyermekazonossággal; új portoknál a profil X | Nincs kötelező új alagentfunkció a vállalt alapban |
 | 33 | Soros működés és nem igazolt párhuzamos extra külön jelölve minden HOST-ban | Nincs külön nyitott megvalósítás |

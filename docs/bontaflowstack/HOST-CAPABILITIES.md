@@ -17,7 +17,7 @@ a tényleges session/workspace kötése kell; a hiányzó kötést nem helyettes
 | --- | --- | --- | --- |
 | G | Gemini CLI 0.63.0 | Extension, engedélyezett BeforeTool argumentummódosítás és MCP; az npm-ből indított skill/model próbát a napi ingyenes kvóta blokkolta. | [Gemini-port](ports/gemini-cli.md), E19–E20 |
 | P | GitHub Copilot CLI 1.0.96 | Agent Plugins csomag, preToolUse módosítás, engedélyezett MCP és a feladat natív eszközei; a host timeoutja önmagában nem bizonyít tiltást. | [Copilot-port](ports/copilot-cli.md), E27–E28, E40, E42, E48, E50 |
-| C | Cursor IDE 3.24.12 | Helyi plugin, aktív preToolUse és argumentummódosítás, engedélyezett MCP; az importkapcsoló kikapcsolása a plugin-hookokat is kikapcsolta. E61: a külön `bontaflowstack-cursor`/`bfs-cursor` jelölt natív státuszhívása importált BFS mellett is sikeres; E64-ben a telepített memória-skill írás/visszaolvasása is sikeres. A motoros IDE-út külön nyitott. | [Cursor-port](ports/cursor-ide.md), E29–E31, E51, E61, E64 |
+| C | Cursor IDE 3.24.12 | Helyi plugin, aktív preToolUse és argumentummódosítás, engedélyezett MCP; az importkapcsoló kikapcsolása a plugin-hookokat is kikapcsolta. E61/E64: natív státusz és memória-skillút importált BFS mellett. E65: browser/render/Impeccable lefutott, négy üres hookválasz miatti megtagadás után; ok és emberi folytatás nyitott. | [Cursor-port](ports/cursor-ide.md), E29–E31, E51, E61, E64–E65 |
 | O | OpenCode CLI 1.19.0, V1 API | Config callback, tool.execute.before, engedélyezett MCP és feladateszközök. Health és context sikeres; a szabad modell context-próbájában bash:ask kellett, shell nem futott. A teljes tiltás melletti upstream elutasítást a setup nem írhatja felül. | [OpenCode-port](ports/opencode-cli.md), E33–E37, E55 |
 
 A verziók a vizsgált verziók; ez a lista nem állítja, hogy minden későbbi verzió
@@ -69,7 +69,7 @@ módhoz szükséges hozzáférést jelöli; a telepítés ezt sem biztosítja au
 | `bfs-design-html` | `implement`, `refine` | Alap + extra | Elfogadott design, fájlszerkesztés, render és screenshot-megtekintés; külső rasztergenerálás nincs bekötve | U + X | U + X | U + X | U + X | E-BUILD; E-NONE |
 | `bfs-design-review` | `inspect` | Alap | Browser MCP, elérhető céloldal és képeredmény megtekintése | U | U | U | U | E-BUILD; E-NONE |
 | `bfs-design-review` | `fix` | Alap | Browser MCP, engedélyezett forrásjavítás és ismételt ellenőrzés | U | U | U | U | E-BUILD; E-NONE |
-| `bfs-browse` | `browse` | Alap | Browser MCP és elérhető URL; csak engedélyezett interakciók | U | N | U | N | E42/E56: natív Copilot/OpenCode, helyi oldal, kattintás, visszaolvasás és saját cleanup; E56 teljes engine-próbája az Impeccable-híváson hibázott |
+| `bfs-browse` | `browse` | Alap | Browser MCP és elérhető URL; csak engedélyezett interakciók | U | N | U | N | E42/E56: natív Copilot/OpenCode, helyi oldal, kattintás, visszaolvasás és saját cleanup; E56 teljes engine-próbája az Impeccable-híváson hibázott. E65 Cursor motorútja lefutott, de az időszakos hookhiba miatt U marad |
 | `bfs-browse` | `open`, `login` | Alap | Látható saját böngésző és emberi átadás, ugyanazon session folytatása | U | U | U | U | E-BUILD; E-NONE |
 | `bfs-scrape` | `extract`, `answer` | Alap | Browser MCP, ténylegesen hozzáférhető oldal és szükség esetén emberi belépés | U | U | U | U | E-BUILD; E-NONE |
 | `bfs-benchmark` | `quick`, `baseline`, `compare` | Alap | Browser MCP és összehasonlítható mérési környezet; compare esetén létező baseline | U | U | U | U | E-BUILD; E-NONE |
