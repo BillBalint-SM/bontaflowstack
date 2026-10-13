@@ -1,9 +1,18 @@
 # Universal npm installer and Claude Code port validation — 2026-10-13
 
-Published RC source: `cd2e21ef8f947e0196e600f679e5cb54c1ee4dc6`, tagged
+Initial rc.1 source: `cd2e21ef8f947e0196e600f679e5cb54c1ee4dc6`, tagged
 `v1.1.0-rc.1` in the public repository. This does not establish completed
 native Claude acceptance. The accepted scope excludes raster image
 generation/editing; see [scope and mechanics](CLAUDE-CODE-PORT.md).
+
+## Published Impeccable update 1.1.0-rc.2
+
+Source `32e71122fce18b847a675efbd4efc6370fbb166b`, tag `v1.1.0-rc.2`,
+adds automatic Impeccable CLI installation and shared configuration to npm setup.
+The final local gate passed 115 tests. Registry integrity and exact-version npx
+setup with both native host CLIs are recorded in the [rc.2 release report](RELEASE-1.1.0-rc.2.md).
+Native authenticated Claude acceptance remains pending; the earlier rc.1
+evidence below retains its original scope.
 
 ## Universal npm candidate 1.1.0-rc.1
 
@@ -115,7 +124,7 @@ remain unverified. Synthetic events cannot establish those behaviors.
 
 The earlier engine tests reused an existing engine; the npm tests above now
 include a fresh download/build and real browser checks. Optional external
-DESIGN.md remains untested. The subsequent, unpublished rc.2 change adds and
+DESIGN.md remains untested. The subsequent, published rc.2 change adds and
 tests automatic Impeccable installation and actual local detector execution
 through both generated adapters; see [Impeccable setup](IMPECCABLE-SETUP.md).
 The RC and source have now been published as recorded above. No persistent

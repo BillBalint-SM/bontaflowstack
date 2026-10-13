@@ -1,13 +1,14 @@
 # Changelog
 
-## 1.1.0-rc.2 — prepared, publication pending
+## 1.1.0-rc.2 — published npm release candidate, 2026-10-13
 
 - Install the pinned official Impeccable CLI through the same npm setup for both
   hosts. Preserve its binary outside the npm cache and resolve its shared
   configuration in fresh sessions without a manual environment setting.
 - Preserve explicit custom commands and modified installed files. Probe the
   executable before host registration and distinguish detector findings from
-  scan failures. See [scope and verification](IMPECCABLE-SETUP.md).
+  scan failures. See [scope and verification](IMPECCABLE-SETUP.md) and
+  [publication evidence](RELEASE-1.1.0-rc.2.md).
 
 ## 1.1.0-rc.1 — universal npm release candidate, 2026-10-13
 

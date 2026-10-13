@@ -11,7 +11,7 @@ setup/config/telepítés kezdődik... nem kell zip vagy bármi más formátum.�
 ## Elfogadott működés
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup
+npx bontaflowstack@1.1.0-rc.2 setup
 ```
 
 A verzió publikált kiadásjelölt; a registry-parancs mindkét host CLI-jével sikeres próbán ment át.
@@ -76,6 +76,12 @@ Az npm a kért `rc` mellett `latest` címkét is adott, törlésére E400-at ado
 ez nem stabil minősítés. Nyitott: a pontos npm-csomaggal végzett teljes natív
 hostelfogadás és az npm Trusted Publisher beállítása/valódi OIDC-kiadási próba.
 Lásd a [kiadási jelentést](RELEASE-1.1.0-rc.1.md).
+
+Az rc.2 közzétételét a felhasználó külön jóváhagyta; az npm `rc` címke már
+a `1.1.0-rc.2` verzióra mutat. Ez automatikusan telepíti és konfigurálja az
+Impeccable CLI-t mindkét hosthoz. Forrása `32e71122fce18b847a675efbd4efc6370fbb166b`,
+tagje `v1.1.0-rc.2`. A `latest` az rc.1-en maradt. Lásd az
+[rc.2 kiadási jelentést](RELEASE-1.1.0-rc.2.md); a natív és OIDC nyitott pontok megmaradnak.
 
 Források: [npm npx](https://docs.npmjs.com/cli/v11/commands/npx/),
 [npm bin](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/#bin),

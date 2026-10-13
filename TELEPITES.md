@@ -9,16 +9,16 @@ tervezd meg a felületét, építsd meg az elfogadott terv alapján, és ellenő
 böngészőben. Később ott folytathatod, ahol abbahagytad: a projektdöntések és az
 elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 
-[![npm RC](https://img.shields.io/npm/v/bontaflowstack/rc)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.1)
+[![npm RC](https://img.shields.io/npm/v/bontaflowstack/rc)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.2)
 [![Licenc: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Hostok: Codex és Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**Publikált npm-kiadásjelölt: `1.1.0-rc.1`.**
+**Publikált npm-kiadásjelölt: `1.1.0-rc.2`.**
 · [Telepítés lépésről lépésre](#telepítés-windowsra)
 · [Korábbi 1.0.0-s bizonyítékok](docs/bontaflowstack/RELEASE-1.0.0.md)
 
-A következő, még nem publikált `1.1.0-rc.2` kiadásjelölt az Impeccable CLI-t is
+A publikált `1.1.0-rc.2` kiadásjelölt az Impeccable CLI-t is
 automatikusan telepíti és beállítja mindkét hosthoz. A változtatás és a próbák
 az [Impeccable-telepítés leírásában](docs/bontaflowstack/IMPECCABLE-SETUP.md) szerepelnek.
 
@@ -51,7 +51,7 @@ a megfelelő belépési pont kiválasztását. Magyarul is kérheted a munkát.
 host CLI-vel a PATH-on: Codex vagy Claude Code. A publikált RC telepítése:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup
+npx bontaflowstack@1.1.0-rc.2 setup
 ```
 
 Ugyanez a rögzített csomag `setup` nélkül is elindítja a beállítást. Alapértelmezésben
@@ -175,12 +175,12 @@ a visszaolvasást és a lezárást. Ez a futás 0.7.5-tel történt; az eredeti 
 
 ## Telepítés Windowsra
 
-Az aktuális egyetlen telepítési út az npm-csomag pontos verziója. A **1.1.0-rc.1**
+Az aktuális egyetlen telepítési út az npm-csomag pontos verziója. A **1.1.0-rc.2**
 kiadásjelölt elérhető a nyilvános npm-registryben; az onnan indított telepítést
-mindkét host CLI-jével ellenőriztük. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.1.0-rc.1.md).
+mindkét host CLI-jével ellenőriztük. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.1.0-rc.2.md).
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup
+npx bontaflowstack@1.1.0-rc.2 setup
 ```
 
 Ugyanez a parancs `setup` nélkül is elindítja a beállítást. Ne tölts le ZIP-et,
@@ -213,12 +213,12 @@ egyiket `--host codex` vagy `--host claude` kapcsolóval, illetve kérheted mind
 Futtasd az egyetlen telepítési parancsot:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup
+npx bontaflowstack@1.1.0-rc.2 setup
 ```
 
 Siker esetén az installer kiírja a verziót, a regisztrált hostokat és a tartós
 telepítési könyvtárakat. A csomag a verziózott hostfájlokat az npm-cache-en kívül,
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.1\hosts` alatt tartja.
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.2\hosts` alatt tartja.
 Az installer egyetlen már létező BFS-állapotgyökeret automatikusan újrahasznál,
 beleértve a Windows Store által átirányított LocalAppData útvonalat is. Ha nincs
 korábbi adat, az alapértelmezett gyökér `%LOCALAPPDATA%\BontaFlowStack\state\v2`.
@@ -246,7 +246,7 @@ Tartsd meg a választott permission profilt; a böngésző Chromium sandboxja ma
 ### Frissítés és visszaállítás
 
 Frissítéshez futtasd ugyanazt a parancsot egy új, pontos csomagverzióval, például
-`npx bontaflowstack@1.1.0-rc.2 setup`, ha az a verzió már megjelent. A telepítő a
+`npx bontaflowstack@1.1.0-rc.2 setup` az rc.1-ről való frissítéshez. A telepítő a
 régi hostverziókat és a közös `state/v2` adatot megőrzi; egyszerre egy setupot futtass.
 Visszaállításhoz a korábbi, ismert verzió parancsát használd, ha az elérhető.
 
@@ -263,7 +263,7 @@ művelet, lásd a [helyi adatok útmutatóját](docs/bontaflowstack/LOCAL-DATA.m
 
 | Jelenség | Teendő |
 | --- | --- |
-| A parancs `not published` vagy `404` hibát ad | A `1.1.0-rc.1` még nem publikus npm-csomag; várd meg a registry-kiadást. |
+| A parancs `not published` vagy `404` hibát ad | Ellenőrizd a pontos verziót és a registryt: `npm view bontaflowstack@1.1.0-rc.2 version --registry=https://registry.npmjs.org`. Ez a verzió már publikált. |
 | Nincs host CLI a PATH-on | Telepítsd és nyisd újra a PowerShellt; ellenőrizd a `Get-Command codex,claude` kimenetét. |
 | Régi verzió töltődik be | Indíts új hostmunkamenetet, majd ellenőrizd a pluginverziót és a `readFromFolder` útvonalat. |
 | A motor a terminálból elérhető, hostból nem | A telepítő és az adapter a közös `install-state.json` útvonalat használja; futtasd a hostból a `doctor` ellenőrzést, és őrizd meg a kimenetet. |

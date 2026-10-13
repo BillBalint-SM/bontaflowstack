@@ -3,11 +3,11 @@
 [Magyar útmutató](../../TELEPITES.md) · [Claude Code-részletek](INSTALL-CLAUDE-CODE.md)
 
 The single standard install route is the exact-version npm setup command. Version
-**1.1.0-rc.1 is a published release candidate**. The exact-version registry command
+**1.1.0-rc.2 is a published release candidate**. The exact-version registry command
 was tested with both host CLIs; authenticated Claude session acceptance remains pending.
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup
+npx bontaflowstack@1.1.0-rc.2 setup
 ```
 
 Invoking the same pinned package without the `setup` argument starts the same
@@ -39,12 +39,12 @@ selection stops with an error if either host is missing.
 ## Install and start
 
 Run the command once. It verifies the package version and host prerequisites,
-prepares the checksum-pinned browser/render engine, and installs each selected
+prepares the checksum-pinned browser/render engine and Impeccable CLI, and installs each selected
 host adapter outside the npm cache. It does not install Node, Git, Codex, Claude
 Code, sign in, change permission settings, or approve hooks.
 
 The versioned files are stored under
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.1\hosts`.
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.2\hosts`.
 For BFS state, setup reuses the sole existing state root it finds, including a
 Windows Store redirected LocalAppData location. With no existing state it uses
 `%LOCALAPPDATA%\BontaFlowStack\state\v2`. If it finds non-empty state at two
@@ -71,11 +71,11 @@ from plugin installation.
 
 ## Update and recovery
 
-The next candidate, `1.1.0-rc.2`, also prepares the official Impeccable CLI and
-its persistent shared configuration for both hosts. It is not published yet.
+Release `1.1.0-rc.2` also prepares the official Impeccable CLI and
+its persistent shared configuration for both hosts. No manual command setting is needed.
 See [Impeccable setup](IMPECCABLE-SETUP.md) for the change and verification scope.
 
-Use a new exact version after it has been published, for example:
+To upgrade from rc.1 to the published rc.2, run:
 
 ```powershell
 npx bontaflowstack@1.1.0-rc.2 setup
@@ -99,7 +99,7 @@ data. Back up and remove those separately only when you intend to erase them; se
 
 | Symptom | Action |
 | --- | --- |
-| npm reports `404` or `not published` | Check the exact version and registry with `npm view bontaflowstack@1.1.0-rc.1 version --registry=https://registry.npmjs.org`. This version is published. |
+| npm reports `404` or `not published` | Check the exact version and registry with `npm view bontaflowstack@1.1.0-rc.2 version --registry=https://registry.npmjs.org`. This version is published. |
 | No host CLI is detected | Install the host and add its CLI to `PATH`, then open a new PowerShell window. |
 | Plugin version is old after setup | Start a new host session and inspect the installed version and plugin path. |
 | Engine works in terminal but not in host | Check the adapter's `install-state.json` and run the host's BFS doctor command; do not guess a redirected app data path. |

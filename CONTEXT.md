@@ -12,14 +12,14 @@ HTML/SVG remain within scope.
 
 The only current distribution route for the whole package is
 `npx bontaflowstack@<exact-version> setup`; omitting `setup` also starts installation.
-The published npm release candidate is 1.1.0-rc.1, built with `scripts/build-npm-package.mjs`.
+The published npm release candidate is 1.1.0-rc.2, built with `scripts/build-npm-package.mjs`.
 It detects Codex and Claude Code, registers each installed host, persists versioned
 files outside the npx cache, and prepares the shared pinned engines. Each plugin
 pins the same state directory so Desktop environment redirection does not split
 the new installation. Native host trust remains a human host action.
 Registry integrity and an actual registry npx setup with both host CLIs were verified.
-The registry also assigned `latest` to this prerelease and rejected its removal
-with E400; that alias does not establish stable or native acceptance. ZIP release records describe historical releases;
+The registry's `rc` tag points to rc.2; `latest` still points to the earlier rc.1.
+Neither alias establishes stable or native acceptance. ZIP release records describe historical releases;
 they do not establish acceptance of this npm candidate. See
 `docs/bontaflowstack/RELEASE-PROCESS.md` for the current publishing route.
 
@@ -51,10 +51,10 @@ from a checksum-pinned release. Legacy user data remains untouched; import is ex
 
 The engine package implements browser sessions, rendering and local image comparison
 with Node.js and separately installed dependencies. Image generation/editing uses
-the current Codex image tool. The next npm candidate, 1.1.0-rc.2, adds automatic
+the current Codex image tool. Published npm candidate 1.1.0-rc.2 adds automatic
 Impeccable CLI installation and persistent shared configuration for design-detect.
 Google DESIGN.md remains an optional external prerequisite; neither operation is
-required for ordinary design. The published rc.1 does not include this addition.
+required for ordinary design. The earlier rc.1 does not include this addition.
 
 Skill names and modes are in `plugins/bontaflowstack/catalog.json`. The core
 contract is `plugins/bontaflowstack/HOST.md`. Source and behavior checks run with

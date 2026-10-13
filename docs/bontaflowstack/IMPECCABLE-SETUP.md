@@ -2,7 +2,7 @@
 
 The user requested that the single npm setup install and configure Impeccable
 for both Codex and Claude Code, with no manual environment setting. This change
-is prepared for `bontaflowstack@1.1.0-rc.2`; npm publication is pending.
+is published as `bontaflowstack@1.1.0-rc.2` with the npm `rc` tag.
 The published `1.1.0-rc.1` package is immutable and does not include this change.
 
 ## Implementation
@@ -73,8 +73,9 @@ passed without relaxing its check.
   variable. Test registrations were removed. Evidence:
   `.tmp/impeccable-final-d7d6287b-e699-4876-b9c7-41d178676980/result.json`.
 
-No rc.2 package, GitHub source update or remote tag was published in this step.
-The previous publication approval named rc.1; rc.2 publication awaits the user.
+After the user explicitly approved rc.2 publication, the prepared artifact was
+published to npm and the corresponding source and tag were pushed to GitHub.
+See [publication verification](RELEASE-1.1.0-rc.2.md).
 
 ## Limits
 

@@ -9,17 +9,17 @@ interface, build from an accepted plan, check it in a real browser, and pick up
 where you left off—with project decisions and delivery evidence kept alongside
 the work.
 
-[![npm RC](https://img.shields.io/npm/v/bontaflowstack/rc)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.1)
+[![npm RC](https://img.shields.io/npm/v/bontaflowstack/rc)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.2)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Hosts: Codex and Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**Published npm release candidate: `1.1.0-rc.1`.**
+**Published npm release candidate: `1.1.0-rc.2`.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
 · [Telepítés magyarul](TELEPITES.md)
 
-The next candidate, `1.1.0-rc.2`, adds automatic Impeccable installation and
-shared configuration through the same setup command. Publication is pending;
+Release `1.1.0-rc.2` adds automatic Impeccable installation and
+shared configuration through the same setup command;
 see the [implementation and validation record](docs/bontaflowstack/IMPECCABLE-SETUP.md).
 
 ## Bring the whole product journey into your project
@@ -47,14 +47,14 @@ You can ask in your own language.
 host installed with its CLI on `PATH`: Codex or Claude Code. Install the published RC:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup
+npx bontaflowstack@1.1.0-rc.2 setup
 ```
 
 Running the same pinned package without `setup` starts the same flow. By default,
 setup detects Codex and/or Claude Code and configures every detected host. Use
 `--host codex` or `--host claude` to select one, or `--host all` to require both.
 It installs versioned host adapters outside the npm cache and prepares the
-browser/render engine. Internet access is needed for engine dependencies and
+browser/render engine and Impeccable CLI. Internet access is needed for dependencies and
 Chromium; a signed-in host account is needed to run model-driven workflows.
 
 After setup, start a fresh session. In Codex, open your project and ask:
@@ -174,9 +174,9 @@ as a new 1.0.0 run.
 
 ## Current candidate and compatibility evidence
 
-The combined npm installer **1.1.0-rc.1** is available from the public npm registry.
+The combined npm installer **1.1.0-rc.2** is available from the public npm registry.
 The command above is the single standard install route and passed an actual
-registry installation with both host CLIs. See the [RC release report](docs/bontaflowstack/RELEASE-1.1.0-rc.1.md).
+registry installation with both host CLIs. See the [RC release report](docs/bontaflowstack/RELEASE-1.1.0-rc.2.md).
 The earlier Codex 1.0.0 release and its
 evidence remain historical and do not establish authenticated Claude session
 behavior. Raster image generation/editing is outside the accepted Claude scope;

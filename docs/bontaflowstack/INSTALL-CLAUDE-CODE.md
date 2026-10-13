@@ -1,11 +1,11 @@
 # Claude Code with the universal BontaFlowStack installer
 
 Codex and Claude Code share one installer. The published npm release candidate is
-**`bontaflowstack@1.1.0-rc.1`**. Its registry installation passed with both host CLIs;
+**`bontaflowstack@1.1.0-rc.2`**. Its registry installation passed with both host CLIs;
 authenticated Claude session acceptance remains pending. Install it with:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup
+npx bontaflowstack@1.1.0-rc.2 setup
 ```
 
 The same command without `setup` starts setup too. By default it detects both
@@ -30,7 +30,7 @@ and begin with:
 ```
 
 The installer keeps versioned adapter files outside the npm cache at
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.1\hosts\claude`. Its
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.2\hosts\claude`. Its
 `install-state.json` pins the selected shared BFS state root. Setup reuses a
 sole existing root, including a Windows Store redirected LocalAppData location;
 with no prior state, it uses `%LOCALAPPDATA%\BontaFlowStack\state\v2`. If two
@@ -67,9 +67,9 @@ The registry release has not occurred. To build a local candidate for package
 verification, use a fresh output directory and the local tarball:
 
 ```powershell
-node scripts/build-npm-package.mjs --output artifacts/npm/1.1.0-rc.1/package
-npm pack ./artifacts/npm/1.1.0-rc.1/package --pack-destination ./artifacts/npm/1.1.0-rc.1
-npx --yes --package ./artifacts/npm/1.1.0-rc.1/bontaflowstack-1.1.0-rc.1.tgz -- bontaflowstack setup --host claude
+node scripts/build-npm-package.mjs --output artifacts/npm/1.1.0-rc.2/package
+npm pack ./artifacts/npm/1.1.0-rc.2/package --pack-destination ./artifacts/npm/1.1.0-rc.2
+npx --yes --package ./artifacts/npm/1.1.0-rc.2/bontaflowstack-1.1.0-rc.2.tgz -- bontaflowstack setup --host claude
 ```
 
 The generated package is the distributable input; the source installer directory
