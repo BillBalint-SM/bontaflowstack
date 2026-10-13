@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -162,6 +163,37 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
   }
   // Prepare the shared engines before changing either active host registration.
   const core = path.join(installationRoot, 'hosts', layout.codex.plugin);
+  // Keep the official platform binary and its license outside the disposable npm cache.
+  const require = createRequire(path.join(packageRoot, 'package.json'));
+  const impeccableManifest = require.resolve('impeccable/package.json');
+  const impeccable = read(impeccableManifest);
+  requireValue(impeccable.version === pkg.dependencies.impeccable, 'Unexpected Impeccable npm version; rerun setup with a clean npm cache.');
+  const platformManifest = createRequire(impeccableManifest).resolve('@impeccable/cli-windows-x64/package.json');
+  requireValue(read(platformManifest).version === impeccable.optionalDependencies['@impeccable/cli-windows-x64'], 'Unexpected Impeccable platform package.');
+  const toolSource = path.dirname(platformManifest);
+  const toolRoot = path.join(stateHome, 'tools', 'impeccable', impeccable.version);
+  noLinks(toolRoot);
+  const toolFiles = inventory(toolSource);
+  const sameTool = directory => JSON.stringify(inventory(directory)) === JSON.stringify(toolFiles);
+  if (fs.existsSync(toolRoot)) {
+    requireValue(sameTool(toolRoot), `Impeccable installation differs; files were preserved at ${toolRoot}`);
+  } else {
+    fs.mkdirSync(path.dirname(toolRoot), { recursive:true });
+    const stage = fs.mkdtempSync(path.join(path.dirname(toolRoot), '.staging-'));
+    fs.cpSync(toolSource, stage, { recursive:true, force:false, errorOnExist:true });
+    requireValue(sameTool(stage), `Impeccable copy differs; files were preserved at ${stage}`);
+    fs.renameSync(stage, toolRoot);
+  }
+  const executable = path.join(toolRoot, 'bin/impeccable.exe');
+  const engineVersion = invoke(executable, ['--version']);
+  requireValue(/^\d+\.\d+\.\d+$/.test(engineVersion), 'Impeccable did not confirm a working executable.');
+  const configFile = path.join(stateHome, 'impeccable.json');
+  const configuration = { schema:1, version:impeccable.version, engineVersion, command:[executable], sha256:digest(fs.readFileSync(executable)) };
+  const priorTool = readJson(configFile);
+  const { externalCommand } = await import(pathToFileURL(path.join(core, 'core/engines.mjs')));
+  if (priorTool) externalCommand({home:stateHome}, 'BFS_IMPECCABLE_COMMAND', {});
+  atomicWrite(configFile, configuration);
+  externalCommand({home:stateHome}, 'BFS_IMPECCABLE_COMMAND', commandEnv);
   invoke('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', path.join(core, 'scripts/install-engines.ps1')], true);
   invoke(process.execPath, [path.join(core, 'core/cli.mjs'), 'doctor', 'bfs-browse'], true);
   for (const target of hosts) {

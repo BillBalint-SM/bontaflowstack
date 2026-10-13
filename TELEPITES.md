@@ -18,6 +18,10 @@ elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 · [Telepítés lépésről lépésre](#telepítés-windowsra)
 · [Korábbi 1.0.0-s bizonyítékok](docs/bontaflowstack/RELEASE-1.0.0.md)
 
+A következő, még nem publikált `1.1.0-rc.2` kiadásjelölt az Impeccable CLI-t is
+automatikusan telepíti és beállítja mindkét hosthoz. A változtatás és a próbák
+az [Impeccable-telepítés leírásában](docs/bontaflowstack/IMPECCABLE-SETUP.md) szerepelnek.
+
 Ezen az oldalon együtt találod a BontaFlowStack bemutatóját, a skillek listáját
 és a teljes magyar telepítési útmutatót. A projekt alapértelmezett főoldala az
 [angol README](README.md).

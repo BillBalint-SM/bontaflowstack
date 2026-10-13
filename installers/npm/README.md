@@ -2,13 +2,13 @@
 
 34 connected skills and local project memory for Codex and Claude Code. The
 Windows x64 npm installer prepares each detected host and the pinned
-browser/render engine in one setup flow.
+browser/render engine and Impeccable CLI in one setup flow.
 
-**Package `1.1.0-rc.1` is a release candidate; native host acceptance is pending.**
+**Package `1.1.0-rc.2` is a release candidate; native host acceptance is pending.**
 Use the command below for this exact version:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup
+npx bontaflowstack@1.1.0-rc.2 setup
 ```
 
 Calling the same pinned package without `setup` starts the same setup. Setup
@@ -19,7 +19,7 @@ before running it.
 
 - Windows x64, Node.js 24 or newer with npm, and Git for Windows.
 - Codex and/or Claude Code installed with its CLI on `PATH`.
-- Internet access for pinned engine dependencies and Chromium.
+- Internet access for pinned engine dependencies, Impeccable and Chromium.
 - A signed-in host account to run model-driven work.
 
 By default, setup detects the Codex and Claude Code CLIs and configures every
@@ -31,8 +31,8 @@ Use `--host all` to require both. At least one host must be available.
 The package installs its versioned adapters outside the npm cache:
 
 ```text
-%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.1\hosts\codex
-%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.1\hosts\claude
+%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.2\hosts\codex
+%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.2\hosts\claude
 ```
 
 Only adapters selected and supported by the detected hosts are registered. Setup
@@ -44,6 +44,14 @@ you choose and rerun. It does not merge state. Each host's `install-state.json`
 pins the selected common root, so Codex and Claude Code share memory, workflow
 records, checkpoints and browser state. Existing state is preserved across setup
 and updates.
+
+Setup also downloads the official `impeccable@4.5.2` npm dependency, copies its
+Windows binary and license into the shared state under `tools/impeccable/4.5.2`,
+and saves the verified command in `impeccable.json`. Both adapters use this
+default in fresh sessions, even after the npm cache is removed. No manual
+`BFS_IMPECCABLE_COMMAND` is required; an existing explicit override takes
+precedence. Setup probes the binary before registering hosts, and preserves
+modified installed files instead of overwriting them.
 
 The installer does not install Node, Git or a host application, sign in, change
 host permissions or grant hook trust. Review hooks in the host's normal trust
@@ -57,9 +65,9 @@ editing are outside the accepted scope.
 ## Select, update and remove
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.1 setup --host codex
-npx bontaflowstack@1.1.0-rc.1 setup --host claude
-npx bontaflowstack@1.1.0-rc.1 setup --host all
+npx bontaflowstack@1.1.0-rc.2 setup --host codex
+npx bontaflowstack@1.1.0-rc.2 setup --host claude
+npx bontaflowstack@1.1.0-rc.2 setup --host all
 ```
 
 Use a newer exact version to update. Previous versioned adapters and the shared
@@ -74,7 +82,7 @@ plugin. Remove those separately only when you intentionally want to erase them.
 
 ## Validation status
 
-This prerelease has local package and setup checks, but has not been published.
+Prerelease validation covers local package and setup checks.
 File validation or successful registration does not establish actual host MCP,
 hook or skill behavior. In particular, authenticated Claude session acceptance
 is still pending. See the source repository's

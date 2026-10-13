@@ -563,6 +563,33 @@ test('Node engine bridge preserves failures and isolates missing external design
   assert.ok(JSON.parse(result.stdout).session.startsWith(ctx.workspaceDir));
 });
 
+test('Impeccable uses persisted configuration, honors overrides and preserves detector exit meaning', t => {
+  const {ctx,root}=fixture(t), engine=path.join(root,'impeccable-engine');
+  fs.mkdirSync(path.join(engine,'src'),{recursive:true});fs.mkdirSync(path.join(engine,'.browsers'));
+  const source='process.stdout.write(process.env.BFS_IMPECCABLE_COMMAND || "missing");process.exit(Number(process.argv.at(-1)) || 0);';
+  fs.writeFileSync(path.join(engine,'src/probe.mjs'),source);
+  const manifest={schema:1,name:'bontaflowstack-engines',version:'0.3.3',platform:`${process.platform}-${process.arch}`,browserDirectory:'.browsers',
+    files:{'src/probe.mjs':digest(source)},commands:{'design-detect':{program:'node',args:['src/probe.mjs'],environment:'BFS_IMPECCABLE_COMMAND'}}};
+  const bytes=JSON.stringify(manifest);fs.writeFileSync(path.join(engine,'engine.json'),bytes);
+  engines(ctx,'register',{root:engine,sha256:digest(bytes)});
+  const config={schema:1,version:'4.5.2',command:[process.execPath],sha256:digest(fs.readFileSync(process.execPath))};
+  const previous=process.env.BFS_IMPECCABLE_COMMAND;
+  delete process.env.BFS_IMPECCABLE_COMMAND;
+  t.after(()=>{if(previous === undefined) delete process.env.BFS_IMPECCABLE_COMMAND; else process.env.BFS_IMPECCABLE_COMMAND=previous;});
+  atomicWrite(path.join(ctx.home,'impeccable.json'),config);
+  assert.equal(engines(ctx,'status').capabilities['design-detect'].ready,true);
+  const result=engines(ctx,'design-detect',{args:['detect','2']});
+  assert.deepEqual(JSON.parse(result.stdout),config.command);
+  assert.equal(result.exitCode,2);assert.equal(result.status,'completed');
+  assert.equal(engines(ctx,'design-detect',{args:['detect','1']}).status,'failed');
+  assert.equal(engines(ctx,'design-detect',{args:['other','2']}).status,'failed');
+  atomicWrite(path.join(ctx.home,'impeccable.json'),{...config,sha256:'0'.repeat(64)});
+  assert.equal(engines(ctx,'status').capabilities['design-detect'].ready,false);
+  process.env.BFS_IMPECCABLE_COMMAND=JSON.stringify([process.execPath,'custom']);
+  assert.equal(engines(ctx,'status').capabilities['design-detect'].ready,true);
+  assert.deepEqual(JSON.parse(engines(ctx,'design-detect').stdout),[process.execPath,'custom']);
+});
+
 test('PowerShell native-hook command forwards UTF-8 stdin and returns the host contract', t => {
   const {env,project}=fixture(t);
   const payload={hook_event_name:'PreToolUse',session_id:env.CODEX_THREAD_ID,cwd:project,tool_name:'functions.exec_command',tool_input:{cmd:'git status'}};

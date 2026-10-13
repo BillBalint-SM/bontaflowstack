@@ -18,5 +18,7 @@ Image generation/editing uses the current Codex image tool without a separate
 API key. Check availability in the chat, not through engine doctor. The local
 design engine compares images and records only the actual user selection.
 
-Google DESIGN.md and impeccable are optional external tools: use them only when
-installed and relevant. Ordinary design needs neither tool nor Stitch.
+The npm setup installs and configures Impeccable for `design-detect` in shared
+state; no `BFS_IMPECCABLE_COMMAND` setting is required. Use its findings when
+relevant to the task. Google DESIGN.md remains an optional external prerequisite.
+Ordinary design needs neither tool nor Stitch.

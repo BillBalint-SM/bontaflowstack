@@ -11,6 +11,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   assert.equal(process.platform, 'win32', 'native setup integration is Windows-only');
   const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const evidenceDir = path.join(repo, '.tmp', `npm-setup-integration-${randomUUID()}`);
+  const version = JSON.parse(fs.readFileSync(path.join(repo,'installers/npm/package.json'),'utf8')).version;
   const packageRoot = path.join(evidenceDir, 'source-package');
   const upgradeRoot = path.join(evidenceDir, 'synthetic-upgrade-package');
   const packDir = path.join(evidenceDir, 'packed');
@@ -28,6 +29,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   };
   for (const directory of [evidenceDir, env.LOCALAPPDATA, env.USERPROFILE, env.CODEX_HOME, env.CLAUDE_CONFIG_DIR, stateHome, packDir, npmCache]) fs.mkdirSync(directory, { recursive:true });
 
+  delete env.BFS_IMPECCABLE_COMMAND;
   const commandLogs = [];
   function execute(name, command, args, { cwd = repo, allowFailure = false, commandEnv = env } = {}) {
     const result = spawnSync(command, args, { cwd, env:commandEnv, encoding:'utf8', windowsHide:true, timeout:45 * 60 * 1000, maxBuffer:32 * 1024 * 1024 });
@@ -90,12 +92,12 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   assert.match(build.stdout, /"hosts":\["codex","claude"\]/);
   const firstTarball = pack('npm-pack-first', packageRoot);
   const firstInstall = npx('npx-first-noargs', firstTarball.archive);
-  assert.match(firstInstall.stdout, /installed at .*1\.1\.0-rc\.1/i);
+  assert.ok(firstInstall.stdout.includes(`installed at ${path.join(env.LOCALAPPDATA,'BontaFlowStack','npm','versions',version)}`));
   const repeatInstall = npx('npx-repeat-noargs', firstTarball.archive);
-  assert.match(repeatInstall.stdout, /installed at .*1\.1\.0-rc\.1/i);
+  assert.ok(repeatInstall.stdout.includes(`BontaFlowStack ${version} installed`));
 
   const versionRoot = path.join(env.LOCALAPPDATA, 'BontaFlowStack', 'npm', 'versions');
-  const firstRoot = path.join(versionRoot, '1.1.0-rc.1');
+  const firstRoot = path.join(versionRoot, version);
   const firstCodexRoot = path.join(firstRoot, 'hosts', 'codex', 'plugins', 'bontaflowstack');
   const firstClaudeRoot = path.join(firstRoot, 'hosts', 'claude');
   for (const root of [firstCodexRoot, firstClaudeRoot]) {
@@ -132,13 +134,13 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   assert.equal(path.resolve(claudeMarkets.find(item => item.name === 'bontaflowstack-npx')?.path || ''), path.resolve(path.join(upgradedRoot, 'hosts', 'claude')));
 
   const downgradedInstall = npx('npx-original-archive-downgrade', firstTarball.archive);
-  assert.match(downgradedInstall.stdout, /installed at .*1\.1\.0-rc\.1/i);
+  assert.ok(downgradedInstall.stdout.includes(`BontaFlowStack ${version} installed`));
   const downgradedCodex = JSON.parse(execute('codex-plugin-list-after-downgrade', codex, ['--no-daemon','plugin','list','--json']).stdout).installed.find(item => item.pluginId === 'bontaflowstack@bontaflowstack');
-  assert.equal(downgradedCodex?.version, '1.1.0-rc.1');
+  assert.equal(downgradedCodex?.version, version);
   assert.equal(downgradedCodex?.enabled, true);
   assert.equal(downgradedCodex?.installed, true);
   const downgradedClaude = JSON.parse(execute('claude-plugin-list-after-downgrade', claude, ['plugin','list','--json']).stdout).find(item => item.id === 'bontaflowstack@bontaflowstack-npx' && item.scope === 'user');
-  assert.equal(downgradedClaude?.version, '1.1.0-rc.1');
+  assert.equal(downgradedClaude?.version, version);
   assert.equal(downgradedClaude?.enabled, true);
   assert.equal(path.resolve(downgradedClaude?.readFromFolder || ''), path.resolve(firstClaudeRoot));
 
@@ -152,6 +154,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
     const doctor = JSON.parse(result.stdout);
     assert.equal(doctor.core.ready, true);
     assert.equal(doctor.engines.installed, true);
+    assert.equal(doctor.engines.capabilities['design-detect'].ready, true);
     assert.equal(fs.existsSync(path.join(doctorEnv.LOCALAPPDATA, 'BontaFlowStack', 'state', 'v2', 'engines.json')), false, 'doctor should have used the pinned shared state, not redirected LOCALAPPDATA');
   }
 
@@ -174,21 +177,39 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   fs.renameSync(upgradeRoot, upgradeRemoved);
   for (const root of [firstCodexRoot, firstClaudeRoot, codexRoot, claudeRoot]) assert.ok(fs.existsSync(path.join(root, 'catalog.json')));
 
+  const findingFile = path.join(evidenceDir,'finding.css');
+  fs.writeFileSync(findingFile,'body { font-family: Inter, sans-serif; }');
+  const cleanFile = path.join(evidenceDir,'clean.css');
+  fs.writeFileSync(cleanFile,'body { margin: 0; }');
+  const freshEnv = {...env, LOCALAPPDATA:path.join(evidenceDir,'RedirectedLocalAppData')};
+  delete freshEnv.BFS_STATE_HOME;
+  for (const [name,root] of [['codex',firstCodexRoot],['claude',firstClaudeRoot]]) {
+    for (const [label,target,exitCode,status] of [['findings',findingFile,2,'completed'],['clean',cleanFile,0,'completed'],['missing',path.join(evidenceDir,'missing.css'),1,'failed']]) {
+      const result=execute(`impeccable-${name}-${label}-without-cache`,process.execPath,[path.join(root,'core/cli.mjs'),'engine','design-detect','--','detect','--json','--no-config',target],{cwd:evidenceDir,commandEnv:freshEnv,allowFailure:true});
+      assert.equal(result.status,exitCode);
+      const bridge=JSON.parse(result.stdout);
+      assert.equal(bridge.exitCode,exitCode,bridge.stderr || bridge.stdout);
+      assert.equal(bridge.status,status);
+      if (label==='findings') assert.match(bridge.stdout,/overused-font/);
+    }
+  }
+
   const report = {
     status:'passed',
     sourcePackageRemoved:true,
     npmCacheRemoved:true,
     npxEntryTested:true,
     nativeHosts:['codex','claude'],
-    firstVersion:'1.1.0-rc.1',
+    firstVersion:version,
     upgradedVersion:'9.9.9-test.1',
-    downgradedVersion:'1.1.0-rc.1',
+    downgradedVersion:version,
     tarballs:[{ path:firstTarball.archive, sha256:firstTarball.sha256 }, { path:upgradeTarball.archive, sha256:upgradeTarball.sha256 }],
     stateHome,
     installedRoots:[firstCodexRoot,firstClaudeRoot,codexRoot,claudeRoot],
     activeRootsAfterDowngrade:[firstCodexRoot,firstClaudeRoot],
     nativeRegistrationsRemoved:true,
     pinnedStateSurvivedRedirectedLocalAppData:true,
+    impeccable:{npmVersion:'4.5.2',freshProcessWithoutEnvironment:true,worksWithoutNpmCache:true,detectorExitCodes:[0,1,2],hosts:['codex','claude']},
     userStatePreserved:true,
     commandLogs,
     scope:'Real npm pack and npx CLI with real Codex and Claude CLIs. Temporary host configs and npm cache were isolated under this evidence directory. Fresh pinned engine and browser assets are retained for later verification.'

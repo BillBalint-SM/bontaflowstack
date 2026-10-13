@@ -26,7 +26,26 @@ function registered(ctx) {
   requireValue(result.hash === registration.manifestSha256 && result.value.version === registration.version, 'Engine installation changed; rebuild and register the verified package');
   return { root, ...result.value };
 }
-function availability(root, command, files) {
+export function externalCommand(ctx, name, env = process.env) {
+  requireValue(/^BFS_[A-Z_]+_COMMAND$/.test(name), 'Invalid external tool setting');
+  let configured = env[name], managed;
+  if (!configured && name === 'BFS_IMPECCABLE_COMMAND') {
+    managed = readJson(path.join(ctx.home, 'impeccable.json'));
+    if (managed) {
+      requireValue(managed.schema === 1 && /^[a-f0-9]{64}$/.test(managed.sha256), 'Invalid managed Impeccable configuration; rerun npm setup');
+      configured = JSON.stringify(managed.command);
+    }
+  }
+  requireValue(configured, name === 'BFS_IMPECCABLE_COMMAND' ? 'Impeccable is not installed; rerun npm setup' : `Install the external tool and set ${name}; see the engine prerequisites`);
+  const args = JSON.parse(configured);
+  requireValue(Array.isArray(args) && args.length && args.every(a => typeof a === 'string' && !a.includes('\0')) && path.isAbsolute(args[0]) && fs.statSync(args[0], {throwIfNoEntry:false})?.isFile() && !/\.(cmd|bat|ps1)$/i.test(args[0]), 'External tool command must start with an existing absolute executable');
+  if (managed) {
+    noLinks(args[0]);
+    requireValue(digest(fs.readFileSync(args[0])) === managed.sha256, 'Managed Impeccable binary changed; files were preserved. Rerun npm setup');
+  }
+  return configured;
+}
+function availability(ctx, root, command, files) {
   const required = [...command.requires || []];
   if (command.resource) required.push(command.resource);
   requireValue(command.resource || command.program === 'node', 'Use the current BontaFlowStack Node engine release');
@@ -37,11 +56,7 @@ function availability(root, command, files) {
     if (files[relative]) requireValue(digest(fs.readFileSync(file)) === files[relative], `Engine component changed: ${relative}`);
   }
   if (command.environment) {
-    requireValue(/^BFS_[A-Z_]+_COMMAND$/.test(command.environment), 'Invalid external tool setting');
-    const configured = process.env[command.environment];
-    requireValue(configured, `Install the external tool and set ${command.environment}; see the engine prerequisites`);
-    const args = JSON.parse(configured);
-    requireValue(Array.isArray(args) && args.length && args.every(a => typeof a === 'string' && !a.includes('\0')) && path.isAbsolute(args[0]) && fs.statSync(args[0], {throwIfNoEntry:false})?.isFile() && !/\.(cmd|bat|ps1)$/i.test(args[0]), 'External tool command must start with an existing absolute executable');
+    return externalCommand(ctx, command.environment);
   }
 }
 export function engines(ctx, action, input = {}) {
@@ -53,14 +68,14 @@ export function engines(ctx, action, input = {}) {
       requireValue(/^[a-f0-9]{64}$/.test(expected), 'Malformed engine file hash');
       requireValue(digest(fs.readFileSync(engineFile(root, relative))) === expected, `Engine integrity check failed: ${relative}`);
     }
-    for (const command of Object.values(value.commands)) if (!command.environment) availability(root, command, value.files);
+    for (const command of Object.values(value.commands)) if (!command.environment) availability(ctx, root, command, value.files);
     return atomicWrite(path.join(ctx.home, 'engines.json'), { schema: 1, root, version: value.version, manifestSha256: hash });
   }
   if (action === 'status') {
     try {
       const engine = registered(ctx);
       const capabilities = Object.fromEntries(Object.entries(engine.commands).map(([name, command]) => {
-        try { availability(engine.root, command, engine.files); return [name, { ready: true }]; }
+        try { availability(ctx, engine.root, command, engine.files); return [name, { ready: true }]; }
         catch (error) { return [name, { ready: false, reason: error.message }]; }
       }));
       return { installed: true, version: engine.version, capabilities };
@@ -68,7 +83,7 @@ export function engines(ctx, action, input = {}) {
   }
   const engine = registered(ctx), command = engine.commands[action];
   requireValue(command, `Unknown engine capability: ${action}`);
-  availability(engine.root, command, engine.files);
+  const configured = availability(ctx, engine.root, command, engine.files);
   if (command.resource) return { resource: engineFile(engine.root, command.resource), license: engineFile(engine.root, command.requires[0]) };
   requireValue(ctx.taskId, 'Engine operations require the current CODEX_THREAD_ID');
   requireValue(Array.isArray(input.args || []) && (input.args || []).every(a => typeof a === 'string' && !a.includes('\0')), 'Engine arguments must be strings');
@@ -79,9 +94,12 @@ export function engines(ctx, action, input = {}) {
   const program = process.execPath;
   const env = { ...process.env, BFS_ENGINE_SESSION:path.join(taskRoot,'own-engine'),
     PLAYWRIGHT_BROWSERS_PATH: engineFile(engine.root, engine.browserDirectory) };
+  if (configured) env[command.environment] = configured;
   const timeout = input.timeoutMs ?? 120000;
   requireValue(Number.isInteger(timeout) && timeout >= 100 && timeout <= 600000, 'Engine timeout must be 100..600000 ms');
   requireValue(input.stdin === undefined || typeof input.stdin === 'string', 'Engine stdin must be text');
   const result = spawnSync(program, args, { cwd: ctx.cwd, env, input:input.stdin, encoding: 'utf8', windowsHide: true, timeout, maxBuffer: 16 * 1024 * 1024, shell: false });
-  return { status: result.status === 0 && !result.error ? 'completed' : 'failed', exitCode: result.status ?? 1, stdout: result.stdout || '', stderr: result.stderr || '', error: result.error?.message ?? null };
+  // Impeccable detect returns 2 for findings, 1 for a scan failure.
+  const completed = result.status === 0 || action === 'design-detect' && input.args?.[0] === 'detect' && result.status === 2;
+  return { status: completed && !result.error ? 'completed' : 'failed', exitCode: result.status ?? 1, stdout: result.stdout || '', stderr: result.stderr || '', error: result.error?.message ?? null };
 }

@@ -13,6 +13,13 @@ const scratch = fs.mkdtempSync(path.join(os.tmpdir(), `bfs-universal-setup-${ran
 const packageRoot = path.join(scratch, 'package');
 const built = spawnSync(process.execPath, [path.join(repo, 'scripts', 'build-npm-package.mjs'), '--output', packageRoot], { cwd:repo, encoding:'utf8', windowsHide:true });
 assert.equal(built.status, 0, built.stderr || built.stdout);
+const impeccablePackage = path.join(packageRoot, 'node_modules/@impeccable/cli-windows-x64');
+fs.mkdirSync(path.join(impeccablePackage, 'bin'), { recursive:true });
+fs.writeFileSync(path.join(impeccablePackage, 'package.json'), JSON.stringify({name:'@impeccable/cli-windows-x64',version:'0.1.14'}));
+fs.writeFileSync(path.join(impeccablePackage, 'bin/impeccable.exe'), 'fixture Impeccable binary');
+fs.writeFileSync(path.join(impeccablePackage, 'LICENSE'), 'fixture license');
+fs.mkdirSync(path.join(packageRoot, 'node_modules/impeccable'), {recursive:true});
+fs.writeFileSync(path.join(packageRoot, 'node_modules/impeccable/package.json'), JSON.stringify({name:'impeccable',version:'4.5.2',optionalDependencies:{'@impeccable/cli-windows-x64':'0.1.14'}}));
 after(() => fs.rmSync(scratch, { recursive:true, force:true }));
 
 function makeEnv(label = 'run') {
@@ -40,6 +47,7 @@ function runner(env, state = { codexMarketplaces:[], codexPlugins:[], claudeMark
   }
   const run = (command, args = [], options = {}) => {
     calls.push({ command, args:[...args], options });
+    if (path.basename(command) === 'impeccable.exe' && args[0] === '--version') return '4.0.0';
     const raw = args.filter(arg => arg !== '--no-daemon');
     const lowerCommand = path.basename(command).toLowerCase();
     const commandLine = [command, ...raw].join('\0').toLowerCase();
@@ -92,6 +100,54 @@ function runner(env, state = { codexMarketplaces:[], codexPlugins:[], claudeMark
 function options(env, run, rest = {}) {
   return { packageRoot, env, run, platform:'win32', arch:'x64', ...rest };
 }
+
+test('setup installs Impeccable outside npm cache and persists a shared command before host registration', async () => {
+  const env = makeEnv('impeccable'), mock = runner(env);
+  delete env.BFS_IMPECCABLE_COMMAND;
+  await setup(options(env, mock.run));
+  const configFile = path.join(env.BFS_STATE_HOME, 'impeccable.json');
+  assert.ok(fs.existsSync(configFile), 'automatic setup must persist the Impeccable command');
+  const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+  assert.equal(config.version, '4.5.2');
+  assert.equal(fs.readFileSync(config.command[0], 'utf8'), 'fixture Impeccable binary');
+  assert.ok(config.command[0].startsWith(env.BFS_STATE_HOME));
+  assert.match(config.sha256, /^[a-f0-9]{64}$/);
+  const probe = mock.calls.findIndex(call => path.basename(call.command) === 'impeccable.exe');
+  const register = mock.calls.findIndex(call => call.args.includes('marketplace') && call.args.includes('add'));
+  assert.ok(probe >= 0 && probe < register);
+  const before = fs.statSync(config.command[0]).mtimeMs;
+  await setup(options(env, mock.run));
+  assert.equal(fs.statSync(config.command[0]).mtimeMs, before, 'repeat setup reuses the verified binary');
+});
+
+test('Impeccable failures stop registration, allow retry and preserve modified installed files', async () => {
+  const env = makeEnv('impeccable-failure'), mock = runner(env);
+  const run = (command, args, options) => {
+    if (path.basename(command) === 'impeccable.exe') throw new Error('Impeccable probe failed');
+    return mock.run(command,args,options);
+  };
+  await assert.rejects(setup(options(env,run)), /Impeccable probe failed/);
+  assert.equal(mock.state.codexPlugins.length + mock.state.claudePlugins.length,0);
+  assert.equal(fs.existsSync(path.join(env.BFS_STATE_HOME,'impeccable.json')),false);
+  await setup(options(env,mock.run));
+  const config = JSON.parse(fs.readFileSync(path.join(env.BFS_STATE_HOME,'impeccable.json'),'utf8'));
+  fs.writeFileSync(config.command[0],'user modification');
+  await assert.rejects(setup(options(env,mock.run)),/Impeccable installation differs/);
+  assert.equal(fs.readFileSync(config.command[0],'utf8'),'user modification');
+});
+
+test('explicit Impeccable environment override survives setup; invalid overrides stop registration', async () => {
+  const env = makeEnv('impeccable-override'), mock = runner(env);
+  env.BFS_IMPECCABLE_COMMAND = JSON.stringify([process.execPath,'custom-tool.mjs']);
+  const original=env.BFS_IMPECCABLE_COMMAND;
+  await setup(options(env,mock.run));
+  assert.equal(env.BFS_IMPECCABLE_COMMAND,original);
+  assert.ok(mock.calls.every(call=>call.options.env.BFS_IMPECCABLE_COMMAND===original));
+  const invalid = makeEnv('impeccable-invalid'), failed=runner(invalid);
+  invalid.BFS_IMPECCABLE_COMMAND = '["missing.exe"]';
+  await assert.rejects(setup(options(invalid,failed.run)),/absolute executable/);
+  assert.equal(failed.state.codexPlugins.length+failed.state.claudePlugins.length,0);
+});
 
 test('universal setup auto-registers both native hosts, pins shared state, and repeats safely', async t => {
   const env = makeEnv('both'), mock = runner(env);

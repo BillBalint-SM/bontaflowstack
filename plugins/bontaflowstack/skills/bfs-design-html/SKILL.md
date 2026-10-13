@@ -13,7 +13,7 @@ Modes: `implement`, `refine`. Use implement for a new UI and refine for changes 
 3. Implement semantic structure, usable keyboard controls, visible focus, labels, appropriate contrast and reduced-motion behavior. Keep application files in the requested project.
 4. Use native CSS for ordinary layout. If measured text layout is specifically required, obtain the optional engine pretext resource and its license, or use an already installed project dependency.
 5. Render desktop and narrow layouts through the plugin's host MCP `render` tool, or use its `browser` tool for live interaction, following the shared browser contract. Inspect screenshots and page errors; check overflow, text wrapping and the requested controls.
-6. Repair demonstrated in-scope defects and repeat the affected checks. Optional design-detect may provide additional findings when the user has installed that capability.
+6. Repair demonstrated in-scope defects and repeat the affected checks. The npm setup supplies Impeccable through design-detect; use its findings when relevant and verify each against the actual interface.
 
 Pass checked outputs to bfs-design-review when that review is requested.
 

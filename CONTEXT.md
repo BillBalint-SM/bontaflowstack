@@ -51,8 +51,10 @@ from a checksum-pinned release. Legacy user data remains untouched; import is ex
 
 The engine package implements browser sessions, rendering and local image comparison
 with Node.js and separately installed dependencies. Image generation/editing uses
-the current Codex image tool. Google DESIGN.md and impeccable are optional external
-prerequisites for their specific operations; neither is required for ordinary design.
+the current Codex image tool. The next npm candidate, 1.1.0-rc.2, adds automatic
+Impeccable CLI installation and persistent shared configuration for design-detect.
+Google DESIGN.md remains an optional external prerequisite; neither operation is
+required for ordinary design. The published rc.1 does not include this addition.
 
 Skill names and modes are in `plugins/bontaflowstack/catalog.json`. The core
 contract is `plugins/bontaflowstack/HOST.md`. Source and behavior checks run with

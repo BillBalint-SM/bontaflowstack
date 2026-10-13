@@ -210,10 +210,16 @@ Image generation/editing uses the host's Codex image tool. `engine design` is lo
 --index 2 --reason "the user's actual choice"`, `selection --board board.html`,
 `gallery`, `diff` and `prompt`. A comparison never invents a selection.
 
-`design-md` and `design-detect` call separately installed Google DESIGN.md and
-impeccable tools through the executable arrays in `BFS_DESIGN_MD_COMMAND` and
-`BFS_IMPECCABLE_COMMAND`. No automatic installation occurs. See the engine README.
-Google format support is optional and does not require Stitch. `design-md check`
+The npm setup installs the pinned official Impeccable CLI and saves its command
+in the shared state's `impeccable.json`. `engine design-detect -- detect --json
+<file-or-directory>` runs it without manual configuration. An explicit
+`BFS_IMPECCABLE_COMMAND` JSON executable array overrides that managed default.
+Detector exit 2 means a completed scan with findings; exit 1 means a scan failure.
+Always inspect the returned findings, not just the completed status.
+
+`design-md` still requires a separately installed Google DESIGN.md tool and its
+JSON executable array in `BFS_DESIGN_MD_COMMAND`. Google format support is
+optional and does not require Stitch. `design-md check`
 maps to the external `lint` command; `tokens` maps to `export --format dtcg`.
 Pretext returns the entry module of the separately installed npm package; use it
 as an ES module or the project's installed package, not as an inline browser bundle.

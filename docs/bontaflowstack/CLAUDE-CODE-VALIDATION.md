@@ -115,7 +115,9 @@ remain unverified. Synthetic events cannot establish those behaviors.
 
 The earlier engine tests reused an existing engine; the npm tests above now
 include a fresh download/build and real browser checks. Optional external
-DESIGN.md/impeccable providers remain untested.
+DESIGN.md remains untested. The subsequent, unpublished rc.2 change adds and
+tests automatic Impeccable installation and actual local detector execution
+through both generated adapters; see [Impeccable setup](IMPECCABLE-SETUP.md).
 The RC and source have now been published as recorded above. No persistent
 installation into the user's actual Claude configuration was performed.
 

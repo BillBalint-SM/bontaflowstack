@@ -34,13 +34,13 @@ test('npm builder packages both exact-version host plugins and only installable 
   assert.equal(JSON.parse(built.stdout).version, manifest.version);
   const packedPackage = JSON.parse(fs.readFileSync(path.join(output, 'package.json'), 'utf8'));
   assert.equal(manifest.private, true, 'unbuilt installer sources must not be publishable');
-  assert.equal(manifest.version, '1.1.0-rc.1');
+  assert.equal(manifest.version, '1.1.0-rc.2');
   assert.equal(packedPackage.private, undefined);
   assert.deepEqual(packedPackage.bin, { bontaflowstack:'bin/setup.mjs' });
   assert.equal(packedPackage.engines.node, '>=24');
   assert.deepEqual(packedPackage.os, ['win32']);
   assert.deepEqual(packedPackage.cpu, ['x64']);
-  assert.equal(packedPackage.dependencies, undefined);
+  assert.deepEqual(packedPackage.dependencies, {impeccable:'4.5.2'});
   assert.equal(packedPackage.scripts, undefined);
 
   const codex = path.join(output, 'hosts', 'codex', 'plugins', 'bontaflowstack');
@@ -63,8 +63,8 @@ test('npm builder packages both exact-version host plugins and only installable 
 
   const codexHost = fs.readFileSync(path.join(codex, 'HOST.md'), 'utf8');
   const claudeHost = fs.readFileSync(path.join(claude, 'HOST.md'), 'utf8');
-  assert.match(codexHost, /npx bontaflowstack@1\.1\.0-rc\.1 setup/);
-  assert.match(claudeHost, /npx bontaflowstack@1\.1\.0-rc\.1 setup/);
+  assert.ok(codexHost.includes(`npx bontaflowstack@${manifest.version} setup`));
+  assert.ok(claudeHost.includes(`npx bontaflowstack@${manifest.version} setup`));
   assert.ok(codexHost.indexOf('## Install and verify') < codexHost.indexOf('## Task scope and results'));
   assert.ok(claudeHost.indexOf('## Install and verify') < claudeHost.indexOf('## Task scope and results'));
 

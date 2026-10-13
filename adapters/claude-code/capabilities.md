@@ -8,4 +8,4 @@ Browser and rendering use the installed plugin's `bfs` MCP tools. Engine doctor 
 
 Claude can inspect supplied images when image understanding is available. Raster image generation and editing are outside this package's accepted scope. Use supplied assets or author HTML/SVG visuals; the local design engine can render and compare them and records only the user's actual selection.
 
-Google DESIGN.md and impeccable are optional external tools: use them only when installed and relevant. Ordinary design does not require them.
+The npm setup installs and configures Impeccable for `design-detect` in shared state. No `BFS_IMPECCABLE_COMMAND` setting is required. Use its findings when relevant to the task. Google DESIGN.md remains an optional external prerequisite. Ordinary design does not require either tool.

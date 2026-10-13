@@ -71,6 +71,10 @@ from plugin installation.
 
 ## Update and recovery
 
+The next candidate, `1.1.0-rc.2`, also prepares the official Impeccable CLI and
+its persistent shared configuration for both hosts. It is not published yet.
+See [Impeccable setup](IMPECCABLE-SETUP.md) for the change and verification scope.
+
 Use a new exact version after it has been published, for example:
 
 ```powershell
