@@ -9,7 +9,7 @@ import {checkLocalLinks} from '../scripts/check.mjs';
 
 test('Cursor package exposes all skills, prefixed MCP tools and native hooks from a portable Windows path',t=>{
   const repo=fileURLToPath(new URL('../',import.meta.url)),canonical=path.join(repo,'plugins/bontaflowstack');
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-cursor-package-')),output=path.join(root,"plugin's $literal %PATH% with spaces"),project=path.join(root,'project');fs.mkdirSync(project);
+  const root=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'bfs-cursor-package-'))),output=path.join(root,"plugin's $literal %PATH% with spaces"),project=path.join(root,'project');fs.mkdirSync(project);
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   const built=spawnSync(process.execPath,[path.join(repo,'scripts/build-host-package.mjs'),'--host','cursor-ide','--output',output],{encoding:'utf8',windowsHide:true});assert.equal(built.status,0,built.stderr);
   const read=file=>JSON.parse(fs.readFileSync(path.join(output,file),'utf8'));

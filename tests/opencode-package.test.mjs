@@ -8,7 +8,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {checkLocalLinks} from '../scripts/check.mjs';
 
 test('OpenCode package loads every skill and configures its bound MCP without changing host policy',async t=>{
-  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-opencode-package-')),output=path.join(root,"plugin's $path with spaces");
+  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'bfs-opencode-package-'))),output=path.join(root,"plugin's $path with spaces");
   t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync.native(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
   const built=spawnSync(process.execPath,[path.join(repo,'scripts/build-host-package.mjs'),'--host','opencode-cli','--output',output],{encoding:'utf8',windowsHide:true});assert.equal(built.status,0,built.stderr);
   const read=file=>JSON.parse(fs.readFileSync(path.join(output,file),'utf8')),manifest=read('package.json'),catalog=read('catalog.json');
