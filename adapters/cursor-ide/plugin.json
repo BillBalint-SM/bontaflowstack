@@ -1,0 +1,6 @@
+{
+  "name": "bontaflowstack-cursor",
+  "version": "{{VERSION}}",
+  "description": "BFS skills, project memory, resumable workflows and browser tools.",
+  "license": "MIT"
+}

@@ -51,7 +51,7 @@ function runner(env, state = { codexMarketplaces:[], codexPlugins:[], claudeMark
     const raw = args.filter(arg => arg !== '--no-daemon');
     const lowerCommand = path.basename(command).toLowerCase();
     const commandLine = [command, ...raw].join('\0').toLowerCase();
-    const host = lowerCommand.includes('codex') || commandLine.includes('codex.exe') || commandLine.includes('@openai\\codex') ? 'codex' : lowerCommand.includes('claude') || commandLine.includes('claude.exe') || commandLine.includes('@anthropic-ai\\claude-code') ? 'claude' : null;
+    const host = lowerCommand.includes('codex') || commandLine.includes('codex.exe') || commandLine.includes('@openai\\codex') ? 'codex' : lowerCommand.includes('claude') || commandLine.includes('claude.exe') || commandLine.includes('@anthropic-ai\\claude-code') ? 'claude' : commandLine.includes('gemini.exe') || commandLine.includes('@google\\gemini-cli') ? 'gemini' : commandLine.includes('copilot.exe') || commandLine.includes('@github\\copilot') ? 'copilot' : commandLine.includes('opencode.exe') ? 'opencode' : null;
     if (/^(?:where(?:\.exe)?|which)$/i.test(lowerCommand)) {
       const target = args.at(-1)?.toLowerCase().includes('codex') ? 'codex.exe' : 'claude.exe';
       return path.join(env.BFS_SETUP_FIXTURE_BIN, target);
@@ -100,6 +100,171 @@ function runner(env, state = { codexMarketplaces:[], codexPlugins:[], claudeMark
 function options(env, run, rest = {}) {
   return { packageRoot, env, run, platform:'win32', arch:'x64', ...rest };
 }
+
+function upgradePackage(label,version) {
+  const target=path.join(scratch,label);fs.cpSync(packageRoot,target,{recursive:true});
+  const update=file=>{
+    const value=JSON.parse(fs.readFileSync(file,'utf8'));
+    if(value.version)value.version=version;
+    for(const plugin of value.plugins || [])if(plugin.version)plugin.version=version;
+    fs.writeFileSync(file,JSON.stringify(value,null,2));
+  };
+  update(path.join(target,'package.json'));
+  for(const [host,manifest] of Object.entries({codex:'.codex-plugin/plugin.json',claude:'.claude-plugin/plugin.json',gemini:'gemini-extension.json',copilot:'plugin.json',cursor:'.cursor-plugin/plugin.json',opencode:'package.json'})) {
+    const root=path.join(target,'hosts',host,host==='codex'?'plugins/bontaflowstack':'');
+    update(path.join(root,manifest));update(path.join(root,'catalog.json'));
+    if(host==='claude')update(path.join(root,'.claude-plugin/marketplace.json'));
+    if(host==='copilot')update(path.join(root,'marketplace.json'));
+  }
+  return target;
+}
+
+test('OpenCode setup registers a durable loader, repeats safely and preserves JSONC and foreign skills',async()=>{
+  const env=makeEnv('opencode'),mock=runner(env,undefined,{available:[]}),configRoot=path.join(env.USERPROFILE,'.config/opencode'),source=path.join(configRoot,'plugins/bontaflowstack.js');
+  fs.mkdirSync(configRoot,{recursive:true});const configFile=path.join(configRoot,'opencode.jsonc'),original='// User settings\n{"permission":{"bash":"deny"},}\n';fs.writeFileSync(configFile,original);
+  let foreignSkill=false;
+  const current=()=>fs.existsSync(source)?path.dirname(fileURLToPath(JSON.parse(fs.readFileSync(source,'utf8').match(/from (".*");/)[1]))):null;
+  const run=(command,args,options)=>{
+    if(!command.endsWith('opencode.exe'))return mock.run(command,args,options);
+    if(args[0]==='--version')return '1.19.0';
+    if(args.join(' ')==='debug paths')return `config     ${configRoot}\n`;
+    const plugin=current();
+    if(args.join(' ')==='debug config')return JSON.stringify({permission:{bash:'deny'},...(plugin?{plugin:[source],mcp:{bfs:{type:'local',command:['node',path.join(plugin,'core/opencode-host.mjs')],enabled:true}}}:{})});
+    if(args.join(' ')==='debug skill')return JSON.stringify(plugin?JSON.parse(fs.readFileSync(path.join(plugin,'catalog.json'),'utf8')).skills.map(skill=>({name:skill.id,location:path.join(plugin,'skills',skill.id,'SKILL.md')})):[]);
+    if(args.join(' ')==='--pure debug skill')return JSON.stringify(foreignSkill?[{name:'bfs-health',location:path.join(configRoot,'skills/bfs-health/SKILL.md')}]:[]);
+    if(args.join(' ')==='mcp list')return `✓ bfs connected\nnode ${path.join(plugin,'core/opencode-host.mjs')}\n`;
+    throw new Error(`Unexpected OpenCode call: ${args.join(' ')}`);
+  };
+  const first=await setup(options(env,run,{host:'opencode'}));assert.deepEqual(first.hosts.map(item=>item.host),['opencode']);assert.equal(first.hosts[0].registered,true);assert.equal(current(),first.hosts[0].pluginRoot);assert.equal(fs.readFileSync(configFile,'utf8'),original);
+  const loader=fs.readFileSync(source,'utf8');await setup(options(env,run,{host:'opencode'}));assert.equal(fs.readFileSync(source,'utf8'),loader);
+  foreignSkill=true;await assert.rejects(setup(options(env,run,{host:'opencode'})),/conflicting BFS skill/);assert.equal(fs.readFileSync(source,'utf8'),loader);assert.equal(fs.readFileSync(configFile,'utf8'),original);
+});
+
+test('Cursor setup places its native plugin, preserves repeated installs and reports reload still required',async()=>{
+  const env=makeEnv('cursor'),mock=runner(env,undefined,{available:[]});
+  const app=path.join(env.LOCALAPPDATA,'Programs/cursor');fs.mkdirSync(path.join(app,'resources/app'),{recursive:true});
+  fs.writeFileSync(path.join(app,'Cursor.exe'),'fixture executable');fs.writeFileSync(path.join(app,'resources/app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.12'}));
+  const first=await setup(options(env,mock.run,{host:'cursor'}));
+  assert.deepEqual(first.hosts.map(item=>item.host),['cursor']);
+  const installed=first.hosts[0],target=path.join(env.USERPROFILE,'.cursor/plugins/local/bontaflowstack');
+  assert.equal(installed.sourceRoot,target);assert.equal(installed.registered,false);assert.equal(installed.reloadRequired,true);assert.equal(installed.verified,'files-placed-awaiting-host-readback');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(target,'.cursor-plugin/plugin.json'),'utf8')).version,first.version);
+  assert.equal(fs.readdirSync(path.join(target,'skills')).length,34);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(target,'install-state.json'),'utf8')).stateHome,env.BFS_STATE_HOME);
+  const foreign=path.join(env.USERPROFILE,'.cursor/keep.txt');fs.writeFileSync(foreign,'unrelated settings');
+  await setup(options(env,mock.run,{host:'cursor'}));assert.equal(fs.readFileSync(foreign,'utf8'),'unrelated settings');
+  fs.appendFileSync(path.join(target,'HOST.md'),'\nLocal edit\n');
+  await assert.rejects(setup(options(env,mock.run,{host:'cursor'})),/payload differs/);
+  assert.match(fs.readFileSync(path.join(target,'HOST.md'),'utf8'),/Local edit/);
+});
+
+test('Cursor setup upgrades its owned legacy identity while preserving an existing bfs MCP and rejecting new identity conflicts',async()=>{
+  const env=makeEnv('cursor-identity'),mock=runner(env,undefined,{available:[]});
+  const app=path.join(env.LOCALAPPDATA,'Programs/cursor');fs.mkdirSync(path.join(app,'resources/app'),{recursive:true});
+  fs.writeFileSync(path.join(app,'Cursor.exe'),'fixture executable');fs.writeFileSync(path.join(app,'resources/app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.12'}));
+  const legacy=upgradePackage('cursor-legacy-identity','0.0.0-cursor-legacy.1'),legacyManifest=path.join(legacy,'hosts/cursor/.cursor-plugin/plugin.json');
+  const manifest=JSON.parse(fs.readFileSync(legacyManifest,'utf8'));manifest.name='bontaflowstack';fs.writeFileSync(legacyManifest,JSON.stringify(manifest));
+  const prior=await setup(options(env,mock.run,{host:'cursor',packageRoot:legacy})),source=prior.hosts[0].sourceRoot;
+  const configFile=path.join(env.USERPROFILE,'.cursor/mcp.json'),config=JSON.stringify({mcpServers:{bfs:{command:'node',args:['existing.mjs']}}});fs.writeFileSync(configFile,config);
+  const current=await setup(options(env,mock.run,{host:'cursor'}));assert.equal(current.hosts[0].sourceRoot,source);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(source,'.cursor-plugin/plugin.json'),'utf8')).name,'bontaflowstack-cursor');
+  assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(path.join(source,'mcp.json'),'utf8')).mcpServers),['bfs-cursor']);assert.equal(fs.readFileSync(configFile,'utf8'),config);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(prior.hosts[0].pluginRoot,'.cursor-plugin/plugin.json'),'utf8')).name,'bontaflowstack');
+  const before=fs.readFileSync(path.join(source,'HOST.md')),conflict=JSON.stringify({mcpServers:{'bfs-cursor':{command:'node',args:['foreign.mjs']}}});fs.writeFileSync(configFile,conflict);
+  await assert.rejects(setup(options(env,mock.run,{host:'cursor'})),/conflicting bfs-cursor MCP/);assert.equal(fs.readFileSync(configFile,'utf8'),conflict);assert.deepEqual(fs.readFileSync(path.join(source,'HOST.md')),before);
+  fs.writeFileSync(configFile,config);
+  const foreign=path.join(env.USERPROFILE,'.cursor/plugins/local/foreign/.cursor-plugin/plugin.json');fs.mkdirSync(path.dirname(foreign),{recursive:true});const foreignText='{"name":"bontaflowstack-cursor","version":"1.0.0"}';fs.writeFileSync(foreign,foreignText);
+  await assert.rejects(setup(options(env,mock.run,{host:'cursor'})),/Another local Cursor plugin/);assert.equal(fs.readFileSync(foreign,'utf8'),foreignText);assert.deepEqual(fs.readFileSync(path.join(source,'HOST.md')),before);
+});
+
+test('failed source publication and rollback preserve the prior Cursor plugin for retry',async t=>{
+  const env=makeEnv('cursor-swap-failure'),mock=runner(env,undefined,{available:[]});
+  const app=path.join(env.LOCALAPPDATA,'Programs/cursor');fs.mkdirSync(path.join(app,'resources/app'),{recursive:true});
+  fs.writeFileSync(path.join(app,'Cursor.exe'),'fixture executable');fs.writeFileSync(path.join(app,'resources/app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.12'}));
+  const first=await setup(options(env,mock.run,{host:'cursor'})),source=first.hosts[0].sourceRoot;
+  const original=fs.readFileSync(path.join(source,'HOST.md'));
+  const upgrade=upgradePackage('cursor-swap-upgrade','9.9.9-swap-test.1');
+  const rename=fs.renameSync;let previous;
+  t.mock.method(fs,'renameSync',(from,to)=>{
+    if(from===source)previous=to;
+    if(to===source)throw new Error('fixture Windows sharing violation');
+    return rename(from,to);
+  });
+  try {await assert.rejects(setup(options(env,mock.run,{host:'cursor',packageRoot:upgrade})),/sharing violation/);}
+  finally {t.mock.restoreAll();}
+  assert.ok(previous,'the previous source must have been moved before the publication failure');
+  assert.deepEqual(fs.readFileSync(path.join(previous,'HOST.md')),original,'a failed rollback must retain the old source');
+  fs.appendFileSync(path.join(previous,'HOST.md'),'\nA user edit in the preserved copy.\n');
+  await assert.rejects(setup(options(env,mock.run,{host:'cursor',packageRoot:upgrade})),/payload differs/);
+  assert.equal(fs.existsSync(source),false,'an edited recovery copy must not be silently activated');
+  assert.match(fs.readFileSync(path.join(previous,'HOST.md'),'utf8'),/A user edit in the preserved copy/);
+  fs.writeFileSync(path.join(previous,'HOST.md'),original);
+  const retried=await setup(options(env,mock.run,{host:'cursor',packageRoot:upgrade}));
+  assert.equal(JSON.parse(fs.readFileSync(path.join(retried.hosts[0].sourceRoot,'.cursor-plugin/plugin.json'),'utf8')).version,'9.9.9-swap-test.1');
+  assert.deepEqual(fs.readFileSync(path.join(first.hosts[0].pluginRoot,'HOST.md')),original);
+  assert.equal(fs.existsSync(path.dirname(previous)),false,'verified recovery staging must not accumulate ambiguous older backups');
+});
+
+function geminiRunner(env) {
+  const base=runner(env,undefined,{available:[]}),state={extensions:[]},calls=[];
+  const executable=path.join(env.USERPROFILE,'.local/bin/gemini.exe');
+  fs.mkdirSync(path.dirname(executable),{recursive:true});fs.writeFileSync(executable,'fixture');
+  const run=(command,args,options)=>{
+    if(command!==executable)return base.run(command,args,options);
+    calls.push({args,options});
+    if(args[0]==='--version')return '0.63.0';
+    if(args[0]==='mcp')return state.extensions.map(item=>`✓ bfs (from bontaflowstack): node ${item.path}/core/gemini-host.mjs (stdio) - Connected`).join('\n');
+    if(args[1]==='list')return JSON.stringify(state.extensions);
+    if(['install','update'].includes(args[1])) {
+      const source=args[1]==='install'?args[2]:state.extensions[0].installMetadata.source;
+      const target=path.join(env.USERPROFILE,'.gemini/extensions/bontaflowstack');
+      fs.cpSync(source,target,{recursive:true});
+      const manifest=JSON.parse(fs.readFileSync(path.join(target,'gemini-extension.json'),'utf8'));
+      state.extensions=[{...manifest,path:target,installMetadata:{type:'local',source},isActive:true,skills:fs.readdirSync(path.join(target,'skills')).map(name=>({name}))}];
+      return 'installed';
+    }
+    throw new Error(`Unexpected Gemini fixture command: ${args.join(' ')}`);
+  };
+  return {run,state,calls};
+}
+
+test('Gemini setup uses native consent, a durable update source and host readback; repeated setup preserves user data',async()=>{
+  const env=makeEnv('gemini'),mock=geminiRunner(env);
+  const installed=await setup(options(env,mock.run,{host:'gemini'}));
+  assert.deepEqual(installed.hosts.map(item=>item.host),['gemini']);
+  const active=mock.state.extensions[0];
+  assert.equal(active.version,installed.version);assert.equal(active.skills.length,34);
+  assert.ok(active.installMetadata.source.startsWith(env.LOCALAPPDATA));
+  assert.ok(!active.installMetadata.source.includes('node_modules'));
+  assert.equal(JSON.parse(fs.readFileSync(path.join(active.path,'install-state.json'),'utf8')).stateHome,env.BFS_STATE_HOME);
+  const install=mock.calls.find(call=>call.args[1]==='install');assert.equal(install.options.inherit,true);
+  assert.ok(mock.calls.every(call=>!call.args.includes('--consent') && !call.args.includes('enable')));
+  fs.mkdirSync(env.BFS_STATE_HOME,{recursive:true});const memory=path.join(env.BFS_STATE_HOME,'keep.txt');fs.writeFileSync(memory,'saved work');
+  const before=mock.calls.filter(call=>['install','update'].includes(call.args[1])).length;
+  await setup(options(env,mock.run,{host:'gemini'}));
+  assert.equal(mock.calls.filter(call=>['install','update'].includes(call.args[1])).length,before);
+  assert.equal(fs.readFileSync(memory,'utf8'),'saved work');
+});
+
+test('Gemini refuses conflicting MCP configuration, foreign extensions, disabled policy and changed installed files',async()=>{
+  const conflictEnv=makeEnv('gemini-conflict'),conflict=geminiRunner(conflictEnv);
+  const conflicting=(command,args,options)=>args[0]==='mcp'?'✓ bfs: node foreign.mjs (stdio) - Connected':conflict.run(command,args,options);
+  await assert.rejects(setup(options(conflictEnv,conflicting,{host:'gemini'})),/conflicting bfs MCP/);
+  assert.equal(fs.existsSync(path.join(conflictEnv.LOCALAPPDATA,'BontaFlowStack/npm')),false);
+  const env=makeEnv('gemini-preserved'),mock=geminiRunner(env);
+  await setup(options(env,mock.run,{host:'gemini'}));
+  const active=mock.state.extensions[0],before=mock.calls.filter(call=>['install','update'].includes(call.args[1])).length;
+  active.isActive=false;
+  await assert.rejects(setup(options(env,mock.run,{host:'gemini'})),/disabled/);
+  assert.equal(active.isActive,false);active.isActive=true;
+  const source=active.installMetadata.source;active.installMetadata.source=path.join(env.USERPROFILE,'foreign');
+  await assert.rejects(setup(options(env,mock.run,{host:'gemini'})),/Another BontaFlowStack/);
+  active.installMetadata.source=source;
+  const edited=path.join(active.path,'GEMINI.md');fs.appendFileSync(edited,'\nUser edit preserved.\n');
+  await assert.rejects(setup(options(env,mock.run,{host:'gemini'})),/payload differs/);
+  assert.match(fs.readFileSync(edited,'utf8'),/User edit preserved/);
+  assert.equal(mock.calls.filter(call=>['install','update'].includes(call.args[1])).length,before);
+});
 
 test('setup installs Impeccable outside npm cache and persists a shared command before host registration', async () => {
   const env = makeEnv('impeccable'), mock = runner(env);
@@ -194,7 +359,7 @@ test('auto mode registers one discovered host and rejects cleanly when no host i
   assert.equal(one.state.codexPlugins[0]?.version, result.version);
 
   const noneEnv = makeEnv('no-hosts'), none = runner(noneEnv, undefined, { available:[] });
-  await assert.rejects(setup(options(noneEnv, none.run)), /No supported host CLI found/);
+  await assert.rejects(setup(options(noneEnv, none.run)), /No supported host found/);
   assert.equal(fs.existsSync(path.join(noneEnv.LOCALAPPDATA, 'BontaFlowStack', 'npm')), false);
 });
 
@@ -221,22 +386,8 @@ test('upgrade creates an immutable versioned copy and preserves unrelated plugin
   const oldStateFile = path.join(first.stateHome, 'projects', 'pre-upgrade.json');
   fs.mkdirSync(path.dirname(oldStateFile), { recursive:true });
   fs.writeFileSync(oldStateFile, 'old pinned state remains');
-  const upgradeRoot = path.join(scratch, 'upgrade-package');
-  fs.cpSync(packageRoot, upgradeRoot, { recursive:true });
   const nextVersion = '9.9.9-test.1';
-  const updateJson = file => {
-    const json = JSON.parse(fs.readFileSync(file, 'utf8'));
-    if (Object.hasOwn(json, 'version')) json.version = nextVersion;
-    if (Array.isArray(json.plugins)) for (const item of json.plugins) if (Object.hasOwn(item, 'version')) item.version = nextVersion;
-    fs.writeFileSync(file, JSON.stringify(json, null, 2));
-  };
-  updateJson(path.join(upgradeRoot, 'package.json'));
-  for (const [relative, host] of [['hosts/codex/plugins/bontaflowstack','codex'],['hosts/claude','claude']]) {
-    const root = path.join(upgradeRoot, relative);
-    updateJson(path.join(root, 'catalog.json'));
-    updateJson(path.join(root, host === 'codex' ? '.codex-plugin/plugin.json' : '.claude-plugin/plugin.json'));
-    if (host === 'claude') updateJson(path.join(root, '.claude-plugin/marketplace.json'));
-  }
+  const upgradeRoot = upgradePackage('upgrade-package',nextVersion);
   fs.writeFileSync(path.join(upgradeRoot, 'new-release.txt'), 'new release payload');
   // Add the same synthetic release file to both hosts so their payload inventory remains well formed.
   for (const relative of ['hosts/codex/plugins/bontaflowstack','hosts/claude']) fs.writeFileSync(path.join(upgradeRoot, relative, 'new-release.txt'), 'new release payload');
@@ -268,6 +419,9 @@ test('engine preparation failure does not register hosts and same command can re
     return mock.run(...args);
   };
   await assert.rejects(setup(options(env, run)), /engine preparation failed/);
+  const progress=JSON.parse(fs.readFileSync(path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/setup-status.json'),'utf8'));
+  assert.equal(progress.status,'failed');assert.equal(progress.phase,'engines');
+  assert.ok(progress.hosts.every(item=>item.status==='placed' && !item.verified));
   assert.equal(mock.state.codexMarketplaces.length + mock.state.claudeMarketplaces.length, 0);
   assert.equal(mock.state.codexPlugins.length + mock.state.claudePlugins.length, 0);
   fail = false;
@@ -422,6 +576,37 @@ test('Codex marketplace rollback restores the prior release after registration f
   const retry = await setup(options(env, mock.run, { host:'codex' }));
   assert.equal(retry.hosts[0].host, 'codex');
   assert.equal(state.codexMarketplaces.find(item => item.name === 'bontaflowstack')?.root, retry.hosts[0].marketplaceRoot);
+});
+
+test('partial registration records each host state, preserves completed hosts and retries', async () => {
+  const env=makeEnv('partial-registration'),mock=runner(env);
+  const app=path.join(env.LOCALAPPDATA,'Programs/cursor');fs.mkdirSync(path.join(app,'resources/app'),{recursive:true});
+  fs.writeFileSync(path.join(app,'Cursor.exe'),'fixture executable');fs.writeFileSync(path.join(app,'resources/app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.12'}));
+  fs.mkdirSync(env.BFS_STATE_HOME,{recursive:true});const memory=path.join(env.BFS_STATE_HOME,'keep.txt');fs.writeFileSync(memory,'saved work');
+  const failClaude=(command,args,options)=>{
+    if(command.endsWith('claude.exe') && args[0]==='plugin' && args[1]==='install')throw new Error('fixture registration refused');
+    return mock.run(command,args,options);
+  };
+  await assert.rejects(setup(options(env,failClaude)),error=>{
+    assert.match(error.message,/fixture registration refused/);
+    assert.match(error.message,/Setup incomplete \(registration\): codex=registered, claude=failed, cursor=placed/);
+    return true;
+  });
+  const statusFile=path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/setup-status.json');
+  const failed=JSON.parse(fs.readFileSync(statusFile,'utf8'));
+  assert.equal(failed.status,'failed');assert.equal(failed.phase,'registration');
+  assert.deepEqual(failed.hosts.map(({host,status})=>[host,status]),[['codex','registered'],['claude','failed'],['cursor','placed']]);
+  assert.equal(failed.hosts[0].verified,'plugin-registration');
+  assert.equal(failed.hosts[1].verified,undefined,'a failed host must not claim readback');
+  assert.equal(fs.existsSync(path.join(env.USERPROFILE,'.cursor/plugins/local/bontaflowstack')),false);
+  const codex=structuredClone(mock.state.codexPlugins);
+  const retry=await setup(options(env,mock.run));
+  assert.deepEqual(mock.state.codexPlugins,codex);assert.equal(fs.readFileSync(memory,'utf8'),'saved work');
+  assert.equal(retry.hosts.find(item=>item.host==='claude').registered,true);
+  const completed=JSON.parse(fs.readFileSync(statusFile,'utf8'));
+  assert.equal(completed.status,'reload-required');assert.equal(completed.phase,'complete');
+  assert.deepEqual(completed.hosts.map(({host,status})=>[host,status]),[['codex','registered'],['claude','registered'],['cursor','reload-required']]);
+  assert.equal(completed.hosts[2].verified,'files-placed-awaiting-host-readback');
 });
 
 test('installed host payloads remain available after the npm cache is removed', async () => {

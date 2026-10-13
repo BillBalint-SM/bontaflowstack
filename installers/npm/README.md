@@ -1,5 +1,48 @@
 # BontaFlowStack
 
+Development branch: Gemini CLI 0.63.0+, GitHub Copilot CLI 1.0.96+, Cursor IDE
+3.24.12+ and OpenCode CLI 1.19.0+ setup are under validation here. A locally built
+candidate accepts `--host gemini|copilot|cursor|opencode`; these additions are not
+part of the published 1.1.0 described below. Complete native task journeys and
+Cursor import coexistence are still pending. OpenCode uses a local V1 plugin
+loader and preserves existing JSON/JSONC configuration. The source repository's
+`docs/bontaflowstack/HOST-EXPANSION-IMPLEMENTATION.md` records the evidence.
+
+The Cursor candidate uses plugin ID `bontaflowstack-cursor` and MCP server name
+`bfs-cursor` to distinguish it from imported copies. Its managed directory stays
+`~/.cursor/plugins/local/bontaflowstack`; the npm package name stays unchanged.
+Setup preserves existing `bfs` MCP settings and stops on a `bfs-cursor` conflict.
+It does not change the IDE's import or hook permission settings. Native coexistence
+still needs IDE verification.
+
+Development setup records its last attempt in
+`%LOCALAPPDATA%\BontaFlowStack\npm\setup-status.json`: the selected release,
+current phase and each host's placed, registering, registered, failed or
+reload-required state. Registration is recorded only after host readback;
+Cursor file placement still awaits IDE readback. A `running` record left after
+setup exits is unfinished, not success. Rerun the same pinned command after the
+previous process has stopped. Existing versions, project data and completed host
+registrations remain available. The record contains no command output or account
+details; preflight failures occur before this record is replaced.
+
+Development acceptance tests retain `*.command-evidence.json` with exit codes
+and output sizes, and `*.native-evidence.json` with bounded tool outcomes. Each
+result writer also creates a separate `*.acceptance-evidence.json` containing
+only fixed check flags, the reported status, and supported host/count/code-hash
+metadata. Unknown status remains `unverified`; a zero command exit is not turned
+into acceptance. These three diagnostic formats omit command output, model
+transcripts, local paths, session IDs and error arguments. The acceptance summary
+is scoped to `recorded-checks-only`, not an overall port acceptance verdict.
+Share these summaries only. Original `result.json` files are private continuation
+data; other fixture files, native host logs and older evidence remain private.
+Do not share a whole test directory as a diagnostic bundle.
+
+Gemini, Copilot and Cursor source updates retain the previous directory if the
+swap or rollback fails. Rerunning setup restores a missing source only from a
+single preserved copy that exactly matches an owned version. Modified or
+ambiguous copies are preserved and reported. Verified recovery staging is removed
+after a valid source exists; versioned release files remain available.
+
 34 connected skills and local project memory for Codex and Claude Code. The
 Windows x64 npm installer prepares each detected host and the pinned
 browser/render engine and Impeccable CLI in one setup flow.

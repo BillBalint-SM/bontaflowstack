@@ -1,0 +1,12 @@
+{
+  "name": "bontaflowstack",
+  "version": "{{VERSION}}",
+  "description": "BFS skills, project memory, resumable workflows and browser tools.",
+  "mcpServers": {
+    "bfs": {
+      "command": "node",
+      "args": ["${extensionPath}/core/gemini-host.mjs"]
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}

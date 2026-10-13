@@ -18,7 +18,7 @@
     "bontaflowstack": "bin/setup.mjs"
   },
   "files": [
-    "bin/setup.mjs",
+    "bin/",
     "hosts/",
     "README.md",
     "LICENSE"

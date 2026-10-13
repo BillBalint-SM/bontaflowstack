@@ -1,0 +1,7 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "bontaflowstack",
+  "version": "{{VERSION}}",
+  "description": "BFS skills, project memory, resumable workflows and browser tools.",
+  "license": "MIT"
+}

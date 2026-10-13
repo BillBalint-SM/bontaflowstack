@@ -29,8 +29,147 @@ section. Its current-documentation audit and scoped checks are recorded in
 build and authorized npm/GitHub publication. This release is closed; do not carry
 the earlier native-session acceptance item forward as a blocker or follow-up.
 
+The `codex/host-expansion` branch implements the accepted 54-story/36-item
+specification in `docs/bontaflowstack/HOST-EXPANSION-SPEC.md`. Progress and
+practical evidence live in `docs/bontaflowstack/HOST-EXPANSION-IMPLEMENTATION.md`.
+The user's 2026-10-13 clarification narrows repeated validation: verify shared
+unchanged behavior once, then test material host differences and a representative
+native journey. Reuse existing boundary evidence; do not expand a full per-host
+model test matrix without a concrete change, failure or unverified difference.
+The specification records this evidence-composition rule. Known failures still
+require an honest outcome; inherited evidence is not native host verification.
+Gemini extension build and real npm setup/repeat/upgrade are verified; its
+installed skill/model journey hit the free API daily quota. Copilot package
+discovery, native BFS status binding and real npm setup/repeat/upgrade are
+verified, including disabled policy and user MCP/project skill conflict preservation.
+The first model skill journey exposed an unclear core entry point; generated
+skills now name that MCP call explicitly. Native Copilot activation, HOST and
+preferences reads, session-bound status and an actual project health check passed.
+Cursor packaging and real npm setup/repeat/upgrade are verified at the file and
+engine boundaries. The IDE discovered 34 skills, five MCP tools and seven hooks,
+but its MCP tools were unavailable while a same-name imported Claude plugin's tools
+were exposed. Disabling
+third-party imports exposed the native tools but also disabled plugin hooks in
+Cursor 3.24.12; the user's status call therefore lacked its native binding.
+A project-hook diagnostic is prepared only in the isolated Cursor test project;
+its command/MCP preflight passed, and native IDE retry is pending. Automatic
+coexistence remains unresolved. A new candidate separates the Cursor manifest
+ID (`bontaflowstack-cursor`) and MCP server (`bfs-cursor`) from imported copies,
+while retaining the managed directory. Package, hook/MCP boundary and setup
+identity-migration/conflict tests passed; native IDE coexistence is still unverified.
+Real Cursor npm setup/repeat/upgrade also passed with the separate identities
+and a preserved existing bfs MCP entry. The user's managed test copy now has
+candidate 9.9.9-cursor-identity.1, installed via local npm setup. Its new isolated
+coexistence-project has no project hooks and awaits a human native status check.
+OpenCode V1 packaging now discovers all 34 skills
+and connects its MCP through the plugin config callback, without rewriting JSONC.
+A native model status call returned the actual session/workspace and guard marker.
+Real OpenCode npm setup/repeat/upgrade, cache-independent discovery, Impeccable,
+JSONC and other-plugin preservation, disabled MCP and hidden skill conflicts passed.
+The npm-installed OpenCode health journey also passed: native skill activation,
+HOST/preferences reads, bound status and the fixture's actual test command.
+Its HOST now spells out the preferences command after a model confused it with
+a skill read. A later native memory/pause/resume probe was rejected by the provider
+with a 403 FreeTierError before its first tool call. Upstream issue #51241 reports
+free-model failures when bash is completely denied. With bash requiring approval
+only in the test process, the actual npm-installed memory/pause/new-session/drift/
+adopt/project-isolation journey now passed. No shell or file-edit call ran and
+the stored configuration remained unchanged. One native file-read error was
+recorded during save; all required assertions passed. Setup does not change user
+permissions to accommodate the upstream free-model limitation.
+The native OpenCode engine probe verified browser interaction, two rendered
+PNG sizes and their native image attachments, then failed on a malformed
+model-generated Impeccable argument list. The detector returned a real finding;
+the BFS operation reported failure. The prompt now specifies documented args.
+A single-call native retry timed out before any tool; the full journey was not
+repeated. Browser/render evidence stands separately; the complete Impeccable
+MCP path is still unverified (implementation log E56).
+`HOST-CAPABILITIES.md` inventories all 34 skills/75 modes with host conditions,
+evidence and explicit unverified/unavailable states. Its catalog coverage check
+passed. The shared native context test now also runs Copilot: memory write/read,
+pause, checkpoint read-back, drift and adoption in a new session, and isolation
+of another non-Git project passed from an npm-installed candidate. The hostbuild
+now separates skill reads, linked Markdown reads and preferences explicitly.
+The shared MCP fix for completed Impeccable findings passed 30 host tests.
+The subsequent npm-installed Copilot engine journey passed: real browser click,
+two renders, PNG delivery to the model, verified CSS finding through MCP and
+own-browser cleanup. Earlier HTML fixtures did not produce the expected finding;
+the passing case uses a CSS fixture checked against the actual detector first.
+The npm-installed Copilot plan-review/implement/health journey passed with a
+recorded accepted basis, actual RED/GREEN tests, persisted workflow/output hashes
+and independent code checks. It exposed a raw native apply_patch argument that
+the hook had incorrectly parsed as JSON; guarded handling now passes six host
+boundary tests and the native journey. Human browser handoff, cross-host isolation
+and the other hosts' full plan/implement/verify journeys remain under validation.
+Setup now persists each host's last confirmed installation phase and distinguishes
+partial failures from registration and Cursor reload requirements. The partial
+registration/retry and engine failure checks passed with 25 package/setup tests.
+The real npm Copilot setup interruption/recovery passed in both the engine phase
+and during its actual source-directory swap, followed by repeat, upgrade, cache
+independence and conflict preservation. Shared Gemini/Copilot/Cursor source-copy
+code now retains a failed rollback and recovers only an unchanged owned copy.
+Modified recovery copies remain untouched; verified recovery staging is removed.
+Other hosts' native registration interruption paths remain unverified.
+Native model probes now retain bounded outcome metadata instead of host
+transcripts; canary checks and a real Copilot status probe passed. Older local
+evidence and setup logs have not been converted into a shareable export.
+New setup command diagnostics now retain only exit codes and output sizes.
+Canary checks and an actual OpenCode npm setup/repeat/upgrade passed with this
+format, including 34 skills, Impeccable and preserved JSONC/foreign settings.
+Other local fixture files and native host logs remain outside this minimized
+format; whole test directories are not shareable diagnostic bundles.
+The npm-installed Copilot interruption probe also passed: one native process
+was killed during an active step, resumed with the same session ID, read back
+its interrupted workflow and intact checkpoint, then completed a real test.
+A second live session's workflow stayed unchanged throughout; releasing that
+session afterward did not change the completed first workflow. This is scoped
+to two Copilot sessions in one non-Git project.
+The native Copilot Git-worktree journey also passed: shared project memory,
+distinct workspace/session workflows, refused adoption from another worktree,
+preserved ownership after a native shell cwd change, and read-only return to
+the original session. Both worktrees and all saved records remained unchanged.
+Its first run failed a fixture line-ending assertion; the corrected test compares
+each checkout with its own initial bytes. Cross-host isolation remains unverified.
+Two simultaneous npm-installed Copilot sessions also passed browser isolation:
+after the first browser and CLI closed, the second retained its live page marker
+and its own session cookie, then stopped only its own browser. Both native tool
+traces were error-free. This used a local fixture, not real account sign-in or
+cross-host handoff; those acceptance paths remain open.
+None of the four new ports is accepted or published yet.
+The implementation log now maps every one of the 54 stories and 36 work items
+to its evidence and remaining gap under the reduced repetition policy. Completed
+implementation items do not imply full port acceptance. A public Copilot-hook /
+OpenCode-callback / MCP test proves shared project memory, distinct ownership
+even for the same raw session name, mutual binding rejection, and isolated
+session completion (E58); this is not two concurrent native model runs.
+The diagnostic image counter now recognizes OpenCode image attachments without
+retaining their contents; the two canary checks passed and join the shared gate.
+The last full `node scripts/check.mjs` gate passed 153/153 with no failures
+or skips (E59). Its recorded 236-file code fingerprint is
+`28b84f27b2297291b880f5160eacb4a60ba5fd6de7dc5c2228139a5986c2efa8`.
+This includes Codex/Claude regressions and adapter boundaries, not the open
+native host journeys. Do not rerun it without a relevant code change or failure.
+After that gate, the diagnostic helper and 23 acceptance result writers gained
+a separate fixed-field `*.acceptance-evidence.json` companion (E60). Three
+file-output canary checks and all caller syntax checks passed; eight existing
+native evidence records were summarized without changing their bytes or running
+their hosts again. Product code is unchanged. This closes the diagnostic-format
+implementation gap in story 54. Only the documented command/native/acceptance
+summaries are shareable; original continuation records and host logs are private.
+The one final two-axis review of this worktree is recorded in the implementation
+log. Four case-mismatched documentation links were corrected; three local-link
+checks, the four exact filename comparisons and setup syntax passed. No further
+runtime defect was established by that review. Cursor setup/HOST now explain
+the native plugin identity, local-import policy and marketplace precedence,
+without pretending to have read the user's policy. The actual policy/conflict
+detection and the already recorded native acceptance gaps remain open. Do not
+repeat the full review or host matrix without a concrete new finding.
+
 ## Terms
 
+- **BFS host:** one concrete application surface; CLI, IDE and cloud variants are separate compatibility targets.
+- **BFS port:** the host-specific packaging, instructions, native context, event mapping and installation, with its compatibility evidence.
+- **Capability profile:** the per-mode record of mandatory functions and available, unavailable or unverified extra capabilities.
 - **Skill:** a public task entry point, defined by the catalog and its SKILL.md.
 - **Mode:** an explicitly selected behavior within one skill, such as QA inspection or repair.
 - **QA coverage:** the independent quick, full, regression or diff extent of a QA operation.
