@@ -29,6 +29,9 @@ Impeccable CLI used by BFS; ordinary design does not require running it.
 
 Observed on Windows x64 with Node 26.8.1, 2026-10-13:
 
+- Final `node scripts/check.mjs`: **115 passed, 0 failed**, including installer,
+  package, core, host-adapter and release checks. Changed documentation links
+  and `git diff --check` also passed.
 - Before the change, the new setup test failed because no `impeccable.json` was
   written; the core test failed because a persisted command was not discovered.
   Both passed after implementation.
@@ -49,6 +52,31 @@ Real installation evidence:
 `.tmp/npm-setup-integration-98d14046-b2df-4d75-932f-e4aa1158f8ed/result.json`.
 The first integration run found a test-harness assumption that all completed
 scans exit 0; it was corrected to assert the detector's actual 0/1/2 exit codes.
+The first full gate also rejected an unnecessary Codex mention in the generated
+Claude capability instructions. The wording was corrected; the final gate above
+passed without relaxing its check.
+
+## Prepared release
+
+- Source commit: `32e71122fce18b847a675efbd4efc6370fbb166b`.
+- Local release directory: `artifacts/npm/1.1.0-rc.2`, containing the exact npm
+  tarball and `release.json` receipt. This is publishing evidence, not a second
+  user installation route.
+- Tarball SHA-256:
+  `6772c0965b59165b4c32baad4611d89120a121e926405a6f832415b379ac4442`.
+- Impeccable binary SHA-256:
+  `38e09451694973ba664a24e67e1502a6913e6d0e533a0a5ae1e04c5963a804b1`.
+- That exact prepared tarball passed a further real npx setup/repeat in fresh,
+  isolated Codex and Claude profiles, using the previously verified shared
+  engine state. Both adapters then ran the actual detector in fresh processes
+  after the npm cache was moved away, with no command or state environment
+  variable. Test registrations were removed. Evidence:
+  `.tmp/impeccable-final-d7d6287b-e699-4876-b9c7-41d178676980/result.json`.
+
+No rc.2 package, GitHub source update or remote tag was published in this step.
+The previous publication approval named rc.1; rc.2 publication awaits the user.
+
+## Limits
 
 Authenticated Claude model-session acceptance is still pending. CLI installation,
 core execution and fixture tests do not establish native model-driven behavior.
