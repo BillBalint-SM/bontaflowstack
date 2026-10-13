@@ -165,6 +165,18 @@ without pretending to have read the user's policy. The actual policy/conflict
 detection and the already recorded native acceptance gaps remain open. Do not
 repeat the full review or host matrix without a concrete new finding.
 
+The later E61 Cursor check supersedes the pending coexistence status above.
+The user authorized us to operate the IDE. After restoring third-party imports
+and reloading the isolated coexistence-project, the local candidate and imported
+BFS both appeared. The one native bfs-cursor/bfs_status call succeeded; its
+expanded tool result matched the actual chat session/workspace and sandbox flag.
+There are no project hooks in this fixture. Skill/motor journeys and detection
+of blocked adminpolicy or an exact-name marketplace conflict remain unverified.
+Draft PR #5 is open at https://github.com/BillBalint-SM/bontaflowstack/pull/5.
+Its initial CI found two test-only Windows short-path comparisons (152/154).
+The Cursor/OpenCode package fixtures now canonicalize their temporary roots;
+the targeted tests passed 2/2. The updated CI outcome still needs readback.
+
 ## Terms
 
 - **BFS host:** one concrete application surface; CLI, IDE and cloud variants are separate compatibility targets.

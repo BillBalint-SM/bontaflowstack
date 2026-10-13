@@ -1,7 +1,8 @@
 # Cursor IDE port — Windows x64
 
-Státusz: implementált fejlesztési jelölt; csomag/setup és natív minimum ellenőrizve,
-a teljes csomag együttélése még nyitott. Hivatalos dokumentáció ellenőrizve: 2026-10-13.
+Státusz: implementált fejlesztési jelölt; csomag/setup, natív státuszhívás és az
+importált BFS melletti együttélés ellenőrizve (E61); teljes skillfeladatút még nyitott.
+Hivatalos dokumentáció ellenőrizve: 2026-10-13.
 Közös keretek és A01–A10: [hostbővítési terv](../HOST-EXPANSION-PLAN.md).
 Mind a 75 mód aktuális besorolása: [képességprofil](../HOST-CAPABILITIES.md).
 A Cursor CLI és Cloud Agents nem része ennek a portnak.

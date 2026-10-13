@@ -17,7 +17,7 @@ a tényleges session/workspace kötése kell; a hiányzó kötést nem helyettes
 | --- | --- | --- | --- |
 | G | Gemini CLI 0.63.0 | Extension, engedélyezett BeforeTool argumentummódosítás és MCP; az npm-ből indított skill/model próbát a napi ingyenes kvóta blokkolta. | [Gemini-port](ports/gemini-cli.md), E19–E20 |
 | P | GitHub Copilot CLI 1.0.96 | Agent Plugins csomag, preToolUse módosítás, engedélyezett MCP és a feladat natív eszközei; a host timeoutja önmagában nem bizonyít tiltást. | [Copilot-port](ports/copilot-cli.md), E27–E28, E40, E42, E48, E50 |
-| C | Cursor IDE 3.24.12 | Helyi plugin, aktív preToolUse és argumentummódosítás, engedélyezett MCP; az importkapcsoló kikapcsolása a plugin-hookokat is kikapcsolta. A külön `bontaflowstack-cursor`/`bfs-cursor` jelölt telepítve, együttélése natív ellenőrzésre vár. | [Cursor-port](ports/cursor-ide.md), E29–E31, E51 |
+| C | Cursor IDE 3.24.12 | Helyi plugin, aktív preToolUse és argumentummódosítás, engedélyezett MCP; az importkapcsoló kikapcsolása a plugin-hookokat is kikapcsolta. E61: a külön `bontaflowstack-cursor`/`bfs-cursor` jelölt natív státuszhívása importált BFS mellett is sikeres; teljes skillfeladatút még nem igazolt. | [Cursor-port](ports/cursor-ide.md), E29–E31, E51, E61 |
 | O | OpenCode CLI 1.19.0, V1 API | Config callback, tool.execute.before, engedélyezett MCP és feladateszközök. Health és context sikeres; a szabad modell context-próbájában bash:ask kellett, shell nem futott. A teljes tiltás melletti upstream elutasítást a setup nem írhatja felül. | [OpenCode-port](ports/opencode-cli.md), E33–E37, E55 |
 
 A verziók a vizsgált verziók; ez a lista nem állítja, hogy minden későbbi verzió

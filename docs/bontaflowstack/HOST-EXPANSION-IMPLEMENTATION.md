@@ -596,6 +596,31 @@ felhasználható, a host saját hiányzó működését külön kell kezelni.
     dokumentált `*.command-evidence.json`, `*.native-evidence.json`,
     `*.acceptance-evidence.json` formátum osztható meg.
 
+61. A felhasználó átadta a korábban kézi Cursor-próba végrehajtását. Cursor IDE
+    `3.24.12`, a tényleges npm-mel telepített `9.9.9-cursor-identity.1` jelölttel:
+    a `coexistence-project` új ablakában visszakapcsoltuk a korábbi diagnózis
+    során kikapcsolt third-party importot, majd újratöltöttük az ablakot.
+    A Customize egyszerre mutatta a helyi Cursor-jelöltet és az importált BFS-t;
+    a jelölt részleteiben 34 skill, hét hook és a `bfs-cursor` öt eszköze szerepelt.
+    Az új chat egyetlen `bfs-cursor/bfs_status` hívása sikeres volt. A kibontott
+    tényleges eszközeredmény `cursor-ide` hostot, a chat valós sessionazonosítóját,
+    a helyes projektet és `chromiumSandbox:true` értéket adott. A projektben
+    nincs `.cursor/hooks.json`; külön diagnosztikai hook nem segítette a próbát.
+    Bizonyíték: `bfs-cursor-setup-AlEIBK/identity-native-status.json` és a
+    személyes útvonalat/sessiont nem tartalmazó acceptance-companion.
+    A korábbi hiányzó kötés hiba és az importált példánnyal való együttélés ezen
+    az úton rendezett. Ez státusz- és betöltési próba, nem teljes skill/motoros
+    feladatút vagy adminpolicy/azonos nevű marketplace-ütközés vizsgálata.
+
+62. A [draft PR #5](https://github.com/BillBalint-SM/bontaflowstack/pull/5)
+    első Windows Node 24 CI-futása 152/154 eredménnyel állt meg. Két új csomagteszt
+    ugyanazon ideiglenes mappa rövid (`RUNNER~1`) és teljes Windows-nevét
+    hasonlította össze szövegként. A Cursor/OpenCode fixture gyökerét most
+    `fs.realpathSync.native` oldja fel; termékkód nem változott.
+    `node --test tests/cursor-package.test.mjs tests/opencode-package.test.mjs`:
+    **2/2 sikeres**, 0 kihagyás. A javítás GitHub-futásának eredménye külön
+    ellenőrizendő; a helyi siker nem a CI sikerének állítása.
+
 Az OpenCode-specifikus leképezések forrásai a [V1 plugin API](https://docs.opencode.ai/docs/plugins/),
 a kiadott `@opencode-ai/plugin@1.19.0` típusok és az adott tag
 [tool callback hívásai](https://github.com/anomalyco/opencode/blob/v1.19.0/packages/opencode/src/session/tools.ts),
@@ -673,11 +698,11 @@ elfogadás, a végső közös review és az átadás nyilvántartása.
 | P06 | kész | natív npm setup/ismétlés/frissítés/cache-függetlenség; tiltás/ütközés, motorfázis/forráscsere megszakítás és közös regisztrációs részhiba/helyreállítás |
 | P07 | vár | teljes Copilot-elfogadás |
 | C01 | folyamatban | minimális próba sikeres; teljes csomagnál Claude-import ütközés és kikapcsolt plugin-hook megfigyelve |
-| C02 | folyamatban | Cursor csomag, 34 skill, módprofil és natív felfedezés kész; normál IDE-együttélés még nyitott |
+| C02 | kész | Cursor csomag, 34 skill, módprofil; E61 natív komponensbetöltés és együttélés az importált BFS-sel |
 | C03 | kész | prefixelés, BOM/Windows-útvonal, chat/workspace és idegen kötés a nyilvános hook/MCP-határon; E8 natív minimum. A teljes csomag C01/C07-ben nyitott |
 | C04 | folyamatban | session/workspace helyreállítás és guard folyamatpróbája sikeres; natív negatív próbák még kellenek |
 | C05 | vár | motorok és IDE-feladatút |
-| C06 | folyamatban | tényleges npm setup/ismétlés/frissítés, közös rollback és motorok sikeresek; normál natív hívás és import-együttélés még kell |
+| C06 | folyamatban | tényleges npm setup/ismétlés/frissítés, közös rollback és motorok; E61 normál natív státuszhívás és import-együttélés. Adminpolicy/azonos nevű marketplace-felismerés még nyitott |
 | C07 | vár | teljes Cursor-elfogadás |
 | O01 | kész | rögzített V1 API; E5/E9 tényleges callback/MCP módosítás és tiltás; megszakításkezelés O04 |
 | O02 | kész | V1 plugin, 34 skill natív felfedezése, módprofil, JSONC/idegen skill megőrzése; E36 health út |
@@ -698,8 +723,8 @@ A feltételeket a kész megvalósítási tételekből és a nyitott részekből 
 
 | # | Megfigyelt megvalósítás / bizonyíték | Még nyitott rész |
 | --- | --- | --- |
-| 1 | Tényleges npm setup mind a négy hosthoz: E19/E25/E29/E33/E51/E53 | Cursor aktív együttélés és teljes reprezentatív feladatút |
-| 2 | Közös hostfelismerés/verzióválasztás; `npm-setup` és `npm-package` szerződéspróbák, hostonkénti tényleges telepítés | Az aktív Cursor-betöltés külön C01 |
+| 1 | Tényleges npm setup mind a négy hosthoz: E19/E25/E29/E33/E51/E53; E61 Cursor normál betöltés | Cursor teljes reprezentatív skillfeladatút |
+| 2 | Közös hostfelismerés/verzióválasztás; `npm-setup` és `npm-package` szerződéspróbák, hostonkénti tényleges telepítés; E61 aktív Cursor | A tiltó Cursor-policy és marketplace-eset külön C01 |
 | 3 | E59: Codex/Claude telepítési, csomag- és közös MCP-regressziók a sikeres közös kapuban | Nincs új előfizetéses natív próba szükség |
 | 4 | CLI help, npm README, hostminimumok és Windows x64/Node 24+ előfeltételek | Nincs külön új modellpróba szükség |
 | 5 | Idegen MCP/skill/plugin és megváltoztatott saját fájl megőrzése a setup-próbákban | Cursor import-/marketplace-elsőbbség: 41/42. történet |
@@ -707,9 +732,9 @@ A feltételeket a kész megvalósítási tételekből és a nyitott részekből 
 | 7 | Ismételt tényleges setup; változatlan regisztráció és adat | Nincs külön nyitott megvalósítás |
 | 8 | E43–E46 részhiba, előző változat megőrzése, közös forráscsere visszaállítása; Cursor rollback-próba | Nem állítunk minden natív regisztrációs fázisban külön folyamatölést |
 | 9 | `setup-status.json`, hostonként placed/registered/failed/reload-required; részhiba nem összesített siker | Cursor aktív readback külön lépésként marad jelölve |
-| 10 | Cursor setup csak elhelyez és újratöltést jelez; futó IDE-t nem zár be | Felhasználói újratöltés és visszaolvasás függőben |
+| 10 | Cursor setup csak elhelyez és újratöltést jelez; futó IDE-t nem zár be; E61 felhatalmazással végzett natív újratöltés/visszaolvasás | Nincs külön nyitott megvalósítás |
 | 11 | Ismeretlen/hiányzó host és elégtelen verzió megtagadása a setupban | Nincs külön nyitott megvalósítás |
-| 12 | 34 skill mind a négy csomagban és natív felfedezésben; build- és katalógusellenőrzés | Gemini teljes modellbeli aktiválás E20; Cursor együttélés E51 |
+| 12 | 34 skill mind a négy csomagban és natív felfedezésben; build- és katalógusellenőrzés; E61 Cursor együttélés | Gemini teljes modellbeli aktiválás E20; Cursor reprezentatív skillfeladatút |
 | 13 | 34 skill / 75 mód teljes, ellenőrzött képességleltára, hostfeltételekkel | A natív bizonyítéki besorolás a nyitott próbák szerint marad U/B |
 | 14 | HOST és képességprofil név szerint kizárja a hiányzó extrákat | Nem ígérünk natív párhuzamosságot vagy raszteres generálást |
 | 15 | Hostonkénti HOST/skill/MCP/parancsformátum, hivatkozások és csomagtesztek | A hibás modellhívás nem írja át a dokumentált szerződést; E56 |
@@ -724,7 +749,7 @@ A feltételeket a kész megvalósítási tételekből és a nyitott részekből 
 | 24 | Közös egyszer használható/argumentumhoz kötött, lejáró kötés; E58 idegen host megtagadva | Ez BFS-állapotvédelem, nem általános host- vagy OS-sandbox |
 | 25 | Portleírások külön rögzítik a hook- és timeout-határokat; E7/E9 és adapterhatártesztek | Nem állítunk minden shellhívásra garantált hostoldali blokkolást |
 | 26 | Setup nem ír trust/allow policyt; hook nem ad natív engedélyt; megőrzési tesztek | A host saját emberi jóváhagyása szükséges marad |
-| 27 | E42/E56 valódi Copilot/OpenCode böngészőinterakció; közös browser/MCP megvalósítás | Cursor alap híváskötése és Gemini reprezentatív skill/model út |
+| 27 | E42/E56 valódi Copilot/OpenCode böngészőinterakció; közös browser/MCP megvalósítás; E61 Cursor alap híváskötés | Cursor és Gemini reprezentatív skill/model út |
 | 28 | E42/E56 valódi render és képmelléklet; E57 helyes minimális képszámlálás | Ugyanazok a hostbelépési hiányok, mint 27-nél |
 | 29 | Mind a négy tényleges npm setup automatikus Impeccable; E42 sikeres natív MCP; közös engine/MCP exitkód-szerződés | E56 OpenCode modell rossz argumentumot adott; helyes natív ismétlés tool előtt timeoutolt |
 | 30 | Közös browser handoff/resume rendelkezésre áll; történeti engine-próbák külön határral | Aktuális csomagból egy tényleges emberi átadás/folytatás még kell; nem négyszeres ismétlés |
@@ -739,7 +764,7 @@ A feltételeket a kész megvalósítási tételekből és a nyitott részekből 
 | 39 | E7 külön deny/crash/timeout: hiányzó kötés nem hoz létre sikeres BFS-műveletet | A shell timeout-viselkedéséből nem következtetünk garantált tiltásra |
 | 40 | Copilot alagenttípusok nem kapnak igazolatlan BFS párhuzamos támogatást | Dokumentált extra-korlát, nem kötelező fejlesztési hiány |
 | 41 | Setup nem állít aktív betöltést; a helyi import feltétele dokumentált | Tiltott IDE-import/policy konkrét hostoldali azonosítása még nyitott |
-| 42 | E51 külön Cursor plugin-/MCP-azonosító; idegen helyi név és MCP megőrzése/megtagadása | Importált/marketplace változattal a normál natív együttélés még nincs igazolva |
+| 42 | E51 külön Cursor plugin-/MCP-azonosító; idegen helyi név és MCP megőrzése/megtagadása; E61 importált BFS mellett natív hívás sikeres | Az új Cursor-ID-val pontosan azonos nevű marketplace-csomag felismerése még nem igazolt |
 | 43 | OpenCode 1.19.0 V1 API, külön manifest/config callback; verziókapu és E5/E9 | V2-re nem terjesztjük át a kompatibilitást |
 | 44 | E5/E9 tényleges MCP-before/after, argumentummódosítás és tiltás; E55/E56 valós BFS-hívások | Nincs külön nyitott callback-megvalósítás |
 | 45 | E33/E53 eredeti JSONC-bájtok, idegen pluginlista/MCP/skill és tiltás megőrzése | Nincs külön nyitott megvalósítás |
@@ -747,7 +772,7 @@ A feltételeket a kész megvalósítási tételekből és a nyitott részekből 
 | 47 | Négy portleírás hivatalos forrásai és ténylegesen vizsgált verziói | Későbbi hostverziókra nincs automatikus garancia |
 | 48 | A napló külön jelzi a forrásállítást, határtesztet, natív futást és hibát | A végállapotot K08-ban kell lezárni |
 | 49 | Nyilvános setup CLI, hook/callback és JSON-RPC határok; valódi npm/host feladatutak | Új privát teszt-API nem készült |
-| 50 | E19/E25/E29/E33/E46/E51/E53 valódi npm pack/npx, cache nélkül tartós csomag | Cursor aktív csomagút és Gemini csomagolt skill/model út |
+| 50 | E19/E25/E29/E33/E46/E51/E53 valódi npm pack/npx, cache nélkül tartós csomag; E61 aktív Cursor csomagút | Cursor és Gemini csomagolt skill/model út |
 | 51 | E59: a megváltozott közös MCP/telepítő Codex/Claude ellenőrzése sikeres a közös kapuban | Az elfogadott 1.1.0 natív előfizetéses próbáját nem nyitjuk újra |
 | 52 | Portonkénti 07-es elfogadás; egyetlen új port sincs hamisan támogatottnak minősítve | Végső, külön portelfogadások |
 | 53 | A helyi fejlesztés nem indított npm-publikálást, tagelést vagy issue-lezárást | Új kiadás csak külön felhasználói döntéssel |
