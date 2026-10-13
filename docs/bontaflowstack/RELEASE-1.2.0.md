@@ -34,8 +34,7 @@ The [implementation record](HOST-EXPANSION-IMPLEMENTATION.md) retains the scope
 of prior native and shared-engine checks. The release checks below concern
 the actual distributable and do not relabel prior host tests.
 
-Publication results and the exact package identity are recorded after registry
-verification. Historical releases retain their own reports and tags.
+Historical releases retain their own reports and tags.
 
 ### Local release checks
 
@@ -50,6 +49,32 @@ verification. Historical releases retain their own reports and tags.
 - The included package/release tests exercise real `npm pack`, six adapter
   inventories, 34 skills per adapter, stable dist-tag policy and rejection of
   altered release receipts or tarball bytes.
+
+## Published package identity
+
+Published and verified on 2026-10-14. npm `latest` points to `1.2.0`;
+the earlier `rc` channel remains at `1.1.0-rc.3`.
+
+- Source commit and `v1.2.0` tag: `5531554edae0697607822e04bd421c3351e50232`.
+- Archive: `bontaflowstack-1.2.0.tgz`, 461,461 bytes, 603 files.
+- SHA-256: `7d46946633d1bf70b393eb7ca2e02c127898bf25b86103da58571e3162580bdd`.
+- npm integrity: `sha512-gWV28i6Fk3qAoaFWHMBM5hSXazIbfkbO+7JR5DQXSpVmAtCEaaMdzZp7uM9meWHz7lonxI+BfvjlK5+NqHXL0Q==`.
+
+The registry name, version, dist-tag and integrity matched the prepared artifact.
+The independently downloaded registry archive matched its SHA-256. npm briefly
+returned 404 while processing the accepted upload; verification succeeded without
+republishing.
+
+Actual registry `npx bontaflowstack@1.2.0 --version`, `--help` and
+`setup --host codex` passed in an isolated Codex configuration. The installed
+payload contained all six version-1.2.0 adapters with 34 skills each; the native
+Codex plugin listing confirmed the enabled version. Doctor found the prepared
+engine/Impeccable state, and the isolated registration was removed afterward.
+This check reused existing isolated engine files; it did not run new model
+sessions. Evidence: `.tmp/120-registry-5cfe5d14-4862-4e44-b695-98f882f660da/result.json`.
+
+[npm package](https://www.npmjs.com/package/bontaflowstack/v/1.2.0)
+· [Exact source](https://github.com/BillBalint-SM/bontaflowstack/tree/v1.2.0)
 
 ## Report a problem
 

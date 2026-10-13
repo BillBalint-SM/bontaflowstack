@@ -13,7 +13,7 @@ HTML/SVG remain within scope.
 
 The only current distribution route for the whole package is
 `npx bontaflowstack@<exact-version> setup`; omitting `setup` also starts installation.
-Release 1.2.0 packages all six adapters with `scripts/build-npm-package.mjs`.
+The published stable npm release is 1.2.0, packaging all six adapters with `scripts/build-npm-package.mjs`.
 It detects installed platforms, registers the selected hosts, persists versioned
 files outside the npx cache, and prepares the shared pinned engines. Each plugin
 pins the same state directory so Desktop environment redirection does not split
@@ -243,6 +243,13 @@ GitHub update, not an npm release or a claim of new runtime verification.
 On 2026-10-14 the user explicitly authorized npm publication of the six-platform
 release, its GitHub source/tag and updated installation docs. Version 1.2.0 was
 available at preparation; keep historical test results at their original scope.
+
+Release 1.2.0 is published on npm `latest`; `v1.2.0` points to source commit
+`5531554edae0697607822e04bd421c3351e50232` on GitHub. Registry integrity and
+an independent archive download matched the prepared file. Actual registry npx
+setup passed with isolated Codex registration and all six adapter inventories.
+The setup fixture path isolation was repaired; all 26 affected tests passed.
+Detailed release evidence is in `docs/bontaflowstack/RELEASE-1.2.0.md`.
 
 ## Terms
 
