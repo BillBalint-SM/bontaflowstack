@@ -94,6 +94,9 @@ function build(outputValue) {
     'New or changed hooks require Codex `/hooks` review; preserve host trust records.',
     'Plugin hooks load from the Claude package. Verify a real native PreToolUse event before changing guard state; preserve host trust records.', 'Codex guard trust wording');
   fs.copyFileSync(path.join(template, 'browser.md'), path.join(output, 'references', 'browser.md'));
+  const removedBrowserPolicy = fs.readFileSync(path.join(source, 'references', 'browser.md'), 'utf8').match(/^## Removed browser scripts\n[\s\S]*?(?=^## )/m)?.[0];
+  if (!removedBrowserPolicy) throw new Error('Missing shared removed-browser policy');
+  fs.appendFileSync(path.join(output, 'references', 'browser.md'), `\n${removedBrowserPolicy}`);
   fs.copyFileSync(path.join(template, 'capabilities.md'), path.join(output, 'references', 'capabilities.md'));
   replaceOnce(path.join(output, 'skills', 'bfs-router', 'SKILL.md'),
     'read existing `AGENTS.md`, `docs/agents/issue-tracker.md`, `docs/agents/domain.md` and glossary/context/ADR pointers.',

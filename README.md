@@ -22,6 +22,10 @@ Release `1.1.0-rc.2` adds automatic Impeccable installation and
 shared configuration through the same setup command;
 see the [implementation and validation record](docs/bontaflowstack/IMPECCABLE-SETUP.md).
 
+The next candidate, `1.1.0-rc.3`, is prepared locally with three Claude adapter
+repairs and a current official-documentation audit. It is not published yet;
+see the [rc.3 validation and remaining limits](docs/bontaflowstack/RELEASE-1.1.0-rc.3.md).
+
 ## Bring the whole product journey into your project
 
 You have an idea to test, a screen to improve, or a feature to finish.

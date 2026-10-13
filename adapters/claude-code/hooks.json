@@ -2,28 +2,28 @@
   "description": "BontaFlowStack task binding, context, guard and workflow lifecycle hooks",
   "hooks": {
     "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs\" SessionStart", "timeout": 10 }] }
+      {"hooks":[{"type":"command","command":"node","timeout":10,"args":["${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs","SessionStart"]}]}
     ],
     "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs\" UserPromptSubmit", "timeout": 10 }] }
+      {"hooks":[{"type":"command","command":"node","timeout":10,"args":["${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs","UserPromptSubmit"]}]}
     ],
     "PreToolUse": [
-      { "matcher": ".*", "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs\" PreToolUse", "timeout": 10 }] }
+      {"matcher":".*","hooks":[{"type":"command","command":"node","timeout":10,"onFailure":"block","args":["${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs","PreToolUse"]}]}
     ],
     "PostToolUseFailure": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs\" PostToolUseFailure", "timeout": 10 }] }
+      {"hooks":[{"type":"command","command":"node","timeout":10,"args":["${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs","PostToolUseFailure"]}]}
     ],
     "Stop": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs\" Stop", "timeout": 10 }] }
+      {"hooks":[{"type":"command","command":"node","timeout":10,"args":["${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs","Stop"]}]}
     ],
     "StopFailure": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs\" StopFailure", "timeout": 10 }] }
+      {"hooks":[{"type":"command","command":"node","timeout":10,"args":["${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs","StopFailure"]}]}
     ],
     "SubagentStop": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs\" SubagentStop", "timeout": 10 }] }
+      {"hooks":[{"type":"command","command":"node","timeout":10,"args":["${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs","SubagentStop"]}]}
     ],
     "SessionEnd": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs\" SessionEnd", "timeout": 10 }] }
+      {"hooks":[{"type":"command","command":"node","timeout":10,"args":["${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs","SessionEnd"]}]}
     ]
   }
 }

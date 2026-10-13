@@ -4,11 +4,11 @@
 Windows x64 npm installer prepares each detected host and the pinned
 browser/render engine and Impeccable CLI in one setup flow.
 
-**Package `1.1.0-rc.2` is a release candidate; native host acceptance is pending.**
+**Package `1.1.0-rc.3` is a release candidate; native host acceptance is pending.**
 Use the command below for this exact version:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.2 setup
+npx bontaflowstack@1.1.0-rc.3 setup
 ```
 
 Calling the same pinned package without `setup` starts the same setup. Setup
@@ -31,8 +31,8 @@ Use `--host all` to require both. At least one host must be available.
 The package installs its versioned adapters outside the npm cache:
 
 ```text
-%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.2\hosts\codex
-%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.2\hosts\claude
+%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.3\hosts\codex
+%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.3\hosts\claude
 ```
 
 Only adapters selected and supported by the detected hosts are registered. Setup
@@ -65,9 +65,9 @@ editing are outside the accepted scope.
 ## Select, update and remove
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.2 setup --host codex
-npx bontaflowstack@1.1.0-rc.2 setup --host claude
-npx bontaflowstack@1.1.0-rc.2 setup --host all
+npx bontaflowstack@1.1.0-rc.3 setup --host codex
+npx bontaflowstack@1.1.0-rc.3 setup --host claude
+npx bontaflowstack@1.1.0-rc.3 setup --host all
 ```
 
 Use a newer exact version to update. Previous versioned adapters and the shared

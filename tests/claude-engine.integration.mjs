@@ -21,7 +21,7 @@ const engineRoot = registration.root;
 const manifestPath = path.join(engineRoot, 'engine.json');
 const manifestHash = digest(fs.readFileSync(manifestPath));
 const sessionId = `bfs-fixture-${randomUUID()}`;
-const env = { ...process.env, BFS_STATE_HOME: stateHome, CLAUDE_CODE_SESSION_ID: sessionId };
+const env = { ...process.env, BFS_STATE_HOME: stateHome, CLAUDE_CODE_SESSION_ID: sessionId, CLAUDE_PROJECT_DIR: project };
 const evidence = [];
 
 assert.ok(within(repo, output), 'Evidence output must stay inside the worktree');

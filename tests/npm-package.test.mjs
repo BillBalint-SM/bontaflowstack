@@ -34,7 +34,7 @@ test('npm builder packages both exact-version host plugins and only installable 
   assert.equal(JSON.parse(built.stdout).version, manifest.version);
   const packedPackage = JSON.parse(fs.readFileSync(path.join(output, 'package.json'), 'utf8'));
   assert.equal(manifest.private, true, 'unbuilt installer sources must not be publishable');
-  assert.equal(manifest.version, '1.1.0-rc.2');
+  assert.equal(manifest.version, '1.1.0-rc.3');
   assert.equal(packedPackage.private, undefined);
   assert.deepEqual(packedPackage.bin, { bontaflowstack:'bin/setup.mjs' });
   assert.equal(packedPackage.engines.node, '>=24');

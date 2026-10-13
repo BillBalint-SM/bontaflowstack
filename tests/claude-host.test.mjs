@@ -16,7 +16,7 @@ import {loadCatalog} from '../plugins/bontaflowstack/core/catalog.mjs';
 function fixture(t) {
   const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-claude-'));
   const project=path.join(root,'project');fs.mkdirSync(project);
-  const env={...process.env,BFS_STATE_HOME:path.join(root,'state')};delete env.CLAUDE_CODE_SESSION_ID;
+  const env={...process.env,BFS_STATE_HOME:path.join(root,'state'),CLAUDE_PROJECT_DIR:project};delete env.CLAUDE_CODE_SESSION_ID;
   const event=(extra={})=>({session_id:'session-a',cwd:project,hook_event_name:'PreToolUse',tool_name:'Read',tool_input:{file_path:'brief.md'},...extra});
   const bound=(name,args={},extra={})=>claudeHook(event({tool_name:claudeToolName(name),tool_input:args,...extra}),env).hookSpecificOutput.updatedInput;
   const host=createClaudeHost({env});
@@ -37,6 +37,54 @@ test('native session, agent and workspace own core calls; inherited Codex identi
   assert.notEqual(first.taskId,second.taskId);
   await call(['memory','put'],{kind:'fact',key:'shared',text:'Observed fixture',source:'observed'});
   const memory=await call(['memory','list'],{},{session_id:'session-b'});assert.equal(memory[0].text,'Observed fixture');
+});
+
+test('cwd changes preserve non-Git guard, core, browser and lifecycle ownership',async t=>{
+  const f=fixture(t),allowed=path.join(f.project,'allowed'),other=path.join(f.project,'other');
+  fs.mkdirSync(allowed);fs.mkdirSync(other);
+  const ctx=nativeContext(f.event(),f.env),catalog=loadCatalog();
+  claudeHook(f.event(),f.env);
+  guard(ctx,'set',{boundary:allowed,observation:`BFS_GUARD_OBSERVED task=${ctx.taskId} workspace=${ctx.workspaceId}`});
+  const record=workflow(ctx,'start',{goal:'Keep ownership after cd',skills:['bfs-health']},catalog);
+  workflow(ctx,'begin',{id:record.id,step:'1'},catalog);
+  for(const cwd of [other,f.root]) {
+    const moved=nativeContext(f.event({cwd}),f.env);
+    assert.equal(moved.workspaceId,ctx.workspaceId);assert.equal(moved.cwd,cwd);
+    const denied=claudeHook(f.event({cwd,tool_name:'Write',tool_input:{file_path:path.join(other,'blocked.txt'),content:'fixture'}}),f.env);
+    assert.equal(denied.hookSpecificOutput.permissionDecision,'deny');
+    const relative=claudeHook(f.event({cwd,tool_name:'Edit',tool_input:{file_path:'blocked.txt'}}),f.env);
+    assert.equal(relative.hookSpecificOutput.permissionDecision,'deny');
+    const status=await f.host.call('status',f.bound('status',{}, {cwd}));
+    assert.equal(status.hostWorkspace,f.project);assert.equal(status.project,f.project);
+    const resumed=await f.host.call('core',f.bound('core',{args:['workflow','resume'],input:{id:record.id}},{cwd}));
+    assert.equal(resumed.requiresAdoption,false);
+  }
+  const staleHost=createClaudeHost({env:{...f.env,CLAUDE_PROJECT_DIR:other}});
+  try {assert.equal((await staleHost.call('status',f.bound('status',{}, {cwd:other}))).hostWorkspace,f.project);}
+  finally {await staleHost.close();}
+  claudeHook(f.event({hook_event_name:'SessionEnd',cwd:other}),f.env);
+  assert.equal(workflow(ctx,'resume',{id:record.id},catalog).status,'interrupted');
+  assert.equal(fs.existsSync(path.join(other,'blocked.txt')),false);
+});
+
+test('linked Git worktrees retain separate workspace ownership under the stable project root',async t=>{
+  const f=fixture(t),worktree=path.join(f.root,'linked');
+  const git=args=>{const result=spawnSync('git',['-C',f.project,...args],{encoding:'utf8',windowsHide:true});assert.equal(result.status,0,result.stderr);};
+  git(['init']);git(['-c','user.name=BFS Test','-c','user.email=bfs@example.invalid','-c','commit.gpgsign=false','commit','--allow-empty','-m','fixture']);
+  git(['worktree','add','--detach',worktree,'HEAD']);
+  const main=nativeContext(f.event(),f.env),linked=nativeContext(f.event({cwd:worktree}),f.env);
+  assert.equal(linked.projectId,main.projectId);assert.notEqual(linked.workspaceId,main.workspaceId);
+  assert.equal((await f.host.call('status',f.bound('status',{}, {cwd:worktree}))).hostWorkspace,worktree);
+  const record=workflow(linked,'start',{goal:'Linked lifecycle',skills:['bfs-health']},loadCatalog());
+  workflow(linked,'begin',{id:record.id,step:'1'},loadCatalog());
+  claudeHook(f.event({hook_event_name:'SessionEnd'}),f.env);
+  assert.equal(workflow(linked,'resume',{id:record.id},loadCatalog()).status,'interrupted');
+});
+
+test('missing stable native project metadata cannot silently select a new workspace',t=>{
+  const f=fixture(t);
+  assert.throws(()=>nativeContext(f.event(),{...f.env,CLAUDE_PROJECT_DIR:undefined}),/project directory/);
+  assert.throws(()=>nativeContext(f.event(),{...f.env,CLAUDE_PROJECT_DIR:'relative'}),/project directory/);
 });
 
 test('call binding rejects missing, altered, expired and replayed calls',async t=>{

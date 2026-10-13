@@ -8,7 +8,10 @@ parancsa a Codex és a Claude Code plugint is telepíti. Új felhasználói ZIP-
 nem készítünk és nem publikálunk. A `plugins/bontaflowstack/engines/*.zip` a
 csomag belső, ellenőrzőösszeggel rögzített motorarchívuma; nem telepítőcsomag.
 
-A jelenlegi `1.1.0-rc.2` kiadásjelölt csak az `rc` npm dist-taggel publikálható.
+A publikált verzió `1.1.0-rc.2`; a helyben előkészített következő jelölt
+`1.1.0-rc.3`. Az alábbi parancsok erre a még nem publikált jelöltre vonatkoznak;
+lásd az [rc.3 ellenőrzési jelentését](RELEASE-1.1.0-rc.3.md).
+Kiadásjelölt csak az `rc` npm dist-taggel publikálható.
 Ez nem jelent teljes natív hostelfogadást. A korábbi Codex `1.0.0` ZIP-bizonyíték
 annak az eredeti csomagnak és futásnak a történeti bizonyítéka; nem igazolja a
 két-hostos npm artefaktumot vagy a Claude Code natív viselkedését. Stabil npm
@@ -22,7 +25,7 @@ majd készíts egy új, még nem létező kiadási könyvtárat a verziótagból
 
 ```powershell
 node --test tests/npm-package.test.mjs tests/npm-release.test.mjs
-node scripts/npm-release.mjs prepare --output artifacts/npm-release/1.1.0-rc.2 --tag rc --release-tag v1.1.0-rc.2
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0-rc.3 --tag rc --release-tag v1.1.0-rc.3
 ```
 
 A `prepare` elkészíti a két host pluginját, valódi `npm pack`-ot futtat,
@@ -38,7 +41,7 @@ Trusted Publisher beállítható. Ezért az első RC-t a kiadási könyvtárból
 interaktívan, a tulajdonosi npm-fiókkal kell publikálni:
 
 ```powershell
-node scripts/npm-release.mjs publish --artifact artifacts/npm-release/1.1.0-rc.2 --tag rc
+node scripts/npm-release.mjs publish --artifact artifacts/npm/1.1.0-rc.3 --tag rc
 ```
 
 A parancs csak a `prepare` során létrehozott `.tgz`-t publikálja, és előtte

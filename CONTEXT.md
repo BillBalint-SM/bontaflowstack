@@ -23,6 +23,12 @@ Neither alias establishes stable or native acceptance. ZIP release records descr
 they do not establish acceptance of this npm candidate. See
 `docs/bontaflowstack/RELEASE-PROCESS.md` for the current publishing route.
 
+Local candidate 1.1.0-rc.3 repairs Claude workspace ownership after cwd changes,
+blocks PreToolUse on hook failures, and restores the shared removed-browser-scripts
+section. Its current-documentation audit and scoped checks are recorded in
+`docs/bontaflowstack/RELEASE-1.1.0-rc.3.md`. It is not published; native authenticated
+Claude acceptance remains pending.
+
 ## Terms
 
 - **Skill:** a public task entry point, defined by the catalog and its SKILL.md.

@@ -5,6 +5,15 @@ Initial rc.1 source: `cd2e21ef8f947e0196e600f679e5cb54c1ee4dc6`, tagged
 native Claude acceptance. The accepted scope excludes raster image
 generation/editing; see [scope and mechanics](CLAUDE-CODE-PORT.md).
 
+## Locally prepared Claude repairs 1.1.0-rc.3
+
+The [rc.3 report](RELEASE-1.1.0-rc.3.md) records the three audit repairs,
+the current official Claude Code documentation review, and checks of all 34
+skills, eight hooks, five MCP tools and 51 generated Markdown files. Actual CLI
+manifest validation and MCP connection are distinguished from synthetic hook
+tests. This candidate is not published; authenticated Claude acceptance is still
+pending. Earlier release results below retain their original scope.
+
 ## Published Impeccable update 1.1.0-rc.2
 
 Source `32e71122fce18b847a675efbd4efc6370fbb166b`, tag `v1.1.0-rc.2`,

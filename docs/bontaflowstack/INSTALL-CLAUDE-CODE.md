@@ -63,20 +63,20 @@ erase them; see [local data](LOCAL-DATA.md).
 
 ## Local candidate checks for maintainers
 
-The registry release has not occurred. To build a local candidate for package
-verification, use a fresh output directory and the local tarball:
+The published release above remains rc.2. The next candidate, rc.3, is prepared
+locally and is not yet available from the registry. To build it for verification,
+use a fresh output directory and the local tarball:
 
 ```powershell
-node scripts/build-npm-package.mjs --output artifacts/npm/1.1.0-rc.2/package
-npm pack ./artifacts/npm/1.1.0-rc.2/package --pack-destination ./artifacts/npm/1.1.0-rc.2
-npx --yes --package ./artifacts/npm/1.1.0-rc.2/bontaflowstack-1.1.0-rc.2.tgz -- bontaflowstack setup --host claude
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0-rc.3 --tag rc --release-tag v1.1.0-rc.3
+npx --yes --package ./artifacts/npm/1.1.0-rc.3/bontaflowstack-1.1.0-rc.3.tgz -- bontaflowstack setup --host claude
 ```
 
 The generated package is the distributable input; the source installer directory
 is not published directly. These local commands do not make the version available
 from npm. The actual package/setup tests use isolated configuration and cache
 directories. They do not establish authenticated Claude session acceptance or
-publish a release.
+publish a release. See the [rc.3 audit and evidence](RELEASE-1.1.0-rc.3.md).
 
 See the [universal Windows guide](INSTALL-WINDOWS.md) for common setup, host
 selection, trust, state sharing and troubleshooting.

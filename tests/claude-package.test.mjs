@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { checkLocalLinks } from '../scripts/check.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = path.join(repo, 'plugins', 'bontaflowstack');
@@ -63,16 +64,17 @@ try {
   assert.equal(doctor.status, 0, doctor.stderr);
   assert.match(JSON.parse(doctor.stdout).hooks.reason, /Claude Code/);
   assert.deepEqual(Object.keys(hooks.hooks).sort(), ['PostToolUseFailure', 'PreToolUse', 'SessionEnd', 'SessionStart', 'Stop', 'StopFailure', 'SubagentStop', 'UserPromptSubmit'].sort());
-  for (const entries of Object.values(hooks.hooks)) for (const entry of entries) for (const hook of entry.hooks) {
+  for (const [event, entries] of Object.entries(hooks.hooks)) for (const entry of entries) for (const hook of entry.hooks) {
     assert.equal(hook.type, 'command');
-    assert.match(hook.command, /\$\{CLAUDE_PLUGIN_ROOT\}\/core\/claude-hook\.mjs/);
+    assert.equal(hook.command, 'node');
+    assert.deepEqual(hook.args, ['${CLAUDE_PLUGIN_ROOT}/core/claude-hook.mjs', event]);
   }
+  assert.equal(hooks.hooks.PreToolUse[0].hooks[0].onFailure, 'block', 'guard failure must block native tool execution');
   const markdown = root => fs.readdirSync(root, { withFileTypes: true }).flatMap(entry => entry.isDirectory()
     ? markdown(path.join(root, entry.name)) : entry.name.endsWith('.md') ? [path.join(root, entry.name)] : []);
-  for (const file of markdown(output)) for (const match of fs.readFileSync(file, 'utf8').matchAll(/\]\(([^)]+)\)/g)) {
-    const target = match[1].split('#')[0];
-    if (target && !/^(?:https?:|mailto:)/.test(target)) assert.ok(fs.existsSync(path.resolve(path.dirname(file), target)), `broken link in ${path.relative(output, file)}: ${target}`);
-  }
+  for (const file of markdown(output)) checkLocalLinks(file);
+  const browserSource = fs.readFileSync(path.join(source, 'references', 'browser.md'), 'utf8');
+  assert.ok(fs.readFileSync(path.join(output, 'references', 'browser.md'), 'utf8').includes(browserSource.match(/^## Removed browser scripts\n[\s\S]*?(?=^## )/m)[0]));
   for (const file of [...markdown(output), path.join(output, 'scripts', 'setup.ps1')]) {
     const content = fs.readFileSync(file, 'utf8');
     assert.doesNotMatch(content, /Codex|CODEX_THREAD_ID|(?:^|[\s`])\/hooks\b|bfs-browser/, `Codex-specific runtime instruction remains in ${path.relative(output, file)}`);

@@ -10,7 +10,10 @@ export function nativeContext(event,env=process.env) {
   const sessionId=identifier(event.session_id),agentId=event.agent_id === undefined ? null : identifier(event.agent_id);
   requireValue(!env.CLAUDE_CODE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID===sessionId,'Claude hook session identity mismatch');
   requireValue(typeof event.cwd==='string' && path.isAbsolute(event.cwd),'Claude hook requires an absolute working directory');
-  const ctx=context(event.cwd,env);
+  requireValue(typeof env.CLAUDE_PROJECT_DIR==='string' && path.isAbsolute(env.CLAUDE_PROJECT_DIR),'Claude hook requires the absolute native project directory (CLAUDE_PROJECT_DIR)');
+  const project=context(env.CLAUDE_PROJECT_DIR,env),current=context(event.cwd,env);
+  // cwd follows cd; only a linked worktree of the same Git project selects another workspace.
+  const ctx=current.git && project.git && current.projectId===project.projectId ? current : {...project,cwd:current.cwd};
   return {...ctx,taskId:`claude-${digest(JSON.stringify([sessionId,agentId]))}`,host:'claude-code',sessionId,agentId};
 }
 export function callArguments(input) {
@@ -23,7 +26,7 @@ export function issueCall(ctx,name,input) {
   requireValue(claudeTools.includes(name),'Unknown Claude BFS tool');
   const id=randomUUID(),folder=path.join(ctx.home,'claude-code','calls');
   noLinks(folder);fs.mkdirSync(folder,{recursive:true});
-  const record={schema:1,id,name,inputSha256:fingerprint(name,input),taskId:ctx.taskId,sessionId:ctx.sessionId,agentId:ctx.agentId,cwd:ctx.cwd,workspaceId:ctx.workspaceId,createdAt:Date.now()};
+  const record={schema:1,id,name,inputSha256:fingerprint(name,input),taskId:ctx.taskId,sessionId:ctx.sessionId,agentId:ctx.agentId,cwd:ctx.cwd,workspace:ctx.workspace,workspaceId:ctx.workspaceId,createdAt:Date.now()};
   atomicWrite(path.join(folder,`${id}.json`),record);
   return {...callArguments(input),_bfsCall:id};
 }
@@ -35,7 +38,8 @@ export function consumeCall(name,input,env=process.env) {
   requireValue(record.name===name && record.inputSha256===fingerprint(name,input),'Claude call arguments changed after native inspection');
   requireValue(Number.isFinite(record.createdAt) && Date.now()>=record.createdAt && Date.now()-record.createdAt<=300000,'Claude call binding expired; retry through the native hook');
   // MCP startup env can survive /clear; the one-use native-hook record owns this call.
-  const ctx=nativeContext({session_id:record.sessionId,agent_id:record.agentId ?? undefined,cwd:record.cwd},{...env,CLAUDE_CODE_SESSION_ID:record.sessionId});
+  requireValue(typeof record.workspace==='string' && path.isAbsolute(record.workspace),'Claude binding predates stable workspace ownership; retry through the native hook');
+  const ctx=nativeContext({session_id:record.sessionId,agent_id:record.agentId ?? undefined,cwd:record.cwd},{...env,CLAUDE_CODE_SESSION_ID:record.sessionId,CLAUDE_PROJECT_DIR:record.workspace});
   requireValue(ctx.taskId===record.taskId && ctx.workspaceId===record.workspaceId,'Claude call workspace or owner changed');
   const claimed=`${file}.${randomUUID()}.consumed`;
   fs.renameSync(file,claimed);fs.unlinkSync(claimed);
@@ -46,10 +50,10 @@ export function rememberOwner(ctx) {
   const initial={schema:1,sessionId:ctx.sessionId,owners:[]};
   const valid=state=>{requireValue(state?.schema===1 && state.sessionId===ctx.sessionId && Array.isArray(state.owners),'Invalid Claude session state');return state;};
   const existing=valid(readJson(file,initial));
-  if(existing.owners.some(owner=>owner.taskId===ctx.taskId && owner.cwd===ctx.cwd))return;
+  if(existing.owners.some(owner=>owner.taskId===ctx.taskId && owner.cwd===ctx.workspace))return;
   changeJson(file,initial,state=>{
     valid(state);
-    if(!state.owners.some(owner=>owner.taskId===ctx.taskId && owner.cwd===ctx.cwd))state.owners.push({taskId:ctx.taskId,agentId:ctx.agentId,cwd:ctx.cwd});
+    if(!state.owners.some(owner=>owner.taskId===ctx.taskId && owner.cwd===ctx.workspace))state.owners.push({taskId:ctx.taskId,agentId:ctx.agentId,cwd:ctx.workspace});
     return state;
   });
 }
@@ -58,7 +62,7 @@ export function sessionContexts(ctx,env=process.env) {
   if(!state)return [ctx];
   requireValue(state.schema===1 && state.sessionId===ctx.sessionId && Array.isArray(state.owners),'Invalid Claude session state');
   return state.owners.map(owner=>{
-    const selected=nativeContext({session_id:ctx.sessionId,agent_id:owner.agentId ?? undefined,cwd:owner.cwd},env);
+    const selected=nativeContext({session_id:ctx.sessionId,agent_id:owner.agentId ?? undefined,cwd:owner.cwd},{...env,CLAUDE_PROJECT_DIR:owner.cwd});
     requireValue(selected.taskId===owner.taskId,'Claude session owner changed');return selected;
   });
 }
