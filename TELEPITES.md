@@ -14,7 +14,7 @@ elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Hostok: Codex és Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**Előkészített npm-kiadás: `1.1.0`.**
+**Publikált npm-kiadás: `1.1.0`.**
 · [Telepítés lépésről lépésre](#telepítés-windowsra)
 · [Korábbi 1.0.0-s bizonyítékok](docs/bontaflowstack/RELEASE-1.0.0.md)
 
@@ -176,7 +176,7 @@ a visszaolvasást és a lezárást. Ez a futás 0.7.5-tel történt; az eredeti 
 ## Telepítés Windowsra
 
 Az aktuális egyetlen telepítési út az npm-csomag pontos verziója. A **1.1.0**
-kiadás publikálásra előkészítve. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.1.0.md).
+kiadás elérhető a nyilvános npm-registryben, a `latest` címke is erre mutat. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.1.0.md).
 
 ```powershell
 npx bontaflowstack@1.1.0 setup

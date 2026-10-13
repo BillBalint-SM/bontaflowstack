@@ -12,13 +12,13 @@ HTML/SVG remain within scope.
 
 The only current distribution route for the whole package is
 `npx bontaflowstack@<exact-version> setup`; omitting `setup` also starts installation.
-The prepared stable npm release is 1.1.0, built with `scripts/build-npm-package.mjs`.
+The published stable npm release is 1.1.0, built with `scripts/build-npm-package.mjs`.
 It detects Codex and Claude Code, registers each installed host, persists versioned
 files outside the npx cache, and prepares the shared pinned engines. Each plugin
 pins the same state directory so Desktop environment redirection does not split
 the new installation. Native host trust remains a human host action.
 Registry integrity and an actual registry npx setup with both host CLIs were verified.
-The 1.1.0 publication targets `latest`; prereleases use `rc`. ZIP release records
+The registry's `latest` points to 1.1.0; `rc` retains the earlier prerelease. ZIP release records
 describe historical releases with their original verification scope. See
 `docs/bontaflowstack/RELEASE-PROCESS.md` for the current publishing route.
 

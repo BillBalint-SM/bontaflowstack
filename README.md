@@ -14,7 +14,7 @@ the work.
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Hosts: Codex and Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**Prepared npm release: `1.1.0`.**
+**Published npm release: `1.1.0`.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
 · [Telepítés magyarul](TELEPITES.md)
 
@@ -175,8 +175,10 @@ as a new 1.0.0 run.
 
 ## Current release and compatibility evidence
 
-The combined npm installer **1.1.0** is prepared for publication.
-The command above is the single standard install route. See the [release report](docs/bontaflowstack/RELEASE-1.1.0.md).
+The combined npm installer **1.1.0** is available from the public npm registry
+and is the `latest` release.
+The command above is the single standard install route; installation from npm
+was tested with both host CLIs. See the [release report](docs/bontaflowstack/RELEASE-1.1.0.md).
 Raster image generation/editing is outside the accepted Claude scope;
 supplied-image understanding and authored HTML/SVG remain supported.
 

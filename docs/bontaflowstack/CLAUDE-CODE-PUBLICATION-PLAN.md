@@ -14,8 +14,8 @@ setup/config/telepítés kezdődik... nem kell zip vagy bármi más formátum.�
 npx bontaflowstack@1.1.0 setup
 ```
 
-Az 1.1.0 stabil kiadás előkészítése és publikálása felhasználói jóváhagyást kapott;
-a [kiadási jelentés](RELEASE-1.1.0.md) rögzíti az aktuális állapotot.
+Az 1.1.0 stabil kiadás publikált, az npm `latest` címke erre mutat;
+a [kiadási jelentés](RELEASE-1.1.0.md) rögzíti a forrást és az ellenőrzéseket.
 A `setup` elhagyása ugyanazt a folyamatot indítja. A telepítő felismeri a
 telepített Codexet és Claude Code-ot, és mindegyik elérhető hosthoz regisztrálja
 a megfelelő adaptert. A `--host codex|claude|all` az explicit választás.

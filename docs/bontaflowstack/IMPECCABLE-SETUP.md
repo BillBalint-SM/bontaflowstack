@@ -1,8 +1,9 @@
 # Automatic Impeccable setup
 
 The user requested that the single npm setup install and configure Impeccable
-for both Codex and Claude Code, with no manual environment setting. This change
-is published as `bontaflowstack@1.1.0-rc.2` with the npm `rc` tag.
+for both Codex and Claude Code, with no manual environment setting. This feature
+first shipped in `1.1.0-rc.2` and is included unchanged in the
+[current 1.1.0 release](RELEASE-1.1.0.md).
 The published `1.1.0-rc.1` package is immutable and does not include this change.
 
 ## Implementation
@@ -25,7 +26,7 @@ The published `1.1.0-rc.1` package is immutable and does not include this change
 Google DESIGN.md remains an optional external tool. This change supplies the
 Impeccable CLI used by BFS; ordinary design does not require running it.
 
-## Validation
+## Original implementation validation
 
 Observed on Windows x64 with Node 26.8.1, 2026-10-13:
 
@@ -79,8 +80,7 @@ See [publication verification](RELEASE-1.1.0-rc.2.md).
 
 ## Limits
 
-Authenticated Claude model-session acceptance is still pending. CLI installation,
-core execution and fixture tests do not establish native model-driven behavior.
+These original results cover CLI installation, core execution and fixture tests.
 Live URL detector scans and the full standalone Impeccable skill workflow were
 not tested; the practical detector checks above used local CSS files.
 

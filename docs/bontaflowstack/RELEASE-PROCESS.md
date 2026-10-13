@@ -7,8 +7,8 @@ A csomag automatikusan felismeri és beállítja a Codexet és a Claude Code-ot,
 a közös motort és az Impeccable CLI-t. Új felhasználói ZIP nem készül.
 A csomag belső, ellenőrzőösszeggel rögzített motorarchívuma nem külön telepítő.
 
-Az `1.1.0` stabil kiadás előkészítése és publikálása felhasználói jóváhagyást
-kapott; az aktuális eredményt a [kiadási jelentés](RELEASE-1.1.0.md) rögzíti.
+Az `1.1.0` stabil kiadás publikált; a visszaellenőrzött eredményt
+a [kiadási jelentés](RELEASE-1.1.0.md) rögzíti.
 Stabil verzió csak `latest`, előzetes verzió csak `rc` npm dist-taggel
 publikálható. A forráscsomag verziója az `installers/npm/package.json` fájlban
 van; a builder ezt vezeti át mindkét csomagolt host manifestjébe és katalógusába.

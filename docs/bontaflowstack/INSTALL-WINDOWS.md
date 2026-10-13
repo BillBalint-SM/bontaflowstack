@@ -3,7 +3,8 @@
 [Magyar útmutató](../../TELEPITES.md) · [Claude Code-részletek](INSTALL-CLAUDE-CODE.md)
 
 The single standard install route is the exact-version npm setup command. Version
-**1.1.0 is prepared for publication**. See the [release report](RELEASE-1.1.0.md) for its verification status.
+**1.1.0 is published on npm as `latest`**. Its registry installation passed with both host CLIs; see the
+[release report](RELEASE-1.1.0.md).
 
 ```powershell
 npx bontaflowstack@1.1.0 setup
