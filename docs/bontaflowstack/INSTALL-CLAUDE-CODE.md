@@ -1,11 +1,11 @@
 # Claude Code with the universal BontaFlowStack installer
 
-Codex and Claude Code share one installer. The published npm release candidate is
-**`bontaflowstack@1.1.0-rc.3`**. Its registry installation passed with both host CLIs.
+Codex and Claude Code share one installer. The prepared npm release is
+**`bontaflowstack@1.1.0`**. See the [release report](RELEASE-1.1.0.md) for verification.
 Install it with:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.3 setup
+npx bontaflowstack@1.1.0 setup
 ```
 
 The same command without `setup` starts setup too. By default it detects both
@@ -28,7 +28,7 @@ and begin with:
 ```
 
 The installer keeps versioned adapter files outside the npm cache at
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.3\hosts\claude`. Its
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0\hosts\claude`. Its
 `install-state.json` pins the selected shared BFS state root. Setup reuses a
 sole existing root, including a Windows Store redirected LocalAppData location;
 with no prior state, it uses `%LOCALAPPDATA%\BontaFlowStack\state\v2`. If two
@@ -59,21 +59,21 @@ Uninstall does not remove the versioned adapter directory, shared BFS state or
 engine data. Review and delete retained files separately only if you intend to
 erase them; see [local data](LOCAL-DATA.md).
 
-## Local candidate checks for maintainers
+## Local package checks for maintainers
 
-The published rc.3 can also be reproduced from its source tag for local package
+The 1.1.0 release can also be reproduced from its source tag for local package
 verification. Use a fresh output directory and the local tarball:
 
 ```powershell
-node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0-rc.3 --tag rc --release-tag v1.1.0-rc.3
-npx --yes --package ./artifacts/npm/1.1.0-rc.3/bontaflowstack-1.1.0-rc.3.tgz -- bontaflowstack setup --host claude
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0 --tag latest --release-tag v1.1.0
+npx --yes --package ./artifacts/npm/1.1.0/bontaflowstack-1.1.0.tgz -- bontaflowstack setup --host claude
 ```
 
 The generated package is the distributable input; the source installer directory
 is not published directly. These local commands do not make the version available
 from npm. The actual package/setup tests use isolated configuration and cache
 directories. They do not publish a release. See the
-[rc.3 audit and evidence](RELEASE-1.1.0-rc.3.md).
+[1.1.0 release evidence](RELEASE-1.1.0.md).
 
 See the [universal Windows guide](INSTALL-WINDOWS.md) for common setup, host
 selection, trust, state sharing and troubleshooting.

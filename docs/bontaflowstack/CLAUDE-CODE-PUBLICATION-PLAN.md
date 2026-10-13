@@ -11,10 +11,11 @@ setup/config/telepítés kezdődik... nem kell zip vagy bármi más formátum.�
 ## Elfogadott működés
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.3 setup
+npx bontaflowstack@1.1.0 setup
 ```
 
-A verzió publikált kiadásjelölt; a registry-parancs mindkét host CLI-jével sikeres próbán ment át.
+Az 1.1.0 stabil kiadás előkészítése és publikálása felhasználói jóváhagyást kapott;
+a [kiadási jelentés](RELEASE-1.1.0.md) rögzíti az aktuális állapotot.
 A `setup` elhagyása ugyanazt a folyamatot indítja. A telepítő felismeri a
 telepített Codexet és Claude Code-ot, és mindegyik elérhető hosthoz regisztrálja
 a megfelelő adaptert. A `--host codex|claude|all` az explicit választás.

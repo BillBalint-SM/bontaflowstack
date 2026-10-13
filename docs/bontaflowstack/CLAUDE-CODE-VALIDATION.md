@@ -5,6 +5,12 @@ Initial rc.1 source: `cd2e21ef8f947e0196e600f679e5cb54c1ee4dc6`, tagged
 native Claude acceptance. The accepted scope excludes raster image
 generation/editing; see [scope and mechanics](CLAUDE-CODE-PORT.md).
 
+## Stable release 1.1.0
+
+The [1.1.0 report](RELEASE-1.1.0.md) records version promotion, package comparison
+and installation checks. Earlier results below retain their original versions
+and scope.
+
 ## Published Claude repairs 1.1.0-rc.3
 
 The [rc.3 report](RELEASE-1.1.0-rc.3.md) records the three audit repairs,
@@ -146,4 +152,4 @@ configuration directory `.tmp/claude-isolated-config-20261012` was retained:
 automatic command review rejected recursive cleanup with `blocked by policy`
 without a more specific reason. It is excluded from the npm package.
 
-Use [the installation guide](INSTALL-CLAUDE-CODE.md) for the candidate package.
+Use [the installation guide](INSTALL-CLAUDE-CODE.md) for the current package.

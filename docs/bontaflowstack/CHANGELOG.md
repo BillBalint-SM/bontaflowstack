@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0 — stable npm release, 2026-10-13
+
+- Promote the accepted Codex/Claude Code build to `bontaflowstack@1.1.0`.
+  Keep one automatic npm setup path, shared engines and Impeccable installation.
+- Use consistent stable version labels and publish stable versions on `latest`;
+  keep prereleases on `rc` with exact-source and tarball-integrity checks.
+- Preserve the rc.3 runtime and skills; see [release evidence](RELEASE-1.1.0.md).
+
+## 1.1.0-rc.3 — published Claude repairs, 2026-10-13
+
+- Fix workspace ownership after cwd changes, block PreToolUse hook failures,
+  and restore browser reference anchors. See [audit and evidence](RELEASE-1.1.0-rc.3.md).
+
 ## 1.1.0-rc.2 — published npm release candidate, 2026-10-13
 
 - Install the pinned official Impeccable CLI through the same npm setup for both

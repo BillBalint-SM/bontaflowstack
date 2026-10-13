@@ -1,9 +1,9 @@
-name: Publish BontaFlowStack npm candidate
+name: Publish BontaFlowStack npm package
 on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Exact protected source tag, for example v1.1.0-rc.1
+        description: Exact protected source tag, for example v1.1.0
         required: true
         type: string
 permissions:
@@ -23,14 +23,15 @@ jobs:
           package-manager-cache: false
       - name: Use npm CLI with OIDC dist-tag support
         run: npm install --global npm@11.21.0
-      - name: Confirm selected source tag is the package prerelease
+      - name: Confirm selected source tag and select npm dist-tag
         shell: pwsh
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           $package = Get-Content installers/npm/package.json -Raw | ConvertFrom-Json
           if ($env:RELEASE_TAG -ne "v$($package.version)") { throw 'The selected Git tag must exactly match the installer package version.' }
-          if ($package.version -notmatch '-[A-Za-z0-9]') { throw 'This workflow publishes prereleases only; stable publication needs the dual-host native acceptance gate.' }
+          $npmDistTag = if ($package.version -match '-') { 'rc' } else { 'latest' }
+          "BFS_NPM_DIST_TAG=$npmDistTag" >> $env:GITHUB_ENV
       - name: Run repository checks
         run: node scripts/check.mjs
       - name: Verify npm release policy and tarball safety
@@ -39,6 +40,7 @@ jobs:
         shell: pwsh
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
-        run: node scripts/npm-release.mjs prepare --output artifacts/npm-release --tag rc --release-tag $env:RELEASE_TAG
+        run: node scripts/npm-release.mjs prepare --output artifacts/npm-release --tag $env:BFS_NPM_DIST_TAG --release-tag $env:RELEASE_TAG
       - name: Publish and verify the same tarball
-        run: node scripts/npm-release.mjs publish --artifact artifacts/npm-release --tag rc
+        shell: pwsh
+        run: node scripts/npm-release.mjs publish --artifact artifacts/npm-release --tag $env:BFS_NPM_DIST_TAG

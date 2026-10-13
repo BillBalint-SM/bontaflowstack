@@ -22,9 +22,9 @@ export function parseArguments(args) {
   return options;
 }
 
-export function requireRcPublish(version, tag) {
-  if (!version.includes('-')) throw new Error('Stable npm publishing is blocked until a native Codex and Claude acceptance gate validates the exact npm tarball.');
-  if (tag !== 'rc') throw new Error('Prerelease publication requires the explicit npm dist-tag `rc`; latest is not allowed.');
+export function requirePublishTag(version, tag) {
+  const expected = version.includes('-') ? 'rc' : 'latest';
+  if (tag !== expected) throw new Error(`Version ${version} requires the explicit npm dist-tag \`${expected}\`.`);
 }
 
 export function sha256File(file) {
@@ -83,7 +83,7 @@ function getArtifact(directory, expectedTag) {
   if (receipt.schema !== 1 || receipt.name !== 'bontaflowstack' || receipt.version !== npmVersion || receipt.tag !== expectedTag || receipt.releaseTag !== `v${receipt.version}` || !/^[a-f0-9]{40,64}$/.test(receipt.sourceRevision)) {
     throw new Error('Release receipt does not match the current package version, exact source tag, and requested dist-tag.');
   }
-  requireRcPublish(receipt.version, receipt.tag);
+  requirePublishTag(receipt.version, receipt.tag);
   const tarball = safePath(root, receipt.tarball);
   if (!fs.statSync(tarball, { throwIfNoEntry:false })?.isFile() || fs.lstatSync(tarball).isSymbolicLink()) throw new Error('The recorded npm tarball is missing or unsafe.');
   if (sha256File(tarball) !== receipt.sha256 || sriSha512File(tarball) !== receipt.integrity) throw new Error('The npm tarball changed after release preparation.');
@@ -91,7 +91,7 @@ function getArtifact(directory, expectedTag) {
 }
 
 function prepare(outputValue, tag, releaseTag) {
-  requireRcPublish(npmVersion, tag);
+  requirePublishTag(npmVersion, tag);
   if (releaseTag !== `v${npmVersion}`) throw new Error(`Release tag must exactly match this package version: v${npmVersion}`);
   const output = path.resolve(outputValue);
   if (fs.existsSync(output)) throw new Error(`Output already exists; choose a new directory: ${output}`);
@@ -168,7 +168,7 @@ export function validateRegistryRelease(receipt, identity, tags) {
     throw new Error('Registry name/version/integrity do not match the prepared npm tarball.');
   }
   if (tags?.[receipt.tag] !== receipt.version) throw new Error(`Registry dist-tag ${receipt.tag} does not point to ${receipt.version}.`);
-  return { distTags:tags, registryAssignedLatest:tags.latest === receipt.version };
+  return { distTags:tags, registryAssignedLatest:receipt.version.includes('-') && tags.latest === receipt.version };
 }
 
 async function verify(directory, tag) {
@@ -180,7 +180,7 @@ async function verify(directory, tag) {
       const registryTags = JSON.parse(runNpm(['view', receipt.name, 'dist-tags', '--json', '--registry', 'https://registry.npmjs.org'], repo));
       const tagState = validateRegistryRelease(receipt, identity, registryTags);
       return { outcome:'verified', name:receipt.name, version:receipt.version, tag, sha256:sha256File(tarball), integrity:receipt.integrity, ...tagState,
-        ...(tagState.registryAssignedLatest ? { warning:'The registry also assigns latest to this prerelease; this does not establish stable or native acceptance.' } : {}) };
+        ...(tagState.registryAssignedLatest ? { warning:'The registry also assigns latest to this prerelease.' } : {}) };
     } catch (error) {
       lastError = error;
       if (attempt < 7) await new Promise(resolve => setTimeout(resolve, Math.min(30000, 1000 * (2 ** attempt))));
@@ -214,7 +214,7 @@ export async function main(args) {
   }
   if (command === 'publish' && Object.keys(options).length === 2 && options.artifact && options.tag) return await publish(options.artifact, options.tag);
   if (command === 'verify' && Object.keys(options).length === 2 && options.artifact && options.tag) return await verify(options.artifact, options.tag);
-  throw new Error('Usage: npm-release.mjs prepare --output DIR --tag rc --release-tag v<version> | publish/verify --artifact DIR --tag rc');
+  throw new Error('Usage: npm-release.mjs prepare --output DIR --tag rc|latest --release-tag v<version> | publish/verify --artifact DIR --tag rc|latest');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

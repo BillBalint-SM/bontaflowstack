@@ -12,15 +12,14 @@ HTML/SVG remain within scope.
 
 The only current distribution route for the whole package is
 `npx bontaflowstack@<exact-version> setup`; omitting `setup` also starts installation.
-The published npm release candidate is 1.1.0-rc.3, built with `scripts/build-npm-package.mjs`.
+The prepared stable npm release is 1.1.0, built with `scripts/build-npm-package.mjs`.
 It detects Codex and Claude Code, registers each installed host, persists versioned
 files outside the npx cache, and prepares the shared pinned engines. Each plugin
 pins the same state directory so Desktop environment redirection does not split
 the new installation. Native host trust remains a human host action.
 Registry integrity and an actual registry npx setup with both host CLIs were verified.
-The registry's `rc` tag points to rc.3; `latest` still points to the earlier rc.1.
-Both aliases name prereleases. ZIP release records describe historical releases;
-they do not establish acceptance of this npm candidate. See
+The 1.1.0 publication targets `latest`; prereleases use `rc`. ZIP release records
+describe historical releases with their original verification scope. See
 `docs/bontaflowstack/RELEASE-PROCESS.md` for the current publishing route.
 
 Release 1.1.0-rc.3 repairs Claude workspace ownership after cwd changes,
@@ -58,7 +57,7 @@ from a checksum-pinned release. Legacy user data remains untouched; import is ex
 
 The engine package implements browser sessions, rendering and local image comparison
 with Node.js and separately installed dependencies. Image generation/editing uses
-the current Codex image tool. Published npm candidate 1.1.0-rc.2 adds automatic
+the current Codex image tool. The npm installer includes automatic
 Impeccable CLI installation and persistent shared configuration for design-detect.
 Google DESIGN.md remains an optional external prerequisite; neither operation is
 required for ordinary design. The earlier rc.1 does not include this addition.

@@ -1,78 +1,69 @@
 # npm terjesztés és kiadási kapu
 
-## Jelenlegi felhasználói terjesztés: egy npm-csomag két hosthoz
+## Egy npm-csomag két hosthoz
 
-A felhasználói telepítési artefaktum a `bontaflowstack` npm-csomag pontos
-verziójú `.tgz` fájlja. A csomag egyetlen `npx bontaflowstack@<verzió> setup`
-parancsa a Codex és a Claude Code plugint is telepíti. Új felhasználói ZIP-et
-nem készítünk és nem publikálunk. A `plugins/bontaflowstack/engines/*.zip` a
-csomag belső, ellenőrzőösszeggel rögzített motorarchívuma; nem telepítőcsomag.
+Az egyetlen felhasználói telepítési út az `npx bontaflowstack@<verzió> setup`.
+A csomag automatikusan felismeri és beállítja a Codexet és a Claude Code-ot,
+a közös motort és az Impeccable CLI-t. Új felhasználói ZIP nem készül.
+A csomag belső, ellenőrzőösszeggel rögzített motorarchívuma nem külön telepítő.
 
-A publikált verzió `1.1.0-rc.3`. Az alábbi parancsok ennek a kiadásnak
-az előkészítési és publikálási lépéseit mutatják;
-lásd az [rc.3 ellenőrzési jelentését](RELEASE-1.1.0-rc.3.md).
-Kiadásjelölt csak az `rc` npm dist-taggel publikálható.
-Az rc.3 Codex/Claude Code buildjét a felhasználó elfogadta, a publikálást
-engedélyezte; a kiadási kör lezárt. A korábbi Codex `1.0.0` ZIP-bizonyíték
-annak az eredeti csomagnak és futásnak a történeti bizonyítéka; nem igazolja a
-két-hostos npm artefaktumot. A jelenlegi publikálóeszköz RC-verziókra korlátozott;
-a lezárt rc.3 kiadás nem indít további elfogadási vagy stabilizálási feladatot.
+Az `1.1.0` stabil kiadás előkészítése és publikálása felhasználói jóváhagyást
+kapott; az aktuális eredményt a [kiadási jelentés](RELEASE-1.1.0.md) rögzíti.
+Stabil verzió csak `latest`, előzetes verzió csak `rc` npm dist-taggel
+publikálható. A forráscsomag verziója az `installers/npm/package.json` fájlban
+van; a builder ezt vezeti át mindkét csomagolt host manifestjébe és katalógusába.
 
-### Kiadásjelölt készítése és ellenőrzése
+### Előkészítés
 
-Windows x64-en, Node.js 24+-szal és npm 11.21.0+-szal futtasd a projektellenőrzést,
-majd készíts egy új, még nem létező kiadási könyvtárat a verziótagból:
+Windows x64-en, Node.js 24+-szal és npm 11.21.0+-szal futtasd a projektellenőrzést.
+Commitold a kiadás forrását, hozd létre a pontos verziótaget, majd készíts új,
+még nem létező kiadási könyvtárat:
 
 ```powershell
-node --test tests/npm-package.test.mjs tests/npm-release.test.mjs
-node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0-rc.3 --tag rc --release-tag v1.1.0-rc.3
+node scripts/check.mjs
+node --test tests/npm-release.test.mjs
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0 --tag latest --release-tag v1.1.0
 ```
 
-A `prepare` elkészíti a két host pluginját, valódi `npm pack`-ot futtat,
-megőrzi a pontos `.tgz` bájtjait, és `release.json` fájlban rögzíti a nevet,
-verziót, RC taget, forrástagot, SHA256-ot, npm SHA512-integritást és a csomagolt
-fájlokat. Létező könyvtárat nem ír felül. A csomag tartalmát és a SHA256-ot
-ellenőrizd publikálás előtt.
+A `prepare` elkészíti mindkét adaptert, valódi `npm pack`-ot futtat, megőrzi
+a pontos `.tgz` bájtjait, és `release.json` fájlban rögzíti a nevet, verziót,
+dist-taget, forrástagot, commitot, SHA256-ot, npm SHA512-integritást és fájllistát.
+Létező könyvtárat nem ír felül. Ellenőrizd az exact csomagot és a megváltozott
+telepítési vagy frissítési utat a publikálás előtt.
 
-### Publikálás
+### Publikálás és visszaellenőrzés
 
-Első npm publikáláskor a csomagnak már léteznie kell a registryben, mielőtt a
-Trusted Publisher beállítható. Ezért az első RC-t a kiadási könyvtárból,
-interaktívan, a tulajdonosi npm-fiókkal kell publikálni:
+A tulajdonosi npm-fiókkal interaktívan:
 
 ```powershell
-node scripts/npm-release.mjs publish --artifact artifacts/npm/1.1.0-rc.3 --tag rc
+node scripts/npm-release.mjs publish --artifact artifacts/npm/1.1.0 --tag latest
 ```
 
-A parancs csak a `prepare` során létrehozott `.tgz`-t publikálja, és előtte
-ellenőrzi annak változatlanságát. Elutasítja a hiányzó vagy eltérő verziót,
-forrástagot, integritást és a prerelease `latest` taggel való publikálását.
-Sikeres publikálás után összeveti a registry név/verzió/integritás adatait a
-helyi `.tgz`-vel, majd ellenőrzi, hogy az `rc` dist-tag a verzióra mutat.
-Publikálási hiba esetén őrizd meg a kiadási könyvtárat; egy npm-verzió nem
-írható felül.
+A parancs csak az előkészített `.tgz`-t publikálja. Ellenőrzi a tiszta checkoutot,
+a forráscommit és a tag egyezését, a csomagazonosságot és az integritást. Az npm
+böngészős hitelesítést kérhet. A verifier összeveti a registry nevét, verzióját
+és SHA512-integritását a helyi csomagéval, majd ellenőrzi a kiválasztott dist-taget.
 
-Az első sikeres publikálás után az npm csomagbeállításainál konfiguráld a
-GitHub Actions Trusted Publishert a `BillBalint-SM/bontaflowstack` repóhoz és
-`.github/workflows/npm-publish.yml` workflow-hoz. Ezután a védett pontos
-`v<verzió>` taggel indított manuális workflow ellenőrzi és publikálja az RC-t
-OIDC-vel. A workflow npm CLI 11.21.0-t használ, mert az npm dokumentációja ezt
-írja elő a Trusted Publisherrel végzett dist-tag műveletekhez. Lásd az npm
-[Trusted publishing](https://docs.npmjs.com/trusted-publishers/) és
-[dist-tag](https://docs.npmjs.com/adding-dist-tags-to-packages/) útmutatóját.
+Feldolgozási késésnél ne publikáld újra ugyanazt a verziót. Őrizd meg a
+kiadási könyvtárat, és futtasd újra a lekérdezést:
 
-Az első publikálás megtörtént a `bontaflow` fiókkal: `1.1.0-rc.1`, explicit `rc`
-címkével. A registry-integritás és a registryből indított telepítés igazolt;
-lásd a [kiadási jelentést](RELEASE-1.1.0-rc.1.md). Az OIDC-beállítás és az abból
-végzett kiadás még nincs igazolva.
+```powershell
+node scripts/npm-release.mjs verify --artifact artifacts/npm/1.1.0 --tag latest
+```
 
-Az npm a feltöltés után feldolgozási késést jelzett. Ilyenkor ne publikáld újra
-ugyanazt a verziót: a megőrzött artifacttal futtasd újra a `verify` parancsot.
-A verifier az npm objektum- és egyetlen elemből álló tömbválaszát is kezeli.
-Az első kiadásnál a registry `latest` címkét is rendelt az RC-hez, majd annak
-törlését E400-zal elutasította. A verifier ezt külön figyelmeztetésben és
-`registryAssignedLatest` mezőben jelzi; nem nevezi stabilnak az RC-t és nem
-engedélyez stabil publikálást. A felhasználói parancs a pontos RC-verziót rögzíti.
+Az npm-verzió nem írható felül. A verifier kezeli az npm objektum- és egyetlen
+értéket tartalmazó tömbválaszát is. Ha a registry egy előzetes verzióhoz is
+`latest` címkét rendel, külön figyelmeztet; a stabil kiadás `latest` címkéje
+az elvárt állapot. Lásd az npm [publish](https://docs.npmjs.com/cli/v11/commands/npm-publish/)
+és [dist-tag](https://docs.npmjs.com/cli/v11/commands/npm-dist-tag/) dokumentációját.
+
+A GitHub Actions `.github/workflows/npm-publish.yml` kézi workflow-ja a kiválasztott
+pontos `v<verzió>` forrástagból dolgozik, és a verzió alapján választ `rc` vagy
+`latest` címkét. Ugyanazt az ellenőrző és publikáló eszközt hívja. OIDC használatához
+az npm csomagbeállításainál Trusted Publishert kell konfigurálni a
+`BillBalint-SM/bontaflowstack` repóhoz és ehhez a workflow-hoz.
+Az OIDC-ből végzett kiadás nincs gyakorlatban ellenőrizve; a jelenlegi kiadás
+az interaktív npm-fiókos utat használja. [Trusted publishing](https://docs.npmjs.com/trusted-publishers/).
 
 ## Korábbi ZIP-alapú Codex kiadási kapu (történeti)
 

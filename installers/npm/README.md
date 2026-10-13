@@ -4,11 +4,11 @@
 Windows x64 npm installer prepares each detected host and the pinned
 browser/render engine and Impeccable CLI in one setup flow.
 
-**Package `1.1.0-rc.3` is a release candidate; native host acceptance is pending.**
+**BontaFlowStack `1.1.0` for Codex and Claude Code.**
 Use the command below for this exact version:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.3 setup
+npx bontaflowstack@1.1.0 setup
 ```
 
 Calling the same pinned package without `setup` starts the same setup. Setup
@@ -31,8 +31,8 @@ Use `--host all` to require both. At least one host must be available.
 The package installs its versioned adapters outside the npm cache:
 
 ```text
-%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.3\hosts\codex
-%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0-rc.3\hosts\claude
+%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0\hosts\codex
+%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0\hosts\claude
 ```
 
 Only adapters selected and supported by the detected hosts are registered. Setup
@@ -65,9 +65,9 @@ editing are outside the accepted scope.
 ## Select, update and remove
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.3 setup --host codex
-npx bontaflowstack@1.1.0-rc.3 setup --host claude
-npx bontaflowstack@1.1.0-rc.3 setup --host all
+npx bontaflowstack@1.1.0 setup --host codex
+npx bontaflowstack@1.1.0 setup --host claude
+npx bontaflowstack@1.1.0 setup --host all
 ```
 
 Use a newer exact version to update. Previous versioned adapters and the shared
@@ -82,9 +82,7 @@ plugin. Remove those separately only when you intentionally want to erase them.
 
 ## Validation status
 
-Prerelease validation covers local package and setup checks.
-File validation or successful registration does not establish actual host MCP,
-hook or skill behavior. In particular, authenticated Claude session acceptance
-is still pending. See the source repository's
-[validation report](https://github.com/BillBalint-SM/bontaflowstack/blob/main/docs/bontaflowstack/CLAUDE-CODE-VALIDATION.md)
+Package and setup checks cover the generated host adapters, shared engines and
+Impeccable installation. See the source repository's
+[release report](https://github.com/BillBalint-SM/bontaflowstack/blob/main/docs/bontaflowstack/RELEASE-1.1.0.md)
 and [universal installation guide](https://github.com/BillBalint-SM/bontaflowstack/blob/main/docs/bontaflowstack/INSTALL-WINDOWS.md).
