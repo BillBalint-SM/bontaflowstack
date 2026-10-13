@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — six agent platforms
+## 1.2.0 — six agent platforms, 2026-10-14
 
 - Add Gemini CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI adapters
   alongside Codex and Claude Code in the shared Windows x64 npm installer.

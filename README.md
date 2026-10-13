@@ -10,18 +10,17 @@ interface, build from an accepted plan, check it in a real browser, and pick up
 where you left off—with project decisions and delivery evidence kept alongside
 the work.
 
-[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0)
+[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Agent platforms: 6](https://img.shields.io/badge/Agent_platforms-6-222222)
 
-**Published npm release: `1.1.0`.**
+**Published npm release: `1.2.0`.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
 · [Telepítés magyarul](TELEPITES.md)
 
-The repository includes all six platform adapters. Published npm version `1.1.0`
-contains Codex and Claude Code; the four additional adapters are included in the
-next npm release. See the [platform guide](docs/bontaflowstack/PLATFORMS.md).
+Release `1.2.0` includes all six platform adapters in one npm package.
+See the [platform guide](docs/bontaflowstack/PLATFORMS.md).
 
 ## Bring the whole product journey into your project
 
@@ -45,15 +44,16 @@ You can ask in your own language.
 ## Start here
 
 **Requirements:** Windows x64, Node.js 24+ with npm, Git, and at least one supported
-host installed with its CLI on `PATH`: Codex or Claude Code. Run the versioned setup:
+platform installed: Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE
+or OpenCode CLI. CLI hosts must be discoverable on `PATH`. Run the versioned setup:
 
 ```powershell
-npx bontaflowstack@1.1.0 setup
+npx bontaflowstack@1.2.0 setup
 ```
 
 Running the same pinned package without `setup` starts the same flow. By default,
-setup detects Codex and/or Claude Code and configures every detected host. Use
-`--host codex` or `--host claude` to select one, or `--host all` to require both.
+setup configures every detected host. Use a selector from the table below to
+choose one, or `--host all` to require all six platforms.
 It installs versioned host adapters outside the npm cache and prepares the
 browser/render engine and Impeccable CLI. Internet access is needed for dependencies and
 Chromium; a signed-in host account is needed to run model-driven workflows.
@@ -84,8 +84,7 @@ connection. Setup detects installed hosts; you can also select one explicitly.
 | Cursor IDE | `--host cursor` | Local Cursor plugin; reload the IDE window after setup |
 | OpenCode CLI | `--host opencode` | Local V1 plugin |
 
-These selectors describe the six-platform source installer. For npm availability,
-requirements and first use, see [platforms](docs/bontaflowstack/PLATFORMS.md).
+For requirements and first use, see [platforms](docs/bontaflowstack/PLATFORMS.md).
 Project decisions can be shared across hosts while active sessions and browser
 ownership remain separate.
 
@@ -179,10 +178,10 @@ boundary.
 
 ## Releases and documentation
 
-The combined npm installer **1.1.0** is available from the public npm registry
+The combined npm installer **1.2.0** is available from the public npm registry
 and is the `latest` release.
-The command above is the single standard install route; installation from npm
-was tested with both host CLIs. See the [release report](docs/bontaflowstack/RELEASE-1.1.0.md).
+The command above is the single standard install route for all six platforms.
+See the [release report](docs/bontaflowstack/RELEASE-1.2.0.md).
 Raster image generation/editing is outside the accepted Claude scope;
 supplied-image understanding and authored HTML/SVG remain supported.
 

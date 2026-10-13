@@ -63,6 +63,11 @@ test('prepare creates one immutable exact-version tarball and publish rejects ta
   assert.match(receipt.integrity, /^sha512-[A-Za-z0-9+/]+=*$/);
   assert.ok(receipt.packedFiles.includes('hosts/codex/plugins/bontaflowstack/.codex-plugin/plugin.json'));
   assert.ok(receipt.packedFiles.includes('hosts/claude/.claude-plugin/plugin.json'));
+  for (const host of ['gemini','copilot','cursor','opencode']) {
+    assert.ok(receipt.packedFiles.includes(`bin/${host}.mjs`));
+    assert.equal(receipt.packedFiles.filter(file => file.startsWith(`hosts/${host}/skills/`) && file.endsWith('/SKILL.md')).length, 34);
+    assert.ok(receipt.packedFiles.some(file => file.startsWith(`hosts/${host}/engines/`) && file.endsWith('.zip')));
+  }
   assert.equal(fs.existsSync(path.join(artifact, 'package')), false, 'only the published tarball and receipt are retained');
 
   for (const [field, value] of [['tag',tag === 'rc' ? 'latest' : 'rc'],['version','9.9.9']]) {

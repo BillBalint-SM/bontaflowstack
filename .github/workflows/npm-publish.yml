@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Exact protected source tag, for example v1.1.0
+        description: Exact protected source tag, for example v1.2.0
         required: true
         type: string
 permissions:

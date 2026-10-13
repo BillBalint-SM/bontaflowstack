@@ -4,16 +4,14 @@
 CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI** on Windows x64.
 
 One npm setup prepares the selected platform adapters, browser/render engine and
-Impeccable CLI. The repository includes all six adapters. Published npm `1.1.0`
-contains Codex and Claude Code; the four additional adapters ship in the next
-npm release.
+Impeccable CLI. Release `1.2.0` includes all six adapters.
 
 ## Install
 
-For the currently published Codex/Claude Code release:
+Install and configure detected platforms:
 
 ```powershell
-npx bontaflowstack@1.1.0 setup
+npx bontaflowstack@1.2.0 setup
 ```
 
 Running the same exact package without `setup` starts the same flow. Setup does
@@ -21,7 +19,7 @@ not run as an npm install lifecycle script. Use Node.js 24+ with npm, Git for
 Windows, internet access and an installed host. Sign in through the host before
 model-driven work.
 
-The six-platform source installer accepts these selectors:
+The installer accepts these selectors:
 
 | Platform | Selector | Minimum version |
 | --- | --- | --- |
@@ -32,9 +30,8 @@ The six-platform source installer accepts these selectors:
 | Cursor IDE | `--host cursor` | 3.24.12 |
 | OpenCode CLI | `--host opencode` | 1.19.0 |
 
-With no selector, setup configures detected hosts. In the six-platform source,
-`--host all` requires all six. Published `1.1.0` bundles two hosts, so its `all`
-requires Codex and Claude Code.
+With no selector, setup configures detected hosts. `--host all` requires all six;
+select one explicitly if you want to configure only that host.
 
 ## First session
 

@@ -1,19 +1,18 @@
 # Claude Code with the universal BontaFlowStack installer
 
 Claude Code uses the same npm installer as the other
-[BontaFlowStack platforms](PLATFORMS.md). The published Codex/Claude Code release is
-**`bontaflowstack@1.1.0`**. Its registry installation passed with both host CLIs; see the
-[release report](RELEASE-1.1.0.md).
+[BontaFlowStack platforms](PLATFORMS.md). The six-platform release is
+**`bontaflowstack@1.2.0`**; see the
+[release report](RELEASE-1.2.0.md).
 Install it with:
 
 ```powershell
-npx bontaflowstack@1.1.0 setup
+npx bontaflowstack@1.2.0 setup
 ```
 
-The same command without `setup` starts setup too. By default it detects both
-supported host CLIs and configures every installed host. To select just Claude
-Code, pass `--host claude`; use `--host codex` for Codex, or `--host all` to
-require both.
+The same command without `setup` starts setup too. By default it configures
+every detected platform. To select just Claude Code, pass `--host claude`.
+Use `--host all` only when all six platforms are installed.
 
 ## Requirements and first session
 
@@ -30,7 +29,7 @@ and begin with:
 ```
 
 The installer keeps versioned adapter files outside the npm cache at
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0\hosts\claude`. Its
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.2.0\hosts\claude`. Its
 `install-state.json` pins the selected shared BFS state root. Setup reuses a
 sole existing root, including a Windows Store redirected LocalAppData location;
 with no prior state, it uses `%LOCALAPPDATA%\BontaFlowStack\state\v2`. If two
@@ -63,19 +62,19 @@ erase them; see [local data](LOCAL-DATA.md).
 
 ## Local package checks for maintainers
 
-The 1.1.0 release can also be reproduced from its source tag for local package
+The 1.2.0 release can also be reproduced from its source tag for local package
 verification. Use a fresh output directory and the local tarball:
 
 ```powershell
-node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0 --tag latest --release-tag v1.1.0
-npx --yes --package ./artifacts/npm/1.1.0/bontaflowstack-1.1.0.tgz -- bontaflowstack setup --host claude
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.2.0 --tag latest --release-tag v1.2.0
+npx --yes --package ./artifacts/npm/1.2.0/bontaflowstack-1.2.0.tgz -- bontaflowstack setup --host claude
 ```
 
 The generated package is the distributable input; the source installer directory
 is not published directly. These local commands do not make the version available
 from npm. The actual package/setup tests use isolated configuration and cache
 directories. They do not publish a release. See the
-[1.1.0 release evidence](RELEASE-1.1.0.md).
+[1.2.0 release evidence](RELEASE-1.2.0.md).
 
 See the [universal Windows guide](INSTALL-WINDOWS.md) for common setup, host
 selection, trust, state sharing and troubleshooting.

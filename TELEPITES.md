@@ -10,19 +10,18 @@ tervezd meg a felületét, építsd meg az elfogadott terv alapján, és ellenő
 böngészőben. Később ott folytathatod, ahol abbahagytad: a projektdöntések és az
 elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 
-[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0)
+[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.0)
 [![Licenc: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Agentplatformok: 6](https://img.shields.io/badge/Agentplatformok-6-222222)
 
-**Publikált npm-kiadás: `1.1.0`.**
+**Publikált npm-kiadás: `1.2.0`.**
 · [Telepítés lépésről lépésre](#telepítés-windowsra)
 · [Korábbi 1.0.0-s bizonyítékok](docs/bontaflowstack/RELEASE-1.0.0.md)
 
-A repository mind a hat platform adapterét tartalmazza. Az npm-en elérhető
-`1.1.0` a Codexet és a Claude Code-ot tartalmazza; a négy új adapter a következő
-npm-kiadásba kerül. A közös telepítő a böngésző/render motort és az Impeccable-t
-is beállítja. [Platformútmutató](docs/bontaflowstack/PLATFORMS.md).
+Az `1.2.0` mind a hat platform adapterét tartalmazza egyetlen npm-csomagban.
+A közös telepítő a böngésző/render motort és az Impeccable-t is beállítja.
+[Platformútmutató](docs/bontaflowstack/PLATFORMS.md).
 
 Ezen az oldalon együtt találod a BontaFlowStack bemutatóját, a skillek listáját
 és a teljes magyar telepítési útmutatót. A projekt alapértelmezett főoldala az
@@ -50,16 +49,16 @@ a megfelelő belépési pont kiválasztását. Magyarul is kérheted a munkát.
 ## Kezdd itt
 
 **Szükséges:** Windows x64, Node.js 24+ npm-mel, Git és legalább egy támogatott
-host CLI-vel a PATH-on: Codex vagy Claude Code. A kiadás telepítési parancsa:
+platform: Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE vagy
+OpenCode CLI. A CLI-hostok legyenek elérhetők a PATH-on. A telepítési parancs:
 
 ```powershell
-npx bontaflowstack@1.1.0 setup
+npx bontaflowstack@1.2.0 setup
 ```
 
 Ugyanez a rögzített csomag `setup` nélkül is elindítja a beállítást. Alapértelmezésben
-a telepítő felismeri a Codexet és/vagy a Claude Code-ot, és minden megtalált hostot
-beállít. Egyetlen hosthoz használd a `--host codex` vagy `--host claude` kapcsolót;
-a `--host all` mindkettő meglétét kéri. A csomag verziózott hostadaptereket telepít
+a telepítő minden megtalált platformot beállít. Egyetlen host kiválasztásához
+használd az alábbi táblázat kapcsolóját; a `--host all` mind a hat meglétét kéri. A csomag verziózott hostadaptereket telepít
 az npm-cache-en kívül, és előkészíti a böngésző/render motort. A motorfüggőségekhez
 és a Chromiumhoz internet kell; a munkafolyamatok futtatásához bejelentkezett hostfiók.
 
@@ -84,9 +83,8 @@ bizalmi felületén kell áttekinteni és jóváhagyni, ha erre kér.
 | Cursor IDE | `--host cursor` | Helyi plugin; telepítés után ablakújratöltés |
 | OpenCode CLI | `--host opencode` | Helyi V1 plugin |
 
-A táblázat a repository hatplatformos telepítőjét írja le. Kapcsoló nélkül a
-megtalált platformokat állítja be; a `--host all` mind a hat meglétét kéri.
-Az alábbi, publikált `1.1.0`-s parancsok annak két platformjára vonatkoznak.
+Kapcsoló nélkül a telepítő a megtalált platformokat állítja be;
+a `--host all` mind a hat meglétét kéri.
 
 A négy új platformon kérd az agentet a telepített `bfs-router` skill használatára.
 Cursorban előbb mentsd a munkádat, futtasd a **Developer: Reload Window** parancsot,
@@ -184,11 +182,11 @@ operációs rendszer szintű biztonsági határ.
 
 ## Telepítés Windowsra
 
-Az aktuális egyetlen telepítési út az npm-csomag pontos verziója. A **1.1.0**
-kiadás elérhető a nyilvános npm-registryben, a `latest` címke is erre mutat. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.1.0.md).
+Az aktuális egyetlen telepítési út az npm-csomag pontos verziója. A **1.2.0**
+kiadás elérhető a nyilvános npm-registryben, a `latest` címke is erre mutat. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.2.0.md).
 
 ```powershell
-npx bontaflowstack@1.1.0 setup
+npx bontaflowstack@1.2.0 setup
 ```
 
 Ugyanez a parancs `setup` nélkül is elindítja a beállítást. Ne tölts le ZIP-et,
@@ -198,7 +196,7 @@ ne másold kézzel a plugint, és ne regisztrálj külön marketplace-et.
 
 - Windows x64.
 - Node.js 24 vagy újabb, npm-mel és a Git for Windows.
-- Codex és/vagy Claude Code a CLI-vel a `PATH` környezeti változóban.
+- Legalább egy platform a fenti táblázatból; a CLI-hostok legyenek a `PATH`-on.
 - Internet a motorfüggőségek és Chromium letöltéséhez.
 - Bejelentkezett hostfiók a modellalapú workflow-k használatához; a telepítéshez nem kell bejelentkezés.
 
@@ -208,25 +206,24 @@ Ellenőrizd PowerShellben:
 node --version
 npm.cmd --version
 git --version
-Get-Command codex,claude -ErrorAction SilentlyContinue
+Get-Command codex,claude,gemini,copilot,opencode -ErrorAction SilentlyContinue
 ```
 
-Legalább az egyik host CLI-jének meg kell jelennie. Alapértelmezésben a setup
-felismeri mindkét telepített hostot és mindegyikhez regisztrál. Választhatod az
-egyiket `--host codex` vagy `--host claude` kapcsolóval, illetve kérheted mindkettőt
-`--host all` kapcsolóval. A `all` hibaüzenettel leáll, ha valamelyik host hiányzik.
+Legalább egy CLI-hostnak vagy a Cursor Windows-telepítésének elérhetőnek kell lennie.
+A setup minden megtalált platformot beállít. A `--host` kapcsolóval egyet választhatsz;
+a `--host all` hibaüzenettel leáll, ha a hatból valamelyik hiányzik.
 
 ### Telepítés és első indítás
 
 Futtasd az egyetlen telepítési parancsot:
 
 ```powershell
-npx bontaflowstack@1.1.0 setup
+npx bontaflowstack@1.2.0 setup
 ```
 
 Siker esetén az installer kiírja a verziót, a regisztrált hostokat és a tartós
 telepítési könyvtárakat. A csomag a verziózott hostfájlokat az npm-cache-en kívül,
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.1.0\hosts` alatt tartja.
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.2.0\hosts` alatt tartja.
 Az installer egyetlen már létező BFS-állapotgyökeret automatikusan újrahasznál,
 beleértve a Windows Store által átirányított LocalAppData útvonalat is. Ha nincs
 korábbi adat, az alapértelmezett gyökér `%LOCALAPPDATA%\BontaFlowStack\state\v2`.
@@ -239,6 +236,8 @@ Nyiss új munkamenetet, és kezdd a hostnak megfelelő routerrel:
 
 - Codex: `$bfs-router`
 - Claude Code: `/bontaflowstack:bfs-router`
+- Gemini CLI, Copilot CLI, Cursor IDE és OpenCode CLI: kérd a telepített `bfs-router` skill használatát.
+- Cursorban előbb futtasd a **Developer: Reload Window** parancsot, majd nyiss új Agent chatet.
 
 A routerrel állítsd be a böngésző- és rendermotort, ha ezekre is szükséged van.
 A csomag előkészíti a rögzített motorverziót; a Chromium és a függőségek letöltése
@@ -254,7 +253,7 @@ Tartsd meg a választott permission profilt; a böngésző Chromium sandboxja ma
 ### Frissítés és visszaállítás
 
 Frissítéshez futtasd ugyanazt a parancsot egy új, pontos csomagverzióval, például
-`npx bontaflowstack@1.1.0 setup` egy korábbi verzióról való frissítéshez. A telepítő a
+`npx bontaflowstack@1.2.0 setup` egy korábbi verzióról való frissítéshez. A telepítő a
 régi hostverziókat és a közös `state/v2` adatot megőrzi; egyszerre egy setupot futtass.
 Visszaállításhoz a korábbi, ismert verzió parancsát használd, ha az elérhető.
 
@@ -271,8 +270,8 @@ művelet, lásd a [helyi adatok útmutatóját](docs/bontaflowstack/LOCAL-DATA.m
 
 | Jelenség | Teendő |
 | --- | --- |
-| A parancs `not published` vagy `404` hibát ad | Ellenőrizd a pontos verziót és a registryt: `npm view bontaflowstack@1.1.0 version --registry=https://registry.npmjs.org`. A verzió állapotát a kiadási jelentés rögzíti. |
-| Nincs host CLI a PATH-on | Telepítsd és nyisd újra a PowerShellt; ellenőrizd a `Get-Command codex,claude` kimenetét. |
+| A parancs `not published` vagy `404` hibát ad | Ellenőrizd a pontos verziót és a registryt: `npm view bontaflowstack@1.2.0 version --registry=https://registry.npmjs.org`. A verzió állapotát a kiadási jelentés rögzíti. |
+| A választott platform nem található | Telepítsd a hostot, majd nyisd újra a PowerShellt; CLI-hostnál ellenőrizd a PATH-ot, Cursornál a Windows-telepítést. |
 | Régi verzió töltődik be | Indíts új hostmunkamenetet, majd ellenőrizd a pluginverziót és a `readFromFolder` útvonalat. |
 | A motor a terminálból elérhető, hostból nem | A telepítő és az adapter a közös `install-state.json` útvonalat használja; futtasd a hostból a `doctor` ellenőrzést, és őrizd meg a kimenetet. |
 | Hook-trustot kér a host | Vizsgáld át és hagyd jóvá a natív felületen; az installer nem tudja ezt helyetted megtenni. |

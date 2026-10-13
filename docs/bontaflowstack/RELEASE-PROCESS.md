@@ -7,14 +7,14 @@ A forrásból készülő csomag automatikusan felismeri és beállítja a hat pl
 a közös motort és az Impeccable CLI-t. Új felhasználói ZIP nem készül.
 A csomag belső, ellenőrzőösszeggel rögzített motorarchívuma nem külön telepítő.
 
-Az `1.1.0` stabil kiadás publikált; a visszaellenőrzött eredményt
-a [kiadási jelentés](RELEASE-1.1.0.md) rögzíti.
+Az aktuális stabil kiadás az `1.2.0`; a kiadás részleteit
+a [kiadási jelentés](RELEASE-1.2.0.md) rögzíti.
 Stabil verzió csak `latest`, előzetes verzió csak `rc` npm dist-taggel
 publikálható. A forráscsomag verziója az `installers/npm/package.json` fájlban
 van; a builder ezt vezeti át mind a hat csomagolt host manifestjébe és katalógusába.
 A forrás Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE és
 OpenCode CLI adaptert készít. Az `1.1.0` kiadási rekordjai a publikált, kétplatformos
-csomag történetét őrzik; a négy új adapterhez új npm-verziót kell kiadni.
+csomag történetét őrzik. Az `1.2.0` mind a hat adaptert csomagolja.
 
 ### Előkészítés
 
@@ -25,7 +25,7 @@ még nem létező kiadási könyvtárat:
 ```powershell
 node scripts/check.mjs
 node --test tests/npm-release.test.mjs
-node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0 --tag latest --release-tag v1.1.0
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.2.0 --tag latest --release-tag v1.2.0
 ```
 
 A `prepare` elkészíti az adaptereket, valódi `npm pack`-ot futtat, megőrzi
@@ -39,7 +39,7 @@ telepítési vagy frissítési utat a publikálás előtt.
 A tulajdonosi npm-fiókkal interaktívan:
 
 ```powershell
-node scripts/npm-release.mjs publish --artifact artifacts/npm/1.1.0 --tag latest
+node scripts/npm-release.mjs publish --artifact artifacts/npm/1.2.0 --tag latest
 ```
 
 A parancs csak az előkészített `.tgz`-t publikálja. Ellenőrzi a tiszta checkoutot,
@@ -51,7 +51,7 @@ Feldolgozási késésnél ne publikáld újra ugyanazt a verziót. Őrizd meg a
 kiadási könyvtárat, és futtasd újra a lekérdezést:
 
 ```powershell
-node scripts/npm-release.mjs verify --artifact artifacts/npm/1.1.0 --tag latest
+node scripts/npm-release.mjs verify --artifact artifacts/npm/1.2.0 --tag latest
 ```
 
 Az npm-verzió nem írható felül. A verifier kezeli az npm objektum- és egyetlen

@@ -119,16 +119,21 @@ function prepare(outputValue, tag, releaseTag) {
     const packedFiles = details.files?.map(file => file.path) ?? [];
     const required = [
       'package.json', 'README.md', 'LICENSE', 'bin/setup.mjs',
+      'bin/gemini.mjs', 'bin/copilot.mjs', 'bin/cursor.mjs', 'bin/opencode.mjs', 'bin/source-copy.mjs',
       'hosts/codex/.agents/plugins/marketplace.json', 'hosts/codex/plugins/bontaflowstack/.codex-plugin/plugin.json',
       'hosts/codex/plugins/bontaflowstack/.mcp.json', 'hosts/codex/plugins/bontaflowstack/hooks/hooks.json',
       'hosts/claude/.claude-plugin/plugin.json', 'hosts/claude/.claude-plugin/marketplace.json',
       'hosts/claude/.mcp.json', 'hosts/claude/hooks/hooks.json',
+      'hosts/gemini/gemini-extension.json', 'hosts/gemini/GEMINI.md', 'hosts/gemini/hooks/hooks.json',
+      'hosts/copilot/plugin.json', 'hosts/copilot/marketplace.json', 'hosts/copilot/mcp.json', 'hosts/copilot/com.github.copilot/hooks/hooks.json',
+      'hosts/cursor/.cursor-plugin/plugin.json', 'hosts/cursor/mcp.json', 'hosts/cursor/hooks/hooks.json',
+      'hosts/opencode/package.json', 'hosts/opencode/plugin.mjs',
     ];
     if (required.some(file => !packedFiles.includes(file))) throw new Error('npm tarball is missing a required host or installer file.');
     if (!packedFiles.every(file => /^(?:package\.json|README\.md|LICENSE|bin\/|hosts\/)/.test(file)) || packedFiles.some(file => /(?:^|\/)(?:tests?|evidence|artifacts|\.tmp|docs)(?:\/|$)/i.test(file))) {
       throw new Error('npm tarball contains files outside the user-installable payload.');
     }
-    for (const prefix of ['hosts/codex/plugins/bontaflowstack', 'hosts/claude']) {
+    for (const prefix of ['hosts/codex/plugins/bontaflowstack', 'hosts/claude', 'hosts/gemini', 'hosts/copilot', 'hosts/cursor', 'hosts/opencode']) {
       if (packedFiles.filter(file => file.startsWith(`${prefix}/skills/`) && file.endsWith('/SKILL.md')).length !== 34 ||
           !packedFiles.some(file => file.startsWith(`${prefix}/engines/`) && file.endsWith('.zip'))) {
         throw new Error(`npm tarball does not contain the complete ${prefix} plugin.`);

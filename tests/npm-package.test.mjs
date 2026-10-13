@@ -34,7 +34,7 @@ test('npm builder packages exact-version host plugins and only installable files
   assert.equal(JSON.parse(built.stdout).version, manifest.version);
   const packedPackage = JSON.parse(fs.readFileSync(path.join(output, 'package.json'), 'utf8'));
   assert.equal(manifest.private, true, 'unbuilt installer sources must not be publishable');
-  assert.equal(manifest.version, '1.1.0');
+  assert.equal(manifest.version, '1.2.0');
   assert.equal(packedPackage.private, undefined);
   assert.deepEqual(packedPackage.bin, { bontaflowstack:'bin/setup.mjs' });
   assert.equal(packedPackage.engines.node, '>=24');
@@ -104,9 +104,10 @@ test('npm builder packages exact-version host plugins and only installable files
     'hosts/claude/.mcp.json', 'hosts/claude/hooks/hooks.json',
     'hosts/gemini/gemini-extension.json', 'hosts/gemini/GEMINI.md', 'hosts/gemini/hooks/hooks.json',
     'hosts/copilot/plugin.json', 'hosts/copilot/marketplace.json', 'hosts/copilot/mcp.json', 'hosts/copilot/com.github.copilot/hooks/hooks.json',
-    'hosts/cursor/.cursor-plugin/plugin.json', 'hosts/cursor/mcp.json', 'hosts/cursor/hooks/hooks.json'
+    'hosts/cursor/.cursor-plugin/plugin.json', 'hosts/cursor/mcp.json', 'hosts/cursor/hooks/hooks.json',
+    'bin/opencode.mjs', 'hosts/opencode/package.json', 'hosts/opencode/plugin.mjs'
   ]) assert.ok(files.includes(required), `npm tarball is missing ${required}`);
-  for (const host of ['codex','claude','gemini','copilot','cursor']) {
+  for (const host of ['codex','claude','gemini','copilot','cursor','opencode']) {
     const prefix = host === 'codex' ? 'hosts/codex/plugins/bontaflowstack' : `hosts/${host}`;
     assert.equal(files.filter(file => file.startsWith(`${prefix}/skills/`) && file.endsWith('/SKILL.md')).length, 34);
     assert.ok(files.some(file => file.startsWith(`${prefix}/engines/`) && file.endsWith('.zip')), `${host} plugin is missing the engine archive`);

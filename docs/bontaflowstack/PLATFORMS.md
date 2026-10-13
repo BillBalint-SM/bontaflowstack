@@ -3,17 +3,14 @@
 [English overview](../../README.md) · [Magyar útmutató](../../TELEPITES.md)
 
 BontaFlowStack provides 34 skills across six agent platforms on Windows x64.
-The source installer includes all six adapters. Published npm release `1.1.0`
-contains Codex and Claude Code; Gemini CLI, GitHub Copilot CLI, Cursor IDE and
-OpenCode CLI are included in the next npm release.
+Release `1.2.0` includes all six adapters in the same npm package.
 
 ## One installer
 
-Use a published exact version of `bontaflowstack` with `setup`. For the currently
-published Codex/Claude Code release:
+Install all detected platforms with the exact-version setup command:
 
 ```powershell
-npx bontaflowstack@1.1.0 setup
+npx bontaflowstack@1.2.0 setup
 ```
 
 Setup detects installed platforms, installs durable adapter files outside the
@@ -22,7 +19,7 @@ shared local BFS data directory. Running the same package without `setup` starts
 the same flow. No ZIP download, manual skill copying or separate engine setup
 is needed.
 
-The six-platform source installer accepts these selections:
+The installer accepts these selections:
 
 | Platform | Selection | Installer minimum | Native integration |
 | --- | --- | --- | --- |
@@ -33,9 +30,8 @@ The six-platform source installer accepts these selections:
 | Cursor IDE | `--host cursor` | 3.24.12 | Local `bontaflowstack-cursor` plugin and `bfs-cursor` MCP |
 | OpenCode CLI | `--host opencode` | 1.19.0 | Local V1 plugin with skills and MCP |
 
-Omit `--host` to configure detected platforms. In the six-platform installer,
-`--host all` requires all six; use a single selector when you want only one.
-In published `1.1.0`, `--host all` requires its two bundled platforms.
+Omit `--host` to configure detected platforms. `--host all` requires all six;
+use a single selector when you want only one.
 
 ## Requirements and first use
 
