@@ -9,22 +9,19 @@ interface, build from an accepted plan, check it in a real browser, and pick up
 where you left off—with project decisions and delivery evidence kept alongside
 the work.
 
-[![npm RC](https://img.shields.io/npm/v/bontaflowstack/rc)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.2)
+[![npm RC](https://img.shields.io/npm/v/bontaflowstack/rc)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.3)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Hosts: Codex and Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
 
-**Published npm release candidate: `1.1.0-rc.2`.**
+**Published npm release candidate: `1.1.0-rc.3`.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
 · [Telepítés magyarul](TELEPITES.md)
 
-Release `1.1.0-rc.2` adds automatic Impeccable installation and
-shared configuration through the same setup command;
-see the [implementation and validation record](docs/bontaflowstack/IMPECCABLE-SETUP.md).
-
-The next candidate, `1.1.0-rc.3`, is prepared locally with three Claude adapter
-repairs and a current official-documentation audit. It is not published yet;
-see the [rc.3 validation and remaining limits](docs/bontaflowstack/RELEASE-1.1.0-rc.3.md).
+Release `1.1.0-rc.3` repairs Claude workspace ownership, hook failure handling
+and browser references. The same setup command installs both host adapters,
+the browser/render engine and Impeccable;
+see the [rc.3 release report](docs/bontaflowstack/RELEASE-1.1.0-rc.3.md).
 
 ## Bring the whole product journey into your project
 
@@ -51,7 +48,7 @@ You can ask in your own language.
 host installed with its CLI on `PATH`: Codex or Claude Code. Install the published RC:
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.2 setup
+npx bontaflowstack@1.1.0-rc.3 setup
 ```
 
 Running the same pinned package without `setup` starts the same flow. By default,
@@ -178,15 +175,13 @@ as a new 1.0.0 run.
 
 ## Current candidate and compatibility evidence
 
-The combined npm installer **1.1.0-rc.2** is available from the public npm registry.
+The combined npm installer **1.1.0-rc.3** is available from the public npm registry.
 The command above is the single standard install route and passed an actual
-registry installation with both host CLIs. See the [RC release report](docs/bontaflowstack/RELEASE-1.1.0-rc.2.md).
-The earlier Codex 1.0.0 release and its
-evidence remain historical and do not establish authenticated Claude session
-behavior. Raster image generation/editing is outside the accepted Claude scope;
+registry installation with both host CLIs. See the [RC release report](docs/bontaflowstack/RELEASE-1.1.0-rc.3.md).
+Raster image generation/editing is outside the accepted Claude scope;
 supplied-image understanding and authored HTML/SVG remain supported.
 
-[Candidate and validation limits](docs/bontaflowstack/INSTALL-CLAUDE-CODE.md)
+[Claude Code installation](docs/bontaflowstack/INSTALL-CLAUDE-CODE.md)
 · [Historical 1.0.0 evidence](docs/bontaflowstack/RELEASE-1.0.0.md)
 
 ## Help shape what comes next

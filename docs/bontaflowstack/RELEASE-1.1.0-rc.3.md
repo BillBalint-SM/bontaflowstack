@@ -1,9 +1,15 @@
-# BontaFlowStack 1.1.0-rc.3 — prepared candidate
+# BontaFlowStack 1.1.0-rc.3 — npm publication
 
-Prepared locally on 2026-10-13 for the requested Claude Code repairs and full
-port audit. This version is **not published** to npm or GitHub. The published
-installation command remains pinned to rc.2 until publication is authorized and
-verified. Distribution remains one npm setup command for Codex and Claude Code.
+Published on 2026-10-13 with the user's explicit approval for npm and the matching
+GitHub source/tag, following the three Claude Code repairs and official-documentation
+audit. Distribution remains one npm setup command for Codex and Claude Code:
+
+```powershell
+npx bontaflowstack@1.1.0-rc.3 setup
+```
+
+[npm package](https://www.npmjs.com/package/bontaflowstack/v/1.1.0-rc.3)
+· [exact source tag](https://github.com/BillBalint-SM/bontaflowstack/tree/v1.1.0-rc.3)
 
 ## Three repairs
 
@@ -46,7 +52,6 @@ results have different scopes:
 The CLI's `plugin validate skills --strict --json` returned an empty `contents`
 array. Its zero exit code is **not** evidence that it inspected all skills.
 The separate frontmatter, instruction and link checks establish that coverage.
-Native skill selection and execution still require a signed-in Claude session.
 
 ## Observed verification
 
@@ -85,13 +90,13 @@ The source review covered the changed Claude context, hooks, package generation,
 callers, tests and release documentation against the three requested repairs.
 Standards PASS and Spec PASS for this checked scope; both passes were performed
 by the same agent, with no independent review claimed. Changed documentation
-links and `git diff --check` passed. This review does not establish native
-authenticated acceptance.
+links and `git diff --check` passed.
 
-## Candidate and publication boundary
+## Published identity
 
-Version: `bontaflowstack@1.1.0-rc.3`; intended npm dist-tag: `rc`; local source
-tag: `v1.1.0-rc.3`. The final release receipt in
+Version: `bontaflowstack@1.1.0-rc.3`; npm dist-tag: `rc`; source
+tag: `v1.1.0-rc.3`, commit `025c8beacc58ed0c7af98c433a01389b0894b1b2`.
+The final release receipt in
 `artifacts/npm/1.1.0-rc.3/release.json` binds the committed source to the tarball.
 The tested payload SHA-256 is:
 
@@ -99,20 +104,40 @@ The tested payload SHA-256 is:
 2dcddcb8996b4d1270e081068fa35f7facebcbefcabc7d493ae075aa2b3a257a
 ```
 
-Preparation runs real `npm pack`; the tarball is npm's internal artifact, not an
-alternative user installation route. After authorized publication and registry
-verification, the user command will be:
+The npm SHA-512 integrity is:
 
-```powershell
-npx bontaflowstack@1.1.0-rc.3 setup
+```text
+sha512-NxZ6cSdNIa4pdKf7g/xqG9Tw8KeG8c6DhDPPzHfbcXn5WrqiDYydhG5DNwEJQxw4bWpGoR/ICvntDaoTPhfukQ==
 ```
 
-## Remaining limits
+The publisher uploaded the already tested 201,286-byte tarball; it was not rebuilt
+for publication. npm requested browser authentication, which the user completed.
+The first verification exhausted its bounded retries while npm still returned
+404 during processing; no repeat publication was attempted. The source and tag
+were pushed normally and their remote revisions matched the receipt. The npm
+`latest` alias remains on rc.1; the exact rc.3 command above selects this release.
 
-No authenticated Claude model session was run. Native skill choice, hook input
-rewriting, session/subagent identity delivery, `/clear`/resume, user interruption,
-permission prompts and browser sign-in handoff remain unverified. Raster image
-generation/editing remains excluded by the user's accepted scope. Tests ran on
-Windows x64 with Node 26.8.1; this candidate has no new GitHub CI run or registry
-installation check because it has not been pushed or published. Stable release
-acceptance and npm Trusted Publisher/OIDC verification remain outstanding.
+Registry verification returned `outcome: verified`: the exact version, SHA-512
+integrity and `rc` tag match the prepared artifact. A downloaded registry tarball
+also matched its SHA-256. Evidence: `.tmp/rc3-registry-verification-final.json`.
+
+The published registry command then passed **ten actual commands** under fresh,
+isolated Codex/Claude profiles: first setup, no-argument repeat, both core doctors,
+both Impeccable detector runs and removal of both test registrations/marketplaces.
+The npm cache was moved away before the fresh doctor/detector processes. This
+reused the previously verified engine store. Evidence:
+`.tmp/rc3-registry-775d03f2-cbb4-4aeb-8bc5-9b0d5bc8ffc8/result.json`.
+
+Windows/Node 24 GitHub Package checks succeeded for the
+[source on main](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38335065246)
+and the [exact release tag](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38335065119).
+The subsequent publication-documentation update does not change the npm payload
+or the source tag.
+
+## Release closure
+
+The user accepted this Codex/Claude Code build and authorized its publication.
+The earlier native Claude acceptance item is excluded from release conditions
+and is not retained as future work. The checks above keep their recorded scope.
+Raster image generation/editing remains excluded by the accepted Claude scope.
+This release does not create a new acceptance or stabilization task.

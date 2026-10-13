@@ -11,7 +11,7 @@ setup/config/telepítés kezdődik... nem kell zip vagy bármi más formátum.�
 ## Elfogadott működés
 
 ```powershell
-npx bontaflowstack@1.1.0-rc.2 setup
+npx bontaflowstack@1.1.0-rc.3 setup
 ```
 
 A verzió publikált kiadásjelölt; a registry-parancs mindkét host CLI-jével sikeres próbán ment át.
@@ -49,11 +49,10 @@ megvalósítási részlet; a felhasználó az npm-parancsot futtatja.
    registryből letöltött parancs külön telepítési próbát igényel. A GitHub Actions
    ugyanazt az útvonalat használja, a kiadói hitelesítés külön beállításával.
 
-5. **Natív host-elfogadás és stabil kiadás.** A CLI regisztrációja, helyi
-   hookesemények és valódi Chromium futtatása nem igazolja a bejelentkezett
-   modellmunkamenet teljes skill-, hook-, MCP-, főagent/subagent-, megszakítási
-   és folytatási működését. A stabil kiadáshoz a pontos npm-tartalomhoz kötött,
-   mindkét hostra kiterjedő natív bizonyíték kell. Addig RC-ként kezelendő.
+5. **Kiadás lezárása.** A felhasználó elfogadta az rc.3 Codex/Claude Code
+   buildjét és jóváhagyta az npm-publikálást, valamint a GitHub-forrást és taget.
+   A tényleges ellenőrzéseket az rc.3 jelentése rögzíti. A korábbi natív
+   Claude-elfogadási pont nem kiadási feltétel és nem továbbvitt teendő.
 
 ## Határok és állapot
 
@@ -73,15 +72,20 @@ publikáláskor a célrepo külön ellenőrizendő. Az `1.1.0-rc.1` npm-publiká
 a registry-integritás és a registryből végzett telepítés igazolt; a forrás és
 a `v1.1.0-rc.1` tag a nyilvános repo része. A tag forrása `cd2e21ef8f947e0196e600f679e5cb54c1ee4dc6`.
 Az npm a kért `rc` mellett `latest` címkét is adott, törlésére E400-at adott;
-ez nem stabil minősítés. Nyitott: a pontos npm-csomaggal végzett teljes natív
-hostelfogadás és az npm Trusted Publisher beállítása/valódi OIDC-kiadási próba.
+ez nem stabil minősítés. A kiadás a tulajdonosi npm-fiókkal történt.
 Lásd a [kiadási jelentést](RELEASE-1.1.0-rc.1.md).
 
-Az rc.2 közzétételét a felhasználó külön jóváhagyta; az npm `rc` címke már
-a `1.1.0-rc.2` verzióra mutat. Ez automatikusan telepíti és konfigurálja az
+Az rc.2 közzétételét a felhasználó külön jóváhagyta; az npm `rc` címke akkor
+a `1.1.0-rc.2` verzióra mutatott. Ez automatikusan telepíti és konfigurálja az
 Impeccable CLI-t mindkét hosthoz. Forrása `32e71122fce18b847a675efbd4efc6370fbb166b`,
 tagje `v1.1.0-rc.2`. A `latest` az rc.1-en maradt. Lásd az
-[rc.2 kiadási jelentést](RELEASE-1.1.0-rc.2.md); a natív és OIDC nyitott pontok megmaradnak.
+[rc.2 kiadási jelentést](RELEASE-1.1.0-rc.2.md).
+
+Az rc.3 forrása `025c8beacc58ed0c7af98c433a01389b0894b1b2`, tagje
+`v1.1.0-rc.3`. Az npm `rc` címke erre a verzióra mutat. A három Claude-javítás,
+a 118 helyi teszt, a jelenlegi hivatalos dokumentáció ellenőrzése és a tényleges
+registry-telepítés a [kiadási jelentésben](RELEASE-1.1.0-rc.3.md) szerepel.
+Ez a publikálási kör lezárt, nincs továbbvitt feladat.
 
 Források: [npm npx](https://docs.npmjs.com/cli/v11/commands/npx/),
 [npm bin](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/#bin),

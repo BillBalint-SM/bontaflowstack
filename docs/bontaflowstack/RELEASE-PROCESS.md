@@ -8,15 +8,15 @@ parancsa a Codex és a Claude Code plugint is telepíti. Új felhasználói ZIP-
 nem készítünk és nem publikálunk. A `plugins/bontaflowstack/engines/*.zip` a
 csomag belső, ellenőrzőösszeggel rögzített motorarchívuma; nem telepítőcsomag.
 
-A publikált verzió `1.1.0-rc.2`; a helyben előkészített következő jelölt
-`1.1.0-rc.3`. Az alábbi parancsok erre a még nem publikált jelöltre vonatkoznak;
+A publikált verzió `1.1.0-rc.3`. Az alábbi parancsok ennek a kiadásnak
+az előkészítési és publikálási lépéseit mutatják;
 lásd az [rc.3 ellenőrzési jelentését](RELEASE-1.1.0-rc.3.md).
 Kiadásjelölt csak az `rc` npm dist-taggel publikálható.
-Ez nem jelent teljes natív hostelfogadást. A korábbi Codex `1.0.0` ZIP-bizonyíték
+Az rc.3 Codex/Claude Code buildjét a felhasználó elfogadta, a publikálást
+engedélyezte; a kiadási kör lezárt. A korábbi Codex `1.0.0` ZIP-bizonyíték
 annak az eredeti csomagnak és futásnak a történeti bizonyítéka; nem igazolja a
-két-hostos npm artefaktumot vagy a Claude Code natív viselkedését. Stabil npm
-verzió kiadását a jelenlegi eszköz blokkolja, amíg nincs az egzakt npm `.tgz`-re
-futtatott és rögzített natív Codex- és Claude Code-elfogadási kapu.
+két-hostos npm artefaktumot. A jelenlegi publikálóeszköz RC-verziókra korlátozott;
+a lezárt rc.3 kiadás nem indít további elfogadási vagy stabilizálási feladatot.
 
 ### Kiadásjelölt készítése és ellenőrzése
 

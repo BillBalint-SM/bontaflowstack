@@ -5,14 +5,16 @@ Initial rc.1 source: `cd2e21ef8f947e0196e600f679e5cb54c1ee4dc6`, tagged
 native Claude acceptance. The accepted scope excludes raster image
 generation/editing; see [scope and mechanics](CLAUDE-CODE-PORT.md).
 
-## Locally prepared Claude repairs 1.1.0-rc.3
+## Published Claude repairs 1.1.0-rc.3
 
 The [rc.3 report](RELEASE-1.1.0-rc.3.md) records the three audit repairs,
 the current official Claude Code documentation review, and checks of all 34
 skills, eight hooks, five MCP tools and 51 generated Markdown files. Actual CLI
 manifest validation and MCP connection are distinguished from synthetic hook
-tests. This candidate is not published; authenticated Claude acceptance is still
-pending. Earlier release results below retain their original scope.
+tests. The user accepted the Codex/Claude Code build and authorized publication.
+The rc.3 publication is closed; the earlier native acceptance item is not a
+blocker or follow-up. Earlier release results below retain their original scope
+and do not assign new work.
 
 ## Published Impeccable update 1.1.0-rc.2
 
@@ -123,7 +125,7 @@ the actual table, and the full gate above passed. Bash guard tests cover Git
 Bash drive paths and reject unsupported dynamic/compound/assignment syntax for
 inspection. The guard is a bounded classifier, not a shell sandbox.
 
-## Remaining acceptance
+## Earlier verification scope (historical)
 
 No authenticated Claude model session was run. CLI 2.1.296 was installed; the
 last observed auth status was `loggedIn: false`. Native skill selection,

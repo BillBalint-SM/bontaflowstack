@@ -5,29 +5,30 @@ design, implementation, testing, documentation and delivery.
 
 A separate Claude Code package is generated from that canonical source for
 Windows x64. It adds native session/subagent ownership, MCP calls and lifecycle
-hooks while reusing the shared core. Native Claude acceptance is still pending;
+hooks while reusing the shared core;
 see `docs/bontaflowstack/CLAUDE-CODE-PORT.md`. The user accepted excluding raster
 image generation/editing from this port; image understanding and authored
 HTML/SVG remain within scope.
 
 The only current distribution route for the whole package is
 `npx bontaflowstack@<exact-version> setup`; omitting `setup` also starts installation.
-The published npm release candidate is 1.1.0-rc.2, built with `scripts/build-npm-package.mjs`.
+The published npm release candidate is 1.1.0-rc.3, built with `scripts/build-npm-package.mjs`.
 It detects Codex and Claude Code, registers each installed host, persists versioned
 files outside the npx cache, and prepares the shared pinned engines. Each plugin
 pins the same state directory so Desktop environment redirection does not split
 the new installation. Native host trust remains a human host action.
 Registry integrity and an actual registry npx setup with both host CLIs were verified.
-The registry's `rc` tag points to rc.2; `latest` still points to the earlier rc.1.
-Neither alias establishes stable or native acceptance. ZIP release records describe historical releases;
+The registry's `rc` tag points to rc.3; `latest` still points to the earlier rc.1.
+Both aliases name prereleases. ZIP release records describe historical releases;
 they do not establish acceptance of this npm candidate. See
 `docs/bontaflowstack/RELEASE-PROCESS.md` for the current publishing route.
 
-Local candidate 1.1.0-rc.3 repairs Claude workspace ownership after cwd changes,
+Release 1.1.0-rc.3 repairs Claude workspace ownership after cwd changes,
 blocks PreToolUse on hook failures, and restores the shared removed-browser-scripts
 section. Its current-documentation audit and scoped checks are recorded in
-`docs/bontaflowstack/RELEASE-1.1.0-rc.3.md`. It is not published; native authenticated
-Claude acceptance remains pending.
+`docs/bontaflowstack/RELEASE-1.1.0-rc.3.md`. The user accepted this Codex/Claude Code
+build and authorized npm/GitHub publication. This release is closed; do not carry
+the earlier native-session acceptance item forward as a blocker or follow-up.
 
 ## Terms
 
