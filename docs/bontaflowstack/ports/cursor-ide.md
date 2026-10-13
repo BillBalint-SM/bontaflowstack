@@ -4,7 +4,9 @@ Státusz: implementált fejlesztési jelölt; csomag/setup és importált BFS me
 együttélés ellenőrizve (E61), natív memória-skillút sikeres (E64). A browser,
 render és Impeccable út E65-ben lefutott, időszakos üres hookválaszok utáni
 ismétlésekkel. Ennek oka, az emberi átadás folytatása és az adminpolicy/
-marketplace-felismerés nyitott; a teljes port még nincs elfogadva.
+marketplace-felismerés nyitott; a teljes port még nincs elfogadva. E66-ban az
+emberi átadási kattintás igazolt, de a Cursor használati kerete a folytatást
+már az eszközhívások előtt megállította. Újabb modellpróba nem indult.
 Hivatalos dokumentáció ellenőrizve: 2026-10-13.
 Közös keretek és A01–A10: [hostbővítési terv](../HOST-EXPANSION-PLAN.md).
 Mind a 75 mód aktuális besorolása: [képességprofil](../HOST-CAPABILITIES.md).

@@ -17,7 +17,7 @@ a tényleges session/workspace kötése kell; a hiányzó kötést nem helyettes
 | --- | --- | --- | --- |
 | G | Gemini CLI 0.63.0 | Extension, engedélyezett BeforeTool argumentummódosítás és MCP; az npm-ből indított skill/model próbát a napi ingyenes kvóta blokkolta. | [Gemini-port](ports/gemini-cli.md), E19–E20 |
 | P | GitHub Copilot CLI 1.0.96 | Agent Plugins csomag, preToolUse módosítás, engedélyezett MCP és a feladat natív eszközei; a host timeoutja önmagában nem bizonyít tiltást. | [Copilot-port](ports/copilot-cli.md), E27–E28, E40, E42, E48, E50 |
-| C | Cursor IDE 3.24.12 | Helyi plugin, aktív preToolUse és argumentummódosítás, engedélyezett MCP; az importkapcsoló kikapcsolása a plugin-hookokat is kikapcsolta. E61/E64: natív státusz és memória-skillút importált BFS mellett. E65: browser/render/Impeccable lefutott, négy üres hookválasz miatti megtagadás után; ok és emberi folytatás nyitott. | [Cursor-port](ports/cursor-ide.md), E29–E31, E51, E61, E64–E65 |
+| C | Cursor IDE 3.24.12 | Helyi plugin, aktív preToolUse és argumentummódosítás, engedélyezett MCP; az importkapcsoló kikapcsolása a plugin-hookokat is kikapcsolta. E61/E64: natív státusz és memória-skillút importált BFS mellett. E65: browser/render/Impeccable lefutott, négy üres hookválasz miatti megtagadás után; ok nyitott. E66: emberi kattintás igazolt, natív folytatás keretkimerülés miatt nem indult. | [Cursor-port](ports/cursor-ide.md), E29–E31, E51, E61, E64–E66 |
 | O | OpenCode CLI 1.19.0, V1 API | Config callback, tool.execute.before, engedélyezett MCP és feladateszközök. Health és context sikeres; a szabad modell context-próbájában bash:ask kellett, shell nem futott. A teljes tiltás melletti upstream elutasítást a setup nem írhatja felül. | [OpenCode-port](ports/opencode-cli.md), E33–E37, E55 |
 
 A verziók a vizsgált verziók; ez a lista nem állítja, hogy minden későbbi verzió
@@ -70,7 +70,7 @@ módhoz szükséges hozzáférést jelöli; a telepítés ezt sem biztosítja au
 | `bfs-design-review` | `inspect` | Alap | Browser MCP, elérhető céloldal és képeredmény megtekintése | U | U | U | U | E-BUILD; E-NONE |
 | `bfs-design-review` | `fix` | Alap | Browser MCP, engedélyezett forrásjavítás és ismételt ellenőrzés | U | U | U | U | E-BUILD; E-NONE |
 | `bfs-browse` | `browse` | Alap | Browser MCP és elérhető URL; csak engedélyezett interakciók | U | N | U | N | E42/E56: natív Copilot/OpenCode, helyi oldal, kattintás, visszaolvasás és saját cleanup; E56 teljes engine-próbája az Impeccable-híváson hibázott. E65 Cursor motorútja lefutott, de az időszakos hookhiba miatt U marad |
-| `bfs-browse` | `open`, `login` | Alap | Látható saját böngésző és emberi átadás, ugyanazon session folytatása | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-browse` | `open`, `login` | Alap | Látható saját böngésző és emberi átadás, ugyanazon session folytatása | U | U | B | U | E65/E66: Cursor látható átadás és emberi kattintás igazolt; a natív resume eszközhívás előtt keretkorlátba ütközött. Valódi fiókbelépést ez a fixture nem vizsgált |
 | `bfs-scrape` | `extract`, `answer` | Alap | Browser MCP, ténylegesen hozzáférhető oldal és szükség esetén emberi belépés | U | U | U | U | E-BUILD; E-NONE |
 | `bfs-benchmark` | `quick`, `baseline`, `compare` | Alap | Browser MCP és összehasonlítható mérési környezet; compare esetén létező baseline | U | U | U | U | E-BUILD; E-NONE |
 | `bfs-benchmark` | `trend` | Alap | Olvasható, összevethető korábbi mérési adatok | U | U | U | U | E-BUILD; E-NONE |
@@ -109,14 +109,14 @@ igényel; mindkettőre és mindkét QA-módra a fenti U/B státusz vonatkozik.
 
 | Művelet | Besorolás | G / P / C / O állapota és bizonyítéka |
 | --- | --- | --- |
-| Soros BFS-hívás, natív session és workspace | Alap | G/P/O natív status igazolt; C teljes csomagnál B. Ez önmagában nem igazolja a skillutasítások végrehajtását. |
-| Browser és render | Alap | P: natív npm-skillből helyi kattintás és kétméretű render igazolt, E42. G/O: U; C: B. Sandbox kikapcsolása nem elfogadott kerülőút. |
-| Impeccable design-detect | Alap | Mind a négy npm-setup próbában tényleges motorfutás történt. P: natív MCP-ből a CSS-fixture várt találata is igazolt, E42. G/O: modellút U; C: B. A CSS-próba nem állít HTML-beágyazott CSS-lefedést. |
-| Látható böngésző és emberi átadás | Alap | Mind a négy hoston U/B; saját session/tab megőrzése és emberi folytatás még ellenőrizendő. |
+| Soros BFS-hívás, natív session és workspace | Alap | Mind a négy host natív status hívása igazolt, Cursor teljes csomagjában E61/E64. Ez önmagában nem igazolja az összes skillutasítás végrehajtását. |
+| Browser és render | Alap | P/O: natív helyi kattintás és render igazolt, E42/E56. C: E65-ben lefutott időszakos hookhibák utáni ismétlésekkel, oka nyitott. G: U. Sandbox kikapcsolása nem elfogadott kerülőút. |
+| Impeccable design-detect | Alap | Mind a négy npm-setup próbában tényleges motorfutás történt. P/C: natív MCP-ből a CSS-fixture várt találata igazolt, E42/E65; a Cursor teljes motorútja hookhibákat is tartalmazott. G/O: modellút U. A CSS-próba nem állít HTML-beágyazott CSS-lefedést. |
+| Látható böngésző és emberi átadás | Alap | C: E65/E66 látható handoff, emberi kattintás és cookie igazolt; a natív resume keretkorlát miatt B. G/P/O: U. Egy közös teljes átadás elegendő, a hostonkénti ismétlés nem követelmény. |
 | Projekten kívüli könyvtár kiválasztása | Extra | MCP elicitation és tényleges emberi igen kell. Mind a négy hoston U/B; nem támogatott elicitation esetén a kijelölés hibával megáll. |
 | Párhuzamos BFS-alagentek | Extra | Mind a négy adapterben X: a child-session tulajdonkötés nincs elfogadva. A host natív alagentjeinek léte nem oldja ezt fel; soros munka megengedett. |
 | Raszteres képgenerálás/szerkesztés | Extra | Mind a négy adapterben X, felhasználó által elfogadott kihagyás. A HTML/SVG és megadott asset nem rasztergenerálás. |
-| Kép megtekintése/értelmezése | Extra bemenet, vizuális ellenőrzésnél szükséges | P: a vizsgált modellen a PNG-k tényleges átadása igazolt a view binaryResultsForLlm adatával, E42; ez nem általános vizuális pontosságmérés. G/O/C: U. A render önmagában nem bizonyít képátadást. |
+| Kép megtekintése/értelmezése | Extra bemenet, vizuális ellenőrzésnél szükséges | P/O/C: a vizsgált modelleken a PNG-k natív átadása/megnyitása igazolt, E42/E56/E65; ez nem általános vizuális pontosságmérés. G: U. A render önmagában nem bizonyít képátadást. |
 | Pretext mért szövegelrendezés; Google DESIGN.md integráció | Extra | A forrásutasítások megőrzik a feltételes használatot; natív feladatút U. Nem előfeltétele az egyszerű CSS-es feladatnak. |
 | Kérdéspanel | Extra | Natív kérdezőeszköz esetén használható; mind a négy porton a panelút U. Chatben feltett kérdés és valós válasz a megengedett alapút. |
 

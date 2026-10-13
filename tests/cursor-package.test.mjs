@@ -38,4 +38,9 @@ test('Cursor package exposes all skills, prefixed MCP tools and native hooks fro
   const bound=JSON.parse(hook.stdout);assert.equal(bound.permission,undefined);assert.equal(typeof bound.updated_input._bfsCall,'string');
   const rpc=spawnSync(process.execPath,[path.join(output,'core/cursor-host.mjs')],{...options,input:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:'bfs_status',arguments:bound.updated_input}})+'\n'});assert.equal(rpc.status,0,rpc.stderr);
   const result=JSON.parse(rpc.stdout).result;assert.equal(result.isError,undefined,result.content[0].text);const status=JSON.parse(result.content[0].text);assert.equal(status.host,'cursor-ide');assert.equal(status.sessionId,event.conversation_id);assert.equal(status.hostWorkspace,project);
+  const handoff={...event,tool_name:'MCP:bfs_browser',tool_input:{args:['handoff','árvíztűrő tükörfúrógép']}};
+  for(const [shell,args] of [['cmd.exe',['/d','/s','/c']],['powershell.exe',['-NoProfile','-NonInteractive','-Command']]]) {
+    const unicode=spawnSync(shell,[...args,hooks.preToolUse[0].command],{...options,input:JSON.stringify(handoff)});assert.equal(unicode.status,0,unicode.stderr);
+    assert.deepEqual(JSON.parse(unicode.stdout).updated_input.args,handoff.tool_input.args,`${shell}: the packaged hook must preserve UTF-8 arguments`);
+  }
 });

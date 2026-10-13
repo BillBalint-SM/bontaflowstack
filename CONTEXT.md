@@ -200,6 +200,16 @@ the human button and resume verification remain pending. Both Windows Node 24
 CI runs passed at b0d95e8 (38470164941 and 38470170746). No common-gate rerun is
 needed for these evidence-only documentation updates.
 
+E66 confirms the human handoff button with the user's screenshot and one
+cookie-bearing POST in the own fixture log. The follow-up was submitted, but
+Cursor exhausted its usage limit before tools: the native turn contains only
+beforeSubmitPrompt and stop/error. Resume, a fresh snapshot and own browser
+stop remain unverified; preserve the current page without reload. Do not retry
+the unavailable model or buy access. The Unicode package boundary check passed
+through cmd and PowerShell; a direct 12-process probe also passed. Neither
+reproduced the native hook output loss, and no product fix was made. Both
+Windows Node 24 CI runs passed at a0c750a (38473262687 and 38473266910).
+
 ## Terms
 
 - **BFS host:** one concrete application surface; CLI, IDE and cloud variants are separate compatibility targets.
