@@ -210,6 +210,16 @@ through cmd and PowerShell; a direct 12-process probe also passed. Neither
 reproduced the native hook output loss, and no product fix was made. Both
 Windows Node 24 CI runs passed at a0c750a (38473262687 and 38473266910).
 
+E67 replays Cursor's observed temporary-file input wrapper with synthetic data:
+Windows PowerShell 5.1 changed all six Unicode inputs; PowerShell 7 preserved
+all six. The installed Store PowerShell 7 also passed twelve ASCII calls. None
+reproduced empty or late stdout. This is a separate transport limitation, not
+the native E65 failure's established cause or a verified fix. No runtime change
+was made. The reviewed official docs provide policy/marketplace rules but no
+supported npm-to-IDE readback was identified; private cache data is insufficient
+for stories 41/42. Both CI runs at 75b2dd6 passed. Preserve the human handoff
+page and do not retry the quota-blocked Cursor model while access is unchanged.
+
 ## Terms
 
 - **BFS host:** one concrete application surface; CLI, IDE and cloud variants are separate compatibility targets.

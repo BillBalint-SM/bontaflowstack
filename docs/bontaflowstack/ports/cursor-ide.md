@@ -12,6 +12,12 @@ Közös keretek és A01–A10: [hostbővítési terv](../HOST-EXPANSION-PLAN.md)
 Mind a 75 mód aktuális besorolása: [képességprofil](../HOST-CAPABILITIES.md).
 A Cursor CLI és Cloud Agents nem része ennek a portnak.
 
+E67 külön hostindító-próbájában a Windows PowerShell 5.1 fájlos bemenettovábbítása
+elrontotta az ékezetes adatot; PowerShell 7 megőrizte. Ez nem az E65 üres
+hookválaszának reprodukciója, és nem új natív IDE-elfogadás. A termékkód
+változatlan; a vizsgált host külső shellkiválasztása és az eredeti hiba oka
+továbbra is külön ellenőrzendő.
+
 ## Hivatalos források
 
 - [C-P: pluginbetöltés és helyi telepítés](https://prod.cursor.com/docs/plugins)

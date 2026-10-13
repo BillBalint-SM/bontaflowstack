@@ -691,6 +691,32 @@ felhasználható, a host saját hiányzó működését külön kell kezelni.
     Az `a0c750a` commit mindkét Windows Node 24 CI-futása sikeres:
     `38473262687` és `38473266910`.
 
+67. A telepített Cursor 3.24.12 Windows hookindítójának csak olvasó vizsgálata
+    az ideiglenes UTF-8 JSON-fájl `Get-Content -Raw` alapú továbbítását mutatta.
+    Ezt saját adatokkal, külön folyamatban visszajátszottuk: Windows PowerShell
+    5.1 alatt 6/6 ékezetes bemenet megváltozott, PowerShell 7 alatt 6/6 egyezett.
+    A gépen már telepített Store PowerShell 7 külön ASCII-próbája 12/12 sikeres.
+    Egyik sorozatban sem volt üres stdout vagy az exit után érkező kimenet.
+    Ez **hostindító-reprodukció**, nem új natív Cursor-feladatút, és nem az E65
+    üres kimenetének igazolt oka. A Windows PowerShell 5.1 továbbítási eltérése
+    külön megfigyelt kompatibilitási korlát; a közvetlen E66-csomagteszt ezt a
+    fájlos hosttovábbítást nem tartalmazta.
+
+    A vizsgált Cursor-kód elérhető `pwsh`-t választ a `powershell` előtt;
+    az E65 konkrét külső shellje ebből még nem bizonyított. Az alkalmazás
+    a folyamat exit eseményén adja vissza az összegyűjtött kimenetet, de a
+    kimenetvesztésre vonatkozó versenyhelyzet továbbra is csak hipotézis.
+    Nem változtattunk a hookon, a védelmen, a shellbeállításon vagy a Cursoron.
+
+    A [hivatalos pluginleírás](https://cursor.com/docs/plugins#test-plugins-locally)
+    a helyi import adminszabályát és a marketplace elsőbbségét leírja, viszont
+    a vizsgált dokumentációban nem találtunk ezekhez npm-ből használható,
+    támogatott IDE-visszaolvasást. A talált belső, team/workspace-függő cache
+    nem igazolja önmagában az aktuális betöltési döntést. A 41/42. történet
+    ezért nyitott; feltételezésből nem építettünk automatikus felismerést.
+    A `75b2dd6` commit mindkét Windows Node 24 CI-futása sikeres:
+    `38474807054` és `38474813494`. Új natív modellpróba nem indult.
+
 Az OpenCode-specifikus leképezések forrásai a [V1 plugin API](https://docs.opencode.ai/docs/plugins/),
 a kiadott `@opencode-ai/plugin@1.19.0` típusok és az adott tag
 [tool callback hívásai](https://github.com/anomalyco/opencode/blob/v1.19.0/packages/opencode/src/session/tools.ts),
