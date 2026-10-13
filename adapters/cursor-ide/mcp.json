@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "bfs-cursor": {
+      "command": "node",
+      "args": ["${CURSOR_PLUGIN_ROOT}/core/cursor-host.mjs"]
+    }
+  }
+}

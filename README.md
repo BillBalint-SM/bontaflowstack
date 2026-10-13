@@ -4,7 +4,8 @@
 
 ### From the first idea to the work you can ship.
 
-**34 connected skills for Codex and Claude Code.** Shape a product, design its
+**34 connected skills for Codex, Claude Code, Gemini CLI, GitHub Copilot CLI,
+Cursor IDE and OpenCode CLI.** Shape a product, design its
 interface, build from an accepted plan, check it in a real browser, and pick up
 where you left off—with project decisions and delivery evidence kept alongside
 the work.
@@ -12,21 +13,20 @@ the work.
 [![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
-![Hosts: Codex and Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
+![Agent platforms: 6](https://img.shields.io/badge/Agent_platforms-6-222222)
 
 **Published npm release: `1.1.0`.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
 · [Telepítés magyarul](TELEPITES.md)
 
-Release `1.1.0` carries forward the accepted Codex and Claude Code build
-with stable version labels. The same setup command installs both host adapters,
-the browser/render engine and Impeccable;
-see the [1.1.0 release report](docs/bontaflowstack/RELEASE-1.1.0.md).
+The repository includes all six platform adapters. Published npm version `1.1.0`
+contains Codex and Claude Code; the four additional adapters are included in the
+next npm release. See the [platform guide](docs/bontaflowstack/PLATFORMS.md).
 
 ## Bring the whole product journey into your project
 
 You have an idea to test, a screen to improve, or a feature to finish.
-BontaFlowStack gives Codex and Claude Code focused ways to carry that work forward:
+BontaFlowStack gives your agent focused ways to carry that work forward:
 
 - **Find the next useful step.** Turn a rough brief into a customer problem,
   specification, design direction, or implementation plan.
@@ -68,6 +68,26 @@ In Claude Code, start with `/bontaflowstack:bfs-router`. The guide covers host
 detection, updates, recovery and expected results. Setup does not grant hook
 trust or change host permissions; review hooks through each host's normal trust
 interface when prompted.
+
+## Choose your platform
+
+The same npm setup prepares shared browser/render engines, Impeccable and local
+project memory. Each adapter uses its platform's native skills, hooks and MCP
+connection. Setup detects installed hosts; you can also select one explicitly.
+
+| Platform | Setup selector | Integration |
+| --- | --- | --- |
+| Codex | `--host codex` | Codex plugin and local marketplace |
+| Claude Code | `--host claude` | Claude plugin and user-scope marketplace |
+| Gemini CLI | `--host gemini` | Gemini extension |
+| GitHub Copilot CLI | `--host copilot` | Copilot agent plugin |
+| Cursor IDE | `--host cursor` | Local Cursor plugin; reload the IDE window after setup |
+| OpenCode CLI | `--host opencode` | Local V1 plugin |
+
+These selectors describe the six-platform source installer. For npm availability,
+requirements and first use, see [platforms](docs/bontaflowstack/PLATFORMS.md).
+Project decisions can be shared across hosts while active sessions and browser
+ownership remain separate.
 
 ## Pick the skill that fits
 
@@ -157,23 +177,7 @@ Optional hooks require each host's normal trust approval; setup does not bypass
 it. The guard is a scoped warning/edit check, not an operating-system security
 boundary.
 
-## What 1.0.0 is based on
-
-This release promotes the validated 0.7.5 implementation to **1.0.0**, with new
-release labels and user documentation. The release gate checks that the only
-plugin changes are the two version fields; the remaining plugin files, engine,
-setup and marketplace bytes must match the accepted package.
-
-The retained practical evidence covers a ZIP-installed plugin in **actual Codex
-Desktop on Windows x64, under Full Access**: project binding, visible Chromium,
-human input, agent resumption, readback and cleanup. The recorded run used
-0.7.5; it is preserved with its original version and environment, not relabeled
-as a new 1.0.0 run.
-
-[Evidence and compatibility scope](docs/bontaflowstack/RELEASE-1.0.0.md)
-· [Changelog](docs/bontaflowstack/CHANGELOG.md)
-
-## Current release and compatibility evidence
+## Releases and documentation
 
 The combined npm installer **1.1.0** is available from the public npm registry
 and is the `latest` release.
@@ -183,13 +187,16 @@ Raster image generation/editing is outside the accepted Claude scope;
 supplied-image understanding and authored HTML/SVG remain supported.
 
 [Claude Code installation](docs/bontaflowstack/INSTALL-CLAUDE-CODE.md)
+· [All six platforms](docs/bontaflowstack/PLATFORMS.md)
+· [Changelog](docs/bontaflowstack/CHANGELOG.md)
 · [Historical 1.0.0 evidence](docs/bontaflowstack/RELEASE-1.0.0.md)
 
 ## Help shape what comes next
 
 Found a problem? [Open an issue](https://github.com/BillBalint-SM/bontaflowstack/issues)
-with your plugin, Desktop and CLI versions, the operation you attempted, and its
-actual error. Remove personal paths, credentials and private page content.
+with your BFS version, platform name and version, the operation you attempted,
+steps to reproduce, and the actual error. Remove personal paths, credentials and
+private page content.
 
 Contributions are welcome. For source architecture and contracts, start with
 [HOST.md](plugins/bontaflowstack/HOST.md) and the

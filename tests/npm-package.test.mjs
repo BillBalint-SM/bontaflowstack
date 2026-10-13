@@ -19,7 +19,7 @@ function npmCliPath() {
   return candidates.find(file => fs.statSync(file, { throwIfNoEntry:false })?.isFile());
 }
 
-test('npm builder packages both exact-version host plugins and only installable files', { skip:process.platform !== 'win32' }, t => {
+test('npm builder packages exact-version host plugins and only installable files', { skip:process.platform !== 'win32' }, t => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'bfs-npm-package-'));
   const output = path.join(temp, 'package');
   const packDestination = path.join(temp, 'packed');
@@ -30,7 +30,7 @@ test('npm builder packages both exact-version host plugins and only installable 
     cwd:repo, encoding:'utf8', windowsHide:true
   });
   assert.equal(built.status, 0, built.stderr);
-  assert.deepEqual(JSON.parse(built.stdout).hosts, ['codex','claude']);
+  assert.deepEqual(JSON.parse(built.stdout).hosts, ['codex','claude','gemini','copilot','cursor','opencode']);
   assert.equal(JSON.parse(built.stdout).version, manifest.version);
   const packedPackage = JSON.parse(fs.readFileSync(path.join(output, 'package.json'), 'utf8'));
   assert.equal(manifest.private, true, 'unbuilt installer sources must not be publishable');
@@ -68,6 +68,22 @@ test('npm builder packages both exact-version host plugins and only installable 
   assert.ok(codexHost.indexOf('## Install and verify') < codexHost.indexOf('## Task scope and results'));
   assert.ok(claudeHost.indexOf('## Install and verify') < claudeHost.indexOf('## Task scope and results'));
 
+  const gemini = path.join(output, 'hosts', 'gemini');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(gemini,'gemini-extension.json'),'utf8')).version,manifest.version);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(gemini,'catalog.json'),'utf8')).version,manifest.version);
+  assert.ok(fs.readFileSync(path.join(gemini,'HOST.md'),'utf8').includes(`npx bontaflowstack@${manifest.version} setup`));
+  const copilot=path.join(output,'hosts/copilot');
+  for(const file of ['plugin.json','catalog.json'])assert.equal(JSON.parse(fs.readFileSync(path.join(copilot,file),'utf8')).version,manifest.version);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(copilot,'marketplace.json'),'utf8')).plugins[0].version,manifest.version);
+  assert.ok(fs.readFileSync(path.join(copilot,'HOST.md'),'utf8').includes(`npx bontaflowstack@${manifest.version} setup`));
+  const cursor=path.join(output,'hosts/cursor');
+  for(const file of ['.cursor-plugin/plugin.json','catalog.json'])assert.equal(JSON.parse(fs.readFileSync(path.join(cursor,file),'utf8')).version,manifest.version);
+  assert.ok(fs.readFileSync(path.join(cursor,'HOST.md'),'utf8').includes(`npx bontaflowstack@${manifest.version} setup`));
+  const opencode=path.join(output,'hosts/opencode');
+  for(const file of ['package.json','catalog.json'])assert.equal(JSON.parse(fs.readFileSync(path.join(opencode,file),'utf8')).version,manifest.version);
+  assert.ok(fs.existsSync(path.join(opencode,'plugin.mjs')));
+  assert.ok(fs.readFileSync(path.join(opencode,'HOST.md'),'utf8').includes(`npx bontaflowstack@${manifest.version} setup`));
+
   const npmCli = npmCliPath();
   assert.ok(npmCli, 'npm-cli.js must be available to verify the real npm tarball');
   const packed = spawnSync(process.execPath, [npmCli, 'pack', '--json', '--pack-destination', packDestination], {
@@ -79,16 +95,19 @@ test('npm builder packages both exact-version host plugins and only installable 
   assert.ok(packedDetails?.files, 'npm pack JSON must report the packaged file list');
   const files = packedDetails.files.map(file => file.path);
   for (const required of [
-    'package.json', 'README.md', 'LICENSE', 'bin/setup.mjs',
+    'package.json', 'README.md', 'LICENSE', 'bin/setup.mjs', 'bin/gemini.mjs', 'bin/copilot.mjs', 'bin/cursor.mjs', 'bin/source-copy.mjs',
     'hosts/codex/.agents/plugins/marketplace.json',
     'hosts/codex/plugins/bontaflowstack/.codex-plugin/plugin.json',
     'hosts/codex/plugins/bontaflowstack/.mcp.json',
     'hosts/codex/plugins/bontaflowstack/hooks/hooks.json',
     'hosts/claude/.claude-plugin/plugin.json', 'hosts/claude/.claude-plugin/marketplace.json',
-    'hosts/claude/.mcp.json', 'hosts/claude/hooks/hooks.json'
+    'hosts/claude/.mcp.json', 'hosts/claude/hooks/hooks.json',
+    'hosts/gemini/gemini-extension.json', 'hosts/gemini/GEMINI.md', 'hosts/gemini/hooks/hooks.json',
+    'hosts/copilot/plugin.json', 'hosts/copilot/marketplace.json', 'hosts/copilot/mcp.json', 'hosts/copilot/com.github.copilot/hooks/hooks.json',
+    'hosts/cursor/.cursor-plugin/plugin.json', 'hosts/cursor/mcp.json', 'hosts/cursor/hooks/hooks.json'
   ]) assert.ok(files.includes(required), `npm tarball is missing ${required}`);
-  for (const host of ['codex','claude']) {
-    const prefix = host === 'codex' ? 'hosts/codex/plugins/bontaflowstack' : 'hosts/claude';
+  for (const host of ['codex','claude','gemini','copilot','cursor']) {
+    const prefix = host === 'codex' ? 'hosts/codex/plugins/bontaflowstack' : `hosts/${host}`;
     assert.equal(files.filter(file => file.startsWith(`${prefix}/skills/`) && file.endsWith('/SKILL.md')).length, 34);
     assert.ok(files.some(file => file.startsWith(`${prefix}/engines/`) && file.endsWith('.zip')), `${host} plugin is missing the engine archive`);
   }

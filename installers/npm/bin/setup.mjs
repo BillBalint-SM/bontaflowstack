@@ -6,12 +6,20 @@ import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { prepareGemini } from './gemini.mjs';
+import { prepareCopilot } from './copilot.mjs';
+import { findCursor, prepareCursor } from './cursor.mjs';
+import { prepareOpenCode } from './opencode.mjs';
 
 const defaultPackageRoot = path.resolve(import.meta.dirname, '..');
 const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const layout = {
-  codex: { plugin: 'codex/plugins/bontaflowstack', marketplace: 'bontaflowstack' },
-  claude: { plugin: 'claude', marketplace: 'bontaflowstack-npx' },
+  codex: { plugin: 'codex/plugins/bontaflowstack', manifest:'.codex-plugin/plugin.json', marketplace: 'bontaflowstack' },
+  claude: { plugin: 'claude', manifest:'.claude-plugin/plugin.json', marketplace: 'bontaflowstack-npx' },
+  gemini: { plugin:'gemini', manifest:'gemini-extension.json' },
+  copilot: { plugin:'copilot', manifest:'plugin.json' },
+  cursor: { plugin:'cursor', manifest:'.cursor-plugin/plugin.json' },
+  opencode: { plugin:'opencode', manifest:'package.json' },
 };
 
 function runCommand(command, args, { env, inherit = false } = {}) {
@@ -21,7 +29,8 @@ function runCommand(command, args, { env, inherit = false } = {}) {
   });
   if (result.error) throw new Error(`Cannot run ${command}: ${result.error.message}`);
   if (result.status !== 0) throw new Error(`${path.basename(command)} failed (${result.status ?? result.signal}). ${result.stderr?.trim() || result.stdout?.trim() || 'See the command output above.'}`);
-  return result.stdout?.trim() || '';
+  // Gemini 0.63 sends extension-list JSON through its stderr logger.
+  return result.stdout?.trim() || result.stderr?.trim() || '';
 }
 
 function candidates(host, env) {
@@ -37,8 +46,11 @@ function candidates(host, env) {
   }
   for (const directory of new Set([env.APPDATA && path.join(env.APPDATA, 'npm'), path.dirname(process.execPath), ...(env.PATH || env.Path || '').split(path.delimiter)])) {
     if (!directory) continue;
-    const wrapper = path.join(directory.replace(/^"|"$/g, ''), 'node_modules', ...(host === 'codex' ? ['@openai', 'codex', 'bin', 'codex.js'] : ['@anthropic-ai', 'claude-code', 'cli.js']));
-    if (fs.existsSync(wrapper)) commands.push([process.execPath, wrapper]);
+    const wrappers={codex:['@openai/codex/bin/codex.js'],claude:['@anthropic-ai/claude-code/cli.js'],gemini:['@google/gemini-cli/bundle/gemini.js','@google/gemini-cli/dist/index.js'],copilot:['@github/copilot/npm-loader.js'],opencode:['opencode-ai/bin/opencode.exe']}[host];
+    for(const relative of wrappers) {
+      const wrapper=path.join(directory.replace(/^"|"$/g,''),'node_modules',relative);
+      if(fs.existsSync(wrapper))commands.push(host==='opencode'?[wrapper]:[process.execPath,wrapper]);
+    }
   }
   commands.push([`${host}.exe`]);
   return commands;
@@ -48,19 +60,22 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
   if (platform !== 'win32' || arch !== 'x64') throw new Error('This release supports Windows x64 only.');
   if (Number(process.versions.node.split('.')[0]) < 24) throw new Error('Install Node.js 24 or newer, including npm.');
   if (!env.LOCALAPPDATA || !path.isAbsolute(env.LOCALAPPDATA)) throw new Error('LOCALAPPDATA must be an absolute directory.');
-  if (!['auto', 'codex', 'claude', 'all'].includes(host)) throw new Error('Host must be codex, claude or all.');
+  if (!['auto', ...Object.keys(layout), 'all'].includes(host)) throw new Error('Host must be codex, claude, gemini, copilot, cursor, opencode or all.');
   const source = path.join(packageRoot, 'hosts');
   const { noLinks, digest, atomicWrite, readJson, requireValue } = await import(pathToFileURL(path.join(source, layout.codex.plugin, 'core/state.mjs')));
   const pkg = read(path.join(packageRoot, 'package.json'));
   requireValue(pkg.name === 'bontaflowstack' && /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9]+(?:[.-][a-zA-Z0-9]+)*)?$/.test(pkg.version), 'Invalid installer package identity or version.');
   for (const [name, details] of Object.entries(layout)) {
-    const manifest = read(path.join(source, details.plugin, name === 'codex' ? '.codex-plugin/plugin.json' : '.claude-plugin/plugin.json'));
-    requireValue(manifest.name === pkg.name && manifest.version === pkg.version, 'Plugin and installer release metadata differ.');
+    const manifest = read(path.join(source, details.plugin, details.manifest));
+    const names = name === 'cursor' ? ['bontaflowstack-cursor', pkg.name] : [pkg.name];
+    requireValue(names.includes(manifest.name) && manifest.version === pkg.version, 'Plugin and installer release metadata differ.');
   }
   const codexMarket = read(path.join(source, 'codex/.agents/plugins/marketplace.json'));
   const claudeMarket = read(path.join(source, 'claude/.claude-plugin/marketplace.json'));
   const validCodexMarket = value => value?.name === layout.codex.marketplace && value.plugins?.length === 1 && value.plugins[0].name === pkg.name && value.plugins[0].source?.source === 'local' && value.plugins[0].source.path === './plugins/bontaflowstack';
   requireValue(validCodexMarket(codexMarket) && claudeMarket.name === layout.claude.marketplace && claudeMarket.plugins?.length === 1 && claudeMarket.plugins[0].name === pkg.name && claudeMarket.plugins[0].version === pkg.version && claudeMarket.plugins[0].source === '.', 'Invalid bundled marketplace.');
+  const copilotMarket=read(path.join(source,'copilot/marketplace.json'));
+  requireValue(copilotMarket.name==='bontaflowstack-npx' && copilotMarket.plugins?.length===1 && copilotMarket.plugins[0].name===pkg.name && copilotMarket.plugins[0].source==='.' && copilotMarket.plugins[0].version===pkg.version,'Invalid bundled Copilot marketplace.');
 
   function inventory(directory) {
     noLinks(directory);
@@ -109,6 +124,15 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
   const invoke = (command, args, inherit = false) => run(command, args, { env: command === 'powershell.exe' ? powershellEnv : commandEnv, inherit });
   const hosts = [];
   for (const name of Object.keys(layout).filter(name => ['auto', 'all', name].includes(host))) {
+    if(name==='cursor') {
+      const app=findCursor(env);
+      requireValue(app || host==='auto','Cursor IDE was not found. Install the host and rerun setup.');
+      if(!app)continue;
+      const parts=app.version.match(/^(\d+)\.(\d+)\.(\d+)$/)?.slice(1).map(Number);
+      requireValue(parts && (parts[0]>3 || parts[0]===3 && (parts[1]>24 || parts[1]===24 && parts[2]>=12)),'Update Cursor IDE to 3.24.12 or newer before setup.');
+      hosts.push(prepareCursor({root,versions,pluginRoot:path.join(installationRoot,'hosts/cursor'),version:pkg.version,skillNames:read(path.join(source,'cursor/catalog.json')).skills.map(item=>item.id),inventory,readJson,noLinks,requireValue,owned:!!ownership,env:commandEnv}));
+      continue;
+    }
     let executable, versionText;
     for (const candidate of candidates(name, env)) {
       try { versionText = invoke(candidate[0], [...candidate.slice(1), '--version']); executable = candidate; break; }
@@ -118,9 +142,22 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
       requireValue(host === 'auto', `${name} CLI was not found. Install the host and rerun setup.`);
       continue;
     }
-    const version = versionText.match(/(?:^|codex-cli )(\d+)\.(\d+)\.(\d+)/)?.slice(1).map(Number);
-    requireValue(version && (name === 'codex' ? version[0] > 0 || version[1] >= 162 : version[0] > 2 || version[0] === 2 && (version[1] > 1 || version[1] === 1 && version[2] >= 296)), `Update ${name} before setup (Codex 0.162.0+, Claude Code 2.1.296+).`);
+    const version = versionText.match(/^(?:codex-cli |GitHub Copilot CLI )?(\d+)\.(\d+)\.(\d+)/)?.slice(1).map(Number);
+    const minimum={codex:[0,162,0],claude:[2,1,296],gemini:[0,63,0],copilot:[1,0,96],opencode:[1,19,0]}[name];
+    requireValue(version && (version[0]>minimum[0] || version[0]===minimum[0] && (version[1]>minimum[1] || version[1]===minimum[1] && version[2]>=minimum[2])), `Update ${name} to ${minimum.join('.')} or newer before setup.`);
     const cli = (args, inherit = false) => invoke(executable[0], [...executable.slice(1), ...(name === 'codex' ? ['--no-daemon'] : []), ...args], inherit);
+    if(name==='gemini') {
+      hosts.push(prepareGemini({cli,root,versions,pluginRoot:path.join(installationRoot,'hosts/gemini'),version:pkg.version,inventory,readJson,noLinks,requireValue,owned:!!ownership}));
+      continue;
+    }
+    if(name==='copilot') {
+      hosts.push(prepareCopilot({cli,root,versions,pluginRoot:path.join(installationRoot,'hosts/copilot'),version:pkg.version,skillNames:read(path.join(source,'copilot/catalog.json')).skills.map(item=>item.id),inventory,readJson,noLinks,requireValue,owned:!!ownership,env:commandEnv}));
+      continue;
+    }
+    if(name==='opencode') {
+      hosts.push(prepareOpenCode({cli,versions,pluginRoot:path.join(installationRoot,'hosts/opencode'),skillNames:read(path.join(source,'opencode/catalog.json')).skills.map(item=>item.id),readJson,noLinks,requireValue,owned:!!ownership}));
+      continue;
+    }
     const marketplaces = JSON.parse(cli(['plugin', 'marketplace', 'list', '--json']));
     const plugins = JSON.parse(cli(['plugin', 'list', '--json']));
     const markets = name === 'codex' ? marketplaces.marketplaces : marketplaces;
@@ -148,100 +185,125 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
     requireValue(!installed.some(item => (item.id || item.pluginId)?.startsWith('bontaflowstack@') && ((item.id || item.pluginId) !== pluginId || name === 'claude' && item.scope !== 'user')), `Another BontaFlowStack plugin or scope is installed; resolve it in ${name} before setup.`);
     hosts.push({ host: name, cli, prior, installed, pluginId, ...details, pluginRoot, marketplaceRoot });
   }
-  requireValue(hosts.length, 'No supported host CLI found. Install Codex or Claude Code, then rerun the same command.');
+  requireValue(hosts.length, 'No supported host found. Install Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE or OpenCode CLI, then rerun the same command.');
   invoke('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Get-Command npm.cmd,node,git -CommandType Application -ErrorAction Stop | Out-Null']);
-  if (fs.existsSync(installationRoot)) {
-    requireValue(sameInventory(path.join(installationRoot, 'hosts')), `Installed version ${pkg.version} differs from this package; files were preserved. Use a new release version.`);
-  } else {
-    if (!ownership) atomicWrite(marker, { schema: 1, package: pkg.name, stateHome });
-    fs.mkdirSync(versions, { recursive: true });
-    const stage = path.join(versions, `.staging-${randomUUID()}`);
-    fs.cpSync(source, path.join(stage, 'hosts'), { recursive: true, force: false, errorOnExist: true });
-    for (const details of Object.values(layout)) fs.writeFileSync(path.join(stage, 'hosts', details.plugin, 'install-state.json'), pin, { flag: 'wx' });
-    requireValue(sameInventory(path.join(stage, 'hosts')), `Copied files differ; staging files were preserved at ${stage}`);
-    fs.renameSync(stage, installationRoot);
-  }
-  // Prepare the shared engines before changing either active host registration.
-  const core = path.join(installationRoot, 'hosts', layout.codex.plugin);
-  // Keep the official platform binary and its license outside the disposable npm cache.
-  const require = createRequire(path.join(packageRoot, 'package.json'));
-  const impeccableManifest = require.resolve('impeccable/package.json');
-  const impeccable = read(impeccableManifest);
-  requireValue(impeccable.version === pkg.dependencies.impeccable, 'Unexpected Impeccable npm version; rerun setup with a clean npm cache.');
-  const platformManifest = createRequire(impeccableManifest).resolve('@impeccable/cli-windows-x64/package.json');
-  requireValue(read(platformManifest).version === impeccable.optionalDependencies['@impeccable/cli-windows-x64'], 'Unexpected Impeccable platform package.');
-  const toolSource = path.dirname(platformManifest);
-  const toolRoot = path.join(stateHome, 'tools', 'impeccable', impeccable.version);
-  noLinks(toolRoot);
-  const toolFiles = inventory(toolSource);
-  const sameTool = directory => JSON.stringify(inventory(directory)) === JSON.stringify(toolFiles);
-  if (fs.existsSync(toolRoot)) {
-    requireValue(sameTool(toolRoot), `Impeccable installation differs; files were preserved at ${toolRoot}`);
-  } else {
-    fs.mkdirSync(path.dirname(toolRoot), { recursive:true });
-    const stage = fs.mkdtempSync(path.join(path.dirname(toolRoot), '.staging-'));
-    fs.cpSync(toolSource, stage, { recursive:true, force:false, errorOnExist:true });
-    requireValue(sameTool(stage), `Impeccable copy differs; files were preserved at ${stage}`);
-    fs.renameSync(stage, toolRoot);
-  }
-  const executable = path.join(toolRoot, 'bin/impeccable.exe');
-  const engineVersion = invoke(executable, ['--version']);
-  requireValue(/^\d+\.\d+\.\d+$/.test(engineVersion), 'Impeccable did not confirm a working executable.');
-  const configFile = path.join(stateHome, 'impeccable.json');
-  const configuration = { schema:1, version:impeccable.version, engineVersion, command:[executable], sha256:digest(fs.readFileSync(executable)) };
-  const priorTool = readJson(configFile);
-  const { externalCommand } = await import(pathToFileURL(path.join(core, 'core/engines.mjs')));
-  if (priorTool) externalCommand({home:stateHome}, 'BFS_IMPECCABLE_COMMAND', {});
-  atomicWrite(configFile, configuration);
-  externalCommand({home:stateHome}, 'BFS_IMPECCABLE_COMMAND', commandEnv);
-  invoke('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', path.join(core, 'scripts/install-engines.ps1')], true);
-  invoke(process.execPath, [path.join(core, 'core/cli.mjs'), 'doctor', 'bfs-browse'], true);
-  for (const target of hosts) {
-    const { cli, prior, pluginId, marketplace, marketplaceRoot, pluginRoot } = target;
-    if (target.host === 'codex') {
-      const changed = prior && path.resolve(prior) !== marketplaceRoot;
-      const alreadyActive = prior && !changed && target.installed.some(item => item.pluginId === pluginId && item.version === pkg.version && item.enabled === true && item.installed === true);
-      if (changed) cli(['plugin', 'marketplace', 'remove', marketplace, '--json']);
-      try {
-        if (!alreadyActive) {
-          cli(['plugin', 'marketplace', 'add', marketplaceRoot, '--json']);
-          cli(['plugin', 'add', pluginId, '--json']);
-        }
-      } catch (error) {
-        if (changed) {
-          try {
-            const current = JSON.parse(cli(['plugin', 'marketplace', 'list', '--json'])).marketplaces.find(item => item.name === marketplace);
-            if (current) cli(['plugin', 'marketplace', 'remove', marketplace, '--json']);
-            cli(['plugin', 'marketplace', 'add', prior, '--json']);
-          } catch (restore) { throw new Error(`${error.message}\nCould not restore previous marketplace: ${restore.message}. Previous files remain at ${prior}. Rerun setup.`); }
-        }
-        throw error;
-      }
-      const active = JSON.parse(cli(['plugin', 'list', '--json'])).installed?.find(item => item.pluginId === pluginId);
-      requireValue(active?.version === pkg.version && active.enabled === true && active.installed === true, 'Codex did not confirm the enabled release. Rerun setup or inspect the plugin settings.');
+  if (!ownership) atomicWrite(marker, { schema: 1, package: pkg.name, stateHome });
+  const progressFile=path.join(root,'setup-status.json');
+  const progress={schema:1,package:pkg.name,version:pkg.version,status:'running',phase:'files',hosts:hosts.map(({host})=>({host,status:'pending'}))};
+  const saveProgress=()=>atomicWrite(progressFile,progress);
+  saveProgress();
+  try {
+    if (fs.existsSync(installationRoot)) {
+      requireValue(sameInventory(path.join(installationRoot, 'hosts')), `Installed version ${pkg.version} differs from this package; files were preserved. Use a new release version.`);
     } else {
-      cli(['plugin', 'marketplace', 'add', marketplaceRoot, '--scope', 'user'], true);
-      cli(['plugin', target.installed.some(item => item.id === pluginId) ? 'update' : 'install', pluginId, '--scope', 'user'], true);
-      const active = JSON.parse(cli(['plugin', 'list', '--json'])).find(item => item.id === pluginId && item.scope === 'user');
-      requireValue(active?.version === pkg.version && typeof active.readFromFolder === 'string' && path.resolve(active.readFromFolder) === pluginRoot, 'Claude did not confirm the selected version and persistent path. Rerun setup.');
-      requireValue(active.enabled === true, 'The plugin remains disabled in Claude. Enable it in /plugin when you are ready.');
+      fs.mkdirSync(versions, { recursive: true });
+      const stage = path.join(versions, `.staging-${randomUUID()}`);
+      fs.cpSync(source, path.join(stage, 'hosts'), { recursive: true, force: false, errorOnExist: true });
+      for (const details of Object.values(layout)) fs.writeFileSync(path.join(stage, 'hosts', details.plugin, 'install-state.json'), pin, { flag: 'wx' });
+      requireValue(sameInventory(path.join(stage, 'hosts')), `Copied files differ; staging files were preserved at ${stage}`);
+      fs.renameSync(stage, installationRoot);
     }
-    console.log(`BontaFlowStack ${pkg.version}: ${target.host} registered.`);
+    for(const entry of progress.hosts)entry.status='placed';
+    progress.phase='engines';saveProgress();
+    // Prepare the shared engines before changing active host registrations.
+    const core = path.join(installationRoot, 'hosts', layout.codex.plugin);
+    // Keep the official platform binary and its license outside the disposable npm cache.
+    const require = createRequire(path.join(packageRoot, 'package.json'));
+    const impeccableManifest = require.resolve('impeccable/package.json');
+    const impeccable = read(impeccableManifest);
+    requireValue(impeccable.version === pkg.dependencies.impeccable, 'Unexpected Impeccable npm version; rerun setup with a clean npm cache.');
+    const platformManifest = createRequire(impeccableManifest).resolve('@impeccable/cli-windows-x64/package.json');
+    requireValue(read(platformManifest).version === impeccable.optionalDependencies['@impeccable/cli-windows-x64'], 'Unexpected Impeccable platform package.');
+    const toolSource = path.dirname(platformManifest);
+    const toolRoot = path.join(stateHome, 'tools', 'impeccable', impeccable.version);
+    noLinks(toolRoot);
+    const toolFiles = inventory(toolSource);
+    const sameTool = directory => JSON.stringify(inventory(directory)) === JSON.stringify(toolFiles);
+    if (fs.existsSync(toolRoot)) {
+      requireValue(sameTool(toolRoot), `Impeccable installation differs; files were preserved at ${toolRoot}`);
+    } else {
+      fs.mkdirSync(path.dirname(toolRoot), { recursive:true });
+      const stage = fs.mkdtempSync(path.join(path.dirname(toolRoot), '.staging-'));
+      fs.cpSync(toolSource, stage, { recursive:true, force:false, errorOnExist:true });
+      requireValue(sameTool(stage), `Impeccable copy differs; files were preserved at ${stage}`);
+      fs.renameSync(stage, toolRoot);
+    }
+    const executable = path.join(toolRoot, 'bin/impeccable.exe');
+    const engineVersion = invoke(executable, ['--version']);
+    requireValue(/^\d+\.\d+\.\d+$/.test(engineVersion), 'Impeccable did not confirm a working executable.');
+    const configFile = path.join(stateHome, 'impeccable.json');
+    const configuration = { schema:1, version:impeccable.version, engineVersion, command:[executable], sha256:digest(fs.readFileSync(executable)) };
+    const priorTool = readJson(configFile);
+    const { externalCommand } = await import(pathToFileURL(path.join(core, 'core/engines.mjs')));
+    if (priorTool) externalCommand({home:stateHome}, 'BFS_IMPECCABLE_COMMAND', {});
+    atomicWrite(configFile, configuration);
+    externalCommand({home:stateHome}, 'BFS_IMPECCABLE_COMMAND', commandEnv);
+    invoke('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', path.join(core, 'scripts/install-engines.ps1')], true);
+    invoke(process.execPath, [path.join(core, 'core/cli.mjs'), 'doctor', 'bfs-browse'], true);
+    progress.phase='registration';
+    for (const target of hosts) {
+      const entry=progress.hosts.find(item=>item.host===target.host);
+      entry.status='registering';saveProgress();
+      if(target.register) {
+        Object.assign(target,target.register());
+        console.log(target.registered?`BontaFlowStack ${pkg.version}: ${target.host}, 34 skills and MCP registered. Start a new session.`:`BontaFlowStack ${pkg.version}: Cursor files placed. Reload the IDE window, then verify bontaflowstack-cursor and its bfs-cursor tools in Customize and a new chat. Active loading is not yet confirmed. If missing, check Allow Local Plugin Imports with your admin and whether an installed marketplace plugin of the same name takes precedence. Native hooks must remain enabled; setup does not change host policy.`);
+      } else {
+        const { cli, prior, pluginId, marketplace, marketplaceRoot, pluginRoot } = target;
+        if (target.host === 'codex') {
+          const changed = prior && path.resolve(prior) !== marketplaceRoot;
+          const alreadyActive = prior && !changed && target.installed.some(item => item.pluginId === pluginId && item.version === pkg.version && item.enabled === true && item.installed === true);
+          if (changed) cli(['plugin', 'marketplace', 'remove', marketplace, '--json']);
+          try {
+            if (!alreadyActive) {
+              cli(['plugin', 'marketplace', 'add', marketplaceRoot, '--json']);
+              cli(['plugin', 'add', pluginId, '--json']);
+            }
+          } catch (error) {
+            if (changed) {
+              try {
+                const current = JSON.parse(cli(['plugin', 'marketplace', 'list', '--json'])).marketplaces.find(item => item.name === marketplace);
+                if (current) cli(['plugin', 'marketplace', 'remove', marketplace, '--json']);
+                cli(['plugin', 'marketplace', 'add', prior, '--json']);
+              } catch (restore) { throw new Error(`${error.message}\nCould not restore previous marketplace: ${restore.message}. Previous files remain at ${prior}. Rerun setup.`); }
+            }
+            throw error;
+          }
+          const active = JSON.parse(cli(['plugin', 'list', '--json'])).installed?.find(item => item.pluginId === pluginId);
+          requireValue(active?.version === pkg.version && active.enabled === true && active.installed === true, 'Codex did not confirm the enabled release. Rerun setup or inspect the plugin settings.');
+        } else {
+          cli(['plugin', 'marketplace', 'add', marketplaceRoot, '--scope', 'user'], true);
+          cli(['plugin', target.installed.some(item => item.id === pluginId) ? 'update' : 'install', pluginId, '--scope', 'user'], true);
+          const active = JSON.parse(cli(['plugin', 'list', '--json'])).find(item => item.id === pluginId && item.scope === 'user');
+          requireValue(active?.version === pkg.version && typeof active.readFromFolder === 'string' && path.resolve(active.readFromFolder) === pluginRoot, 'Claude did not confirm the selected version and persistent path. Rerun setup.');
+          requireValue(active.enabled === true, 'The plugin remains disabled in Claude. Enable it in /plugin when you are ready.');
+        }
+        Object.assign(target,{registered:true,reloadRequired:true,verified:'plugin-registration'});
+        console.log(`BontaFlowStack ${pkg.version}: ${target.host} registered.`);
+      }
+      Object.assign(entry,{status:target.registered?'registered':'reload-required',registered:target.registered,reloadRequired:target.reloadRequired,verified:target.verified});
+      saveProgress();
+    }
+    if (ownership && ownership.stateHome !== stateHome) atomicWrite(marker, { schema: 1, package: pkg.name, stateHome });
+    progress.status=hosts.some(target=>target.registered===false)?'reload-required':'completed';progress.phase='complete';saveProgress();
+    return { name: pkg.name, version: pkg.version, installationRoot, stateHome, hosts: hosts.map(({ host, pluginRoot, marketplaceRoot, sourceRoot, registered, reloadRequired, verified }) => ({ host, pluginRoot, marketplaceRoot, ...(sourceRoot?{sourceRoot}:{}),registered,reloadRequired,verified })) };
+  } catch(error) {
+    progress.status='failed';
+    for(const entry of progress.hosts)if(entry.status==='registering')entry.status='failed';
+    saveProgress();
+    throw new Error(`${error.message}\nSetup incomplete (${progress.phase}): ${progress.hosts.map(entry=>`${entry.host}=${entry.status}`).join(', ')}. Rerun the same setup command.`,{cause:error});
   }
-  if (ownership && ownership.stateHome !== stateHome) atomicWrite(marker, { schema: 1, package: pkg.name, stateHome });
-  return { name: pkg.name, version: pkg.version, installationRoot, stateHome, hosts: hosts.map(({ host, pluginRoot, marketplaceRoot }) => ({ host, pluginRoot, marketplaceRoot })) };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const args = process.argv.slice(2);
     if (args.length === 1 && ['--help', '-h'].includes(args[0])) {
-      console.log('Usage: npx bontaflowstack@<version> [setup] [--host codex|claude|all]\nAutomatically installs and configures every detected host and the shared engines.\nRequires Windows x64, Node.js 24+, npm, Git, and Codex 0.162.0+ or Claude Code 2.1.296+.');
+      console.log('Usage: npx bontaflowstack@<version> [setup] [--host codex|claude|gemini|copilot|cursor|opencode|all]\nAutomatically installs and configures every detected host and the shared engines.\nRequires Windows x64, Node.js 24+, npm, Git, and Codex 0.162.0+, Claude Code 2.1.296+, Gemini CLI 0.63.0+, GitHub Copilot CLI 1.0.96+, Cursor IDE 3.24.12+ or OpenCode CLI 1.19.0+. Cursor requires an IDE window reload and host verification.');
     } else if (args.length === 1 && args[0] === '--version') {
       console.log(read(path.join(defaultPackageRoot, 'package.json')).version);
     } else {
       if (args[0] === 'setup') args.shift();
-      if (args.length !== 0 && !(args.length === 2 && args[0] === '--host' && ['codex', 'claude', 'all'].includes(args[1]))) throw new Error('Unknown arguments. Use: npx bontaflowstack@<version> setup');
+      if (args.length !== 0 && !(args.length === 2 && args[0] === '--host' && [...Object.keys(layout), 'all'].includes(args[1]))) throw new Error('Unknown arguments. Use: npx bontaflowstack@<version> setup');
       const result = await setup({ host: args[1] || 'auto' });
       console.log(`BontaFlowStack ${result.version} installed at ${result.installationRoot}\nShared data: ${result.stateHome}\nStart a new host session and use bfs-router.`);
       if (result.hosts.some(item => item.host === 'codex')) console.log('Codex: review and trust the plugin hooks in /hooks when prompted. Setup does not bypass host trust.');

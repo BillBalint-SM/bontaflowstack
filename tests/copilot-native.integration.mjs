@@ -1,0 +1,38 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {writeNativeEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+
+test('native Copilot discovers the built BFS skills and binds its actual MCP call',{skip:process.env.BFS_RUN_COPILOT_NATIVE!=='1'},()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-copilot-native-')),project=path.join(root,'project with spaces'),plugin=path.join(root,'plugin with spaces');
+  fs.mkdirSync(project);
+  const repo=fileURLToPath(new URL('../',import.meta.url));
+  const built=spawnSync(process.execPath,[path.join(repo,'scripts/build-host-package.mjs'),'--host','copilot-cli','--output',plugin],{encoding:'utf8',windowsHide:true});
+  assert.equal(built.status,0,built.stderr);
+  fs.writeFileSync(path.join(plugin,'install-state.json'),JSON.stringify({schema:1,stateHome:path.join(root,'state')}));
+  const cli=process.env.BFS_COPILOT_CLI || path.join(process.env.APPDATA,'npm/node_modules/@github/copilot/npm-loader.js');
+  const list=spawnSync(process.execPath,[cli,'--plugin-dir',plugin,'skill','list','--json'],{cwd:project,env:{...process.env,COPILOT_HOME:path.join(root,'profile')},encoding:'utf8',windowsHide:true,timeout:30000});
+  assert.equal(list.status,0,list.stderr);
+  const skills=JSON.parse(list.stdout),catalog=JSON.parse(fs.readFileSync(path.join(plugin,'catalog.json'),'utf8'));
+  for(const skill of catalog.skills)assert.ok(JSON.stringify(skills).includes(`"${skill.id}"`),`Native skill missing: ${skill.id}`);
+  const result=spawnSync(process.execPath,[cli,'--plugin-dir',plugin,'--no-custom-instructions','--disable-builtin-mcps','--no-auto-update','--no-remote','--no-remote-export','--output-format','json','--allow-tool','bfs(status)','-p','Call the BontaFlowStack bfs MCP status tool exactly once, with no arguments. Do not call other tools or retry an error. Report its exact host and sessionId.'],{cwd:project,encoding:'utf8',windowsHide:true,timeout:90000,maxBuffer:8*1024*1024});
+  const diagnostic=writeNativeEvidence(path.join(root,'native-evidence.json'),result);
+  console.log(`Native Copilot evidence: ${root}`);
+  assert.equal(result.status,0,JSON.stringify(diagnostic));
+  const events=result.stdout.trim().split('\n').map(JSON.parse);
+  const call=events.find(event=>event.type==='tool.execution_start' && event.data?.toolName==='bfs-status');
+  assert.ok(call,'Missing native bfs-status call');
+  const completed=events.find(event=>event.type==='tool.execution_complete' && event.data?.toolCallId===call.data.toolCallId);
+  assert.equal(completed?.data.success,true,'Native BFS call did not succeed');
+  const status=JSON.parse(completed.data.result.contents.find(item=>item.type==='text').text);
+  assert.equal(status.host,'copilot-cli');assert.equal(status.hostWorkspace,project);assert.match(status.sessionId,/^[a-zA-Z0-9-]+$/);
+  assert.equal(status.sessionId,events.find(event=>event.type==='result')?.sessionId);
+  assert.match(completed.data.result.content,/BFS_GUARD_OBSERVED/);
+  const version=spawnSync(process.execPath,[cli,'--version'],{encoding:'utf8',windowsHide:true});assert.equal(version.status,0,version.stderr);
+  fs.writeFileSync(path.join(root,'result.json'),JSON.stringify({status:'passed',version:version.stdout.trim(),skillCount:catalog.skills.length,host:status.host,workspace:project,sessionId:status.sessionId,taskId:status.taskId,guardObserved:true},null,2)+'\n');
+  writeAcceptanceEvidence(path.join(root,'result.json'));
+});

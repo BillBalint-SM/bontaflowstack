@@ -1,0 +1,95 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {spawn,spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {writeNativeEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+
+test('npm-installed Copilot recovers a killed session without completing or interrupting another live session',{skip:process.env.BFS_RUN_COPILOT_RECOVERY!=='1'},async t=>{
+  const root=path.resolve(process.env.BFS_COPILOT_SETUP_EVIDENCE || '');assert.equal(path.dirname(root),fs.realpathSync.native(os.tmpdir()));assert.match(path.basename(root),/^bfs-copilot-setup-/);
+  const setup=JSON.parse(fs.readFileSync(path.join(root,'result.json'),'utf8'));assert.equal(setup.status,'passed');
+  const project=fs.mkdtempSync(path.join(root,'recovery-project-'));
+  const readme='# Recovery fixture\n\nHealth check: `node --test check.test.mjs`.\nInterruption harness only: `node hold.mjs interrupted` or `node hold.mjs foreign`. A hold command waits for its own controller release; it does not verify project health.\n';
+  fs.writeFileSync(path.join(project,'README.md'),readme);
+  fs.writeFileSync(path.join(project,'check.test.mjs'),"import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('BFS_RECOVERY_HEALTH_OK',()=>assert.equal(2+3,5));\n");
+  fs.writeFileSync(path.join(project,'hold.mjs'),"import fs from 'node:fs';\nconst label=process.argv[2];if(!['interrupted','foreign'].includes(label))throw new Error('Unknown fixture hold');\nfs.writeFileSync(label+'.ready',String(process.pid));\nconst deadline=Date.now()+600000;while(!fs.existsSync(label+'.release')){if(Date.now()>deadline)throw new Error('Fixture hold expired');await new Promise(resolve=>setTimeout(resolve,100));}\nconsole.log('BFS_FIXTURE_RELEASED');\n");
+  fs.writeFileSync(path.join(project,'keep.txt'),'unrelated work');
+  const originalFiles=Object.fromEntries(['README.md','check.test.mjs','hold.mjs','keep.txt'].map(file=>[file,fs.readFileSync(path.join(project,file))]));
+  const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,'UserProfile'),COPILOT_HOME:path.join(root,"Copilot's $profile"),COPILOT_CACHE_HOME:path.join(root,'copilot-cache')};
+  for(const name of ['BFS_STATE_HOME','BFS_IMPECCABLE_COMMAND','NODE_TEST_CONTEXT'])delete env[name];
+  const configFile=path.join(env.COPILOT_HOME,'config.json'),config=fs.readFileSync(configFile);
+  const hostContract=fs.readFileSync(path.join(setup.source,'HOST.md'),'utf8'),version=JSON.parse(fs.readFileSync(path.join(setup.source,'catalog.json'),'utf8')).version;
+  const stateHome=JSON.parse(fs.readFileSync(path.join(setup.source,'install-state.json'),'utf8')).stateHome;assert.equal(stateHome,path.join(root,'state'));
+  const cli=process.env.BFS_COPILOT_CLI || path.join(process.env.APPDATA,'npm/node_modules/@github/copilot/npm-loader.js');
+  const base=[cli,'--no-custom-instructions','--disable-builtin-mcps','--no-auto-update','--no-remote','--no-remote-export','--output-format','json','--add-dir',setup.source,'--allow-tool','bfs(core)','--allow-tool','bfs(status)','--allow-tool','shell(node)','--deny-tool','write','--excluded-tools','task','write_agent'];
+  const parse=stdout=>stdout.split(/\r?\n/).filter(Boolean).flatMap(line=>{try{return [JSON.parse(line)];}catch{return [];}});
+  const eventsOf=run=>parse(run.stdout),callsOf=run=>eventsOf(run).filter(event=>event.type==='tool.execution_start');
+  const done=(run,call)=>eventsOf(run).find(event=>event.type==='tool.execution_complete' && event.data?.toolCallId===call?.data.toolCallId);
+  const command=(call,...args)=>call.data.toolName==='bfs-core' && call.data.arguments?.args?.join(' ')===args.join(' ');
+  const value=(run,call)=>{const result=done(run,call);assert.equal(result?.data.success,true,'Native BFS operation did not succeed');return JSON.parse(result.data.result.contents.find(item=>item.type==='text').text);};
+  const find=(run,...args)=>callsOf(run).find(call=>command(call,...args));
+  const statusOf=run=>value(run,callsOf(run).find(call=>call.data.toolName==='bfs-status'));
+  const fileOf=record=>path.join(stateHome,'projects',record.projectId,'workspaces',record.workspaceId,'workflows',record.id+'.json');
+  const runs=[];
+  const kill=run=>{if(run.child.exitCode===null && run.child.signalCode===null){const killed=spawnSync('taskkill.exe',['/pid',String(run.child.pid),'/t','/f'],{windowsHide:true,encoding:'utf8'});assert.equal(killed.status,0,'Could not stop the owned native fixture process');}};
+  t.after(async()=>{for(const run of runs)kill(run);await Promise.allSettled(runs.map(run=>run.finished));});
+  const launch=(label,prompt,extra=[])=>{
+    const child=spawn(process.execPath,[...base,...extra,'-p',prompt],{cwd:project,env,windowsHide:true,stdio:['ignore','pipe','pipe']});
+    const run={label,child,stdout:'',stderr:''};runs.push(run);
+    run.finished=new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>{writeNativeEvidence(path.join(project,label+'.native-evidence.json'),{...run,code:'timeout'});kill(run);reject(new Error('Native recovery phase timed out: '+label));},label==='foreign'?660000:240000);
+      child.stdout.on('data',data=>run.stdout+=String(data));child.stderr.on('data',data=>run.stderr+=String(data));
+      child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('close',code=>{clearTimeout(timer);run.code=code;writeNativeEvidence(path.join(project,label+'.native-evidence.json'),run);resolve(run);});
+    });
+    run.finished.catch(()=>{});return run;
+  };
+  const ready=async run=>{
+    const deadline=Date.now()+180000;
+    while(!fs.existsSync(path.join(project,run.label+'.ready'))){assert(Date.now()<deadline,'Native hold did not start');assert.equal(run.child.exitCode,null,'Native session ended before its hold');await new Promise(resolve=>setTimeout(resolve,100));}
+    const started=value(run,find(run,'workflow','start')),begun=value(run,find(run,'workflow','begin')),status=statusOf(run);
+    assert.equal(begun.id,started.id);assert.equal(begun.status,'running');assert.equal(begun.steps[0].status,'running');assert.equal(started.taskId,status.taskId);assert.equal(status.hostWorkspace,project);
+    assert.equal(value(run,find(run,'read','bfs-health')).host,hostContract);
+    assert(callsOf(run).some(call=>call.data.toolName==='skill' && call.data.arguments?.skill==='bfs-health' && done(run,call)?.data.success));
+    assert(find(run,'preferences','effective'));return {workflow:begun,status};
+  };
+  const protocol='Use native BFS MCP calls and native skill activation; follow the HOST/read and effective-preferences protocol. Do not invent _bfsCall, delegate, edit files, change configuration, run the core through shell, install, commit or publish. Only run the exact fixture command explicitly requested below. Never touch a workflow owned by another session. Stop on permission or binding errors. ';
+  const prepare=label=>protocol+`Call BFS status first. Activate bfs-health in check mode. Start exactly one new workflow with goal "${label} recovery fixture" and one bfs-health/check step. Save a checkpoint linked to this workflow with README.md as a file and the summary "Health check has not run; interruption harness is pending." Begin step 1 with README.md as input. Run exactly "node hold.mjs ${label}" using the native shell tool; it waits for the test controller. Do not pause or complete the workflow before this command returns. If it returns, first read back your own workflow, then record step 1 as waiting with an honest summary that the hold ended but the real health check has not run, and stop. Do not run the actual health check in this phase.`;
+  console.log(`Native Copilot recovery evidence: ${project}`);
+  const foreign=launch('foreign',prepare('foreign')),interrupted=launch('interrupted',prepare('interrupted'));
+  const [other,own]=await Promise.all([ready(foreign),ready(interrupted)]);
+  assert.notEqual(other.status.sessionId,own.status.sessionId);assert.notEqual(other.status.taskId,own.status.taskId);
+  const foreignBefore=fs.readFileSync(fileOf(other.workflow));
+  const checkpoint=value(interrupted,find(interrupted,'workflow','save')),checkpointBytes=fs.readFileSync(checkpoint.file);
+  kill(interrupted);await interrupted.finished;assert.notEqual(interrupted.code,0);
+  const afterKill=JSON.parse(fs.readFileSync(fileOf(own.workflow),'utf8'));assert.equal(afterKill.status,'running');assert.equal(afterKill.steps[0].status,'running');assert.equal(afterKill.steps[0].evidence.length,0);
+  process.kill(foreign.child.pid,0);assert.equal(foreign.child.exitCode,null);assert.deepEqual(fs.readFileSync(fileOf(other.workflow)),foreignBefore);
+  const resumed=launch('resumed',protocol+`This is an explicit continuation after an unexpected process kill. Use bfs-load-context in resume mode for workflow ${own.workflow.id} and checkpoint ${checkpoint.id}. Read back both before changing the workflow; report their actual statuses. Resume only this workflow. The hold command is obsolete: do not run it again. Use bfs-health/check to begin step 1 again, run exactly "node --test check.test.mjs", and complete the step only with actual successful test evidence. Read back the completed workflow and call BFS status. Do not touch the other session's workflow.`,['--resume='+own.status.sessionId]);
+  await resumed.finished;assert.equal(resumed.code,0,'Native resumed session failed');
+  const resumedStatus=statusOf(resumed);assert.equal(resumedStatus.sessionId,own.status.sessionId);assert.equal(resumedStatus.taskId,own.status.taskId);
+  const reads=callsOf(resumed).filter(call=>command(call,'workflow','resume'));
+  const recovered=value(resumed,reads.find(call=>call.data.arguments.input?.id===own.workflow.id));
+  assert.equal(recovered.status,'interrupted');assert.equal(recovered.steps[0].status,'interrupted');assert.equal(recovered.requiresAdoption,false);assert.deepEqual(recovered.drift,[]);
+  const restoredCheckpoint=callsOf(resumed).filter(call=>command(call,'workflow','resume') || command(call,'workflow','checkpoints')).filter(call=>done(resumed,call)?.data.success).flatMap(call=>value(resumed,call)).find(record=>record.id===checkpoint.id);
+  assert(restoredCheckpoint,'Checkpoint was not read back through native MCP');for(const [key,expected] of Object.entries(checkpoint))assert.deepEqual(restoredCheckpoint[key],expected);
+  for(const skill of ['bfs-load-context','bfs-health'])assert(callsOf(resumed).some(call=>call.data.toolName==='skill' && call.data.arguments?.skill===skill && done(resumed,call)?.data.success));
+  const checked=callsOf(resumed).find(call=>call.data.toolName==='powershell' && call.data.arguments?.command?.trim()==='node --test check.test.mjs');assert(checked && done(resumed,checked)?.data.success);assert(/BFS_RECOVERY_HEALTH_OK/.test(JSON.stringify(done(resumed,checked)?.data.result)));
+  const completed=value(resumed,callsOf(resumed).findLast(call=>command(call,'workflow','step')));assert.equal(completed.id,own.workflow.id);assert.equal(completed.status,'completed');assert(completed.steps[0].evidence.length);
+  assert(completed.steps[0].history.some(step=>step.status==='interrupted'));
+  assert(reads.some(call=>call.data.arguments.input?.id===completed.id && value(resumed,call).status==='completed'));
+  process.kill(foreign.child.pid,0);assert.equal(foreign.child.exitCode,null);assert.deepEqual(fs.readFileSync(fileOf(other.workflow)),foreignBefore);assert.deepEqual(fs.readFileSync(checkpoint.file),checkpointBytes);
+  const ownCompleted=fs.readFileSync(fileOf(completed));
+  fs.writeFileSync(path.join(project,'foreign.release'),'release');await foreign.finished;assert.equal(foreign.code,0);
+  const foreignRead=value(foreign,find(foreign,'workflow','resume'));assert.equal(foreignRead.status,'running');assert.equal(foreignRead.taskId,other.status.taskId);
+  const foreignEnd=value(foreign,callsOf(foreign).findLast(call=>command(call,'workflow','step')));assert.equal(foreignEnd.id,other.workflow.id);assert.equal(foreignEnd.status,'waiting');assert.deepEqual(fs.readFileSync(fileOf(completed)),ownCompleted);
+  for(const run of runs) {
+    const expected=run.label==='resumed'?'node --test check.test.mjs':'node hold.mjs '+run.label;
+    const shell=callsOf(run).filter(call=>['powershell','bash'].includes(call.data.toolName));assert.equal(shell.length,1);assert.equal(shell[0].data.arguments.command.trim(),expected);
+    assert.equal(callsOf(run).some(call=>['create','edit','apply_patch','task','write_agent'].includes(call.data.toolName)),false);
+  }
+  for(const [file,bytes] of Object.entries(originalFiles))assert.deepEqual(fs.readFileSync(path.join(project,file)),bytes);assert.deepEqual(fs.readFileSync(configFile),config);
+  const failedTools=Object.fromEntries(runs.map(run=>[run.label,JSON.parse(fs.readFileSync(path.join(project,run.label+'.native-evidence.json'),'utf8')).tools.filter(tool=>tool.status==='failed').map(tool=>tool.tool)]));
+  fs.writeFileSync(path.join(project,'result.json'),JSON.stringify({status:'passed',host:'copilot-cli',version,hostSha256:createHash('sha256').update(hostContract).digest('hex'),sessionIds:[own.status.sessionId,other.status.sessionId],workflowIds:[own.workflow.id,other.workflow.id],checkpointId:checkpoint.id,killedDuringRunningStep:true,sameSessionRecovered:true,interruptedBeforeRecheck:true,actualHealthCheck:true,checkpointPreserved:true,otherLiveWorkflowPreserved:true,configPreserved:true,failedTools},null,2)+'\n');
+  writeAcceptanceEvidence(path.join(project,'result.json'));
+});

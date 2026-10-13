@@ -1,9 +1,9 @@
 # npm terjesztés és kiadási kapu
 
-## Egy npm-csomag két hosthoz
+## Egy npm-csomag hat platformhoz
 
 Az egyetlen felhasználói telepítési út az `npx bontaflowstack@<verzió> setup`.
-A csomag automatikusan felismeri és beállítja a Codexet és a Claude Code-ot,
+A forrásból készülő csomag automatikusan felismeri és beállítja a hat platformot,
 a közös motort és az Impeccable CLI-t. Új felhasználói ZIP nem készül.
 A csomag belső, ellenőrzőösszeggel rögzített motorarchívuma nem külön telepítő.
 
@@ -11,7 +11,10 @@ Az `1.1.0` stabil kiadás publikált; a visszaellenőrzött eredményt
 a [kiadási jelentés](RELEASE-1.1.0.md) rögzíti.
 Stabil verzió csak `latest`, előzetes verzió csak `rc` npm dist-taggel
 publikálható. A forráscsomag verziója az `installers/npm/package.json` fájlban
-van; a builder ezt vezeti át mindkét csomagolt host manifestjébe és katalógusába.
+van; a builder ezt vezeti át mind a hat csomagolt host manifestjébe és katalógusába.
+A forrás Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE és
+OpenCode CLI adaptert készít. Az `1.1.0` kiadási rekordjai a publikált, kétplatformos
+csomag történetét őrzik; a négy új adapterhez új npm-verziót kell kiadni.
 
 ### Előkészítés
 
@@ -25,7 +28,7 @@ node --test tests/npm-release.test.mjs
 node scripts/npm-release.mjs prepare --output artifacts/npm/1.1.0 --tag latest --release-tag v1.1.0
 ```
 
-A `prepare` elkészíti mindkét adaptert, valódi `npm pack`-ot futtat, megőrzi
+A `prepare` elkészíti az adaptereket, valódi `npm pack`-ot futtat, megőrzi
 a pontos `.tgz` bájtjait, és `release.json` fájlban rögzíti a nevet, verziót,
 dist-taget, forrástagot, commitot, SHA256-ot, npm SHA512-integritást és fájllistát.
 Létező könyvtárat nem ír felül. Ellenőrizd az exact csomagot és a megváltozott

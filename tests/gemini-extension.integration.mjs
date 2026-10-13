@@ -1,0 +1,42 @@
+import {writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+
+test('native Gemini installs the built extension and discovers all 34 skills',{skip:process.env.BFS_RUN_GEMINI_EXTENSION!=='1'},()=>{
+  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-gemini-extension-'));
+  const project=path.join(root,'project with spaces'),output=path.join(root,'source with spaces','bontaflowstack'),profile=path.join(root,"profile's $literal");
+  fs.mkdirSync(project);fs.mkdirSync(profile);
+  const build=spawnSync(process.execPath,[path.join(repo,'scripts/build-host-package.mjs'),'--host','gemini-cli','--output',output],{encoding:'utf8',windowsHide:true});
+  assert.equal(build.status,0,build.stderr);
+  const state=path.join(root,'state');fs.writeFileSync(path.join(output,'install-state.json'),JSON.stringify({schema:1,stateHome:state}));
+  const cli=process.env.BFS_GEMINI_CLI || path.join(process.env.APPDATA,'npm/node_modules/@google/gemini-cli/bundle/gemini.js');
+  const env={...process.env,GEMINI_CLI_HOME:profile,BFS_STATE_HOME:state};
+  const run=(args,input)=>{const result=spawnSync(process.execPath,[cli,...args],{cwd:project,env,input,encoding:'utf8',windowsHide:true,timeout:30000});assert.equal(result.status,0,result.error?.message || result.stderr || result.stdout);return result.stdout.trim() || result.stderr;};
+  // Consent covers only this test-owned extension in an isolated CLI profile.
+  const installed=run(['extensions','install',output,'--consent'],'y\n');
+  const extensions=JSON.parse(run(['extensions','list','--output-format','json']));
+  const skills=run(['skills','list']);
+  const catalog=JSON.parse(fs.readFileSync(path.join(output,'catalog.json'),'utf8'));
+  for(const skill of catalog.skills)assert.match(skills,new RegExp(`\\b${skill.id}\\b`),`Native discovery missing ${skill.id}`);
+  const extensionRoot=path.join(profile,'.gemini/extensions/bontaflowstack');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(extensionRoot,'gemini-extension.json'),'utf8')).version,catalog.version);
+  const hooks=JSON.parse(fs.readFileSync(path.join(extensionRoot,'hooks/hooks.json'),'utf8')).hooks;
+  const command=hooks.BeforeTool[0].hooks[0].command.replaceAll('${extensionPath}',extensionRoot);
+  const event={hook_event_name:'BeforeTool',session_id:'packaged-session',cwd:project,tool_name:'mcp_bfs_status',tool_input:{}};
+  const hook=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',command],{cwd:project,env,encoding:'utf8',windowsHide:true,input:JSON.stringify(event),timeout:15000});
+  assert.equal(hook.status,0,hook.stderr);
+  const args=JSON.parse(hook.stdout).hookSpecificOutput.tool_input;
+  const server=spawnSync(process.execPath,[path.join(extensionRoot,'core/gemini-host.mjs')],{cwd:project,env,encoding:'utf8',windowsHide:true,timeout:15000,input:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:'status',arguments:args}})+'\n'});
+  assert.equal(server.status,0,server.stderr);
+  const result=JSON.parse(server.stdout).result;assert.equal(result.isError,undefined,JSON.stringify(result));
+  const status=JSON.parse(result.content[0].text);assert.equal(status.sessionId,event.session_id);assert.equal(status.hostWorkspace,project);
+  const evidence=path.join(root,'result.json');
+  fs.writeFileSync(evidence,JSON.stringify({version:run(['--version']).trim(),extensions,skillCount:catalog.skills.length,installOutput:installed.trim(),packagedHookMcp:true,sessionId:status.sessionId},null,2)+'\n');
+  writeAcceptanceEvidence(evidence);
+  console.log(`Native extension evidence: ${evidence}`);
+});

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { writeCommandEvidence ,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
 
 if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   console.log('SKIP: set BFS_RUN_NPM_SETUP_INTEGRATION=1 to run real npm pack/npx setup for Codex and Claude (downloads pinned browser engines).');
@@ -23,6 +24,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
     USERPROFILE:path.join(evidenceDir, 'UserProfile'),
     CODEX_HOME:path.join(evidenceDir, 'Codex'),
     CLAUDE_CONFIG_DIR:path.join(evidenceDir, 'Claude'),
+    GEMINI_CLI_HOME:path.join(evidenceDir, 'Gemini'),
     BFS_STATE_HOME:stateHome,
     npm_config_cache:npmCache,
     npm_config_yes:'true',
@@ -34,11 +36,10 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   function execute(name, command, args, { cwd = repo, allowFailure = false, commandEnv = env } = {}) {
     const result = spawnSync(command, args, { cwd, env:commandEnv, encoding:'utf8', windowsHide:true, timeout:45 * 60 * 1000, maxBuffer:32 * 1024 * 1024 });
     const record = { name, command, args, cwd, status:result.status, signal:result.signal, error:result.error?.message, stdout:result.stdout || '', stderr:result.stderr || '' };
-    fs.writeFileSync(path.join(evidenceDir, `${name}.stdout.log`), record.stdout);
-    fs.writeFileSync(path.join(evidenceDir, `${name}.stderr.log`), record.stderr);
-    commandLogs.push({ name, command, args, cwd, status:result.status, signal:result.signal, error:result.error?.message });
+    const diagnostic=writeCommandEvidence(path.join(evidenceDir, `${name}.command-evidence.json`),record);
+    commandLogs.push({ name, ...diagnostic });
     if (result.error) throw result.error;
-    if (!allowFailure) assert.equal(result.status, 0, `${name} failed (${result.status ?? result.signal}): ${record.stderr || record.stdout}`);
+    if (!allowFailure) assert.equal(result.status, 0, `${name} failed; retained command evidence contains the exit code and output sizes`);
     return record;
   }
   function resolveNpmCli(fileName) {
@@ -59,7 +60,8 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   function npx(name, archive, args = []) {
     const cli = resolveNpmCli('npx-cli.js');
     assert.ok(cli, 'Could not locate npm\'s npx-cli.js.');
-    return execute(name, process.execPath, [cli, '--yes', '--package', archive, '--', 'bontaflowstack', ...args], { cwd:evidenceDir });
+    const results=['codex','claude'].map(host=>execute(`${name}-${host}`, process.execPath, [cli, '--yes', '--package', archive, '--', 'bontaflowstack', ...args, '--host',host], { cwd:evidenceDir }));
+    return {stdout:results.map(result=>result.stdout).join('\n')};
   }
   function pack(name, source) {
     const cli = resolveNpmCli('npm-cli.js');
@@ -85,11 +87,20 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
     update(path.join(root, 'hosts', 'claude', 'catalog.json'));
     update(path.join(root, 'hosts', 'claude', '.claude-plugin', 'plugin.json'));
     update(path.join(root, 'hosts', 'claude', '.claude-plugin', 'marketplace.json'));
+    update(path.join(root, 'hosts', 'gemini', 'catalog.json'));
+    update(path.join(root, 'hosts', 'gemini', 'gemini-extension.json'));
+    update(path.join(root, 'hosts', 'copilot', 'catalog.json'));
+    update(path.join(root, 'hosts', 'copilot', 'plugin.json'));
+    update(path.join(root, 'hosts', 'copilot', 'marketplace.json'));
+    update(path.join(root, 'hosts', 'cursor', 'catalog.json'));
+    update(path.join(root, 'hosts', 'cursor', '.cursor-plugin/plugin.json'));
+    update(path.join(root, 'hosts', 'opencode', 'catalog.json'));
+    update(path.join(root, 'hosts', 'opencode', 'package.json'));
   }
 
   const codex = findNative('codex.exe'), claude = findNative('claude.exe');
   const build = execute('build-source-package', process.execPath, [path.join(repo, 'scripts', 'build-npm-package.mjs'), '--output', packageRoot]);
-  assert.match(build.stdout, /"hosts":\["codex","claude"\]/);
+  assert.match(build.stdout, /"hosts":\["codex","claude","gemini","copilot","cursor","opencode"\]/);
   const firstTarball = pack('npm-pack-first', packageRoot);
   const firstInstall = npx('npx-first-noargs', firstTarball.archive);
   assert.ok(firstInstall.stdout.includes(`installed at ${path.join(env.LOCALAPPDATA,'BontaFlowStack','npm','versions',version)}`));
@@ -215,5 +226,6 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
     scope:'Real npm pack and npx CLI with real Codex and Claude CLIs. Temporary host configs and npm cache were isolated under this evidence directory. Fresh pinned engine and browser assets are retained for later verification.'
   };
   fs.writeFileSync(path.join(evidenceDir, 'result.json'), `${JSON.stringify(report, null, 2)}\n`);
+  writeAcceptanceEvidence(path.join(evidenceDir,'result.json'));
   console.log(JSON.stringify({ status:'passed', evidence:path.join(evidenceDir, 'result.json') }));
 }

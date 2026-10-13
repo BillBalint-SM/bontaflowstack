@@ -1,0 +1,6 @@
+{
+  "name": "bontaflowstack",
+  "version": "{{VERSION}}",
+  "private": true,
+  "type": "module"
+}

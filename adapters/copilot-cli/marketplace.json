@@ -1,0 +1,7 @@
+{
+  "name": "bontaflowstack-npx",
+  "owner": { "name": "BontaFlow" },
+  "plugins": [
+    { "name": "bontaflowstack", "source": ".", "version": "{{VERSION}}" }
+  ]
+}
