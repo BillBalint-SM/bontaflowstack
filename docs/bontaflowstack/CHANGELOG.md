@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — six agent platforms
+
+- Add Gemini CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI adapters
+  alongside Codex and Claude Code in the shared Windows x64 npm installer.
+- Package 34 skills per platform with native hooks and MCP integration,
+  shared project memory, checkpoints, browser/render engines and Impeccable.
+- Detect installed platforms automatically or select one with `--host`;
+  preserve existing configuration and state, and report setup progress per host.
+- Document platform requirements, first use and issue reporting in the
+  [platform guide](PLATFORMS.md), English README and Hungarian guide.
+
 ## 1.1.0 — stable npm release, 2026-10-13
 
 - Promote the accepted Codex/Claude Code build to `bontaflowstack@1.1.0`.

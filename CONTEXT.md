@@ -1,6 +1,7 @@
 # BontaFlowStack domain
 
-BontaFlowStack is a Windows x64 plugin package for Codex and Claude Code, for business and product development,
+BontaFlowStack is a Windows x64 skill/plugin package for Codex, Claude Code,
+Gemini CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI, for business and product development,
 design, implementation, testing, documentation and delivery.
 
 A separate Claude Code package is generated from that canonical source for
@@ -231,6 +232,13 @@ call is not relabeled successful. Runtime/hook/skill files match the tested
 candidates; current HOST differences only concern installation guidance.
 Gemini's model journey and Cursor's hook/policy/marketplace requirements remain
 open. The full 54-story/36-item objective is not complete.
+
+On 2026-10-14 the user accepted integrating the four new ports into GitHub and
+requested six-platform public documentation, including Claude Code. The user
+does not want local subscription/test limitations in product-facing copy;
+direct problem reports to GitHub issues. Preserve original technical evidence
+and failed observations without relabeling them as passes. This authorizes the
+GitHub update, not an npm release or a claim of new runtime verification.
 
 ## Terms
 

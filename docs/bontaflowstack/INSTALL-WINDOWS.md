@@ -2,6 +2,12 @@
 
 [Magyar útmutató](../../TELEPITES.md) · [Claude Code-részletek](INSTALL-CLAUDE-CODE.md)
 
+The repository includes adapters for Codex, Claude Code, Gemini CLI, GitHub
+Copilot CLI, Cursor IDE and OpenCode CLI. See [all six platforms](PLATFORMS.md)
+for selectors, requirements and first use. This page's `1.1.0` commands install
+the published Codex/Claude Code release; the four new adapters ship in the next
+npm release.
+
 The single standard install route is the exact-version npm setup command. Version
 **1.1.0 is published on npm as `latest`**. Its registry installation passed with both host CLIs; see the
 [release report](RELEASE-1.1.0.md).
@@ -50,8 +56,8 @@ Windows Store redirected LocalAppData location. With no existing state it uses
 `%LOCALAPPDATA%\BontaFlowStack\state\v2`. If it finds non-empty state at two
 different roots, it stops before host configuration; set `BFS_STATE_HOME` to the
 existing root you choose and rerun setup. It never merges the roots. Each host's
-`install-state.json` pins the selected root so both hosts share memory,
-workflows, checkpoints and browser state.
+`install-state.json` pins the selected root for project memory and retained
+records. Active workflows and browser ownership remain session/workspace scoped.
 
 Start a fresh session in each configured host and use its router:
 
@@ -108,3 +114,7 @@ data. Back up and remove those separately only when you intend to erase them; se
 
 Historical 1.0.0 Codex Desktop results retain their original scope in the
 [release evidence](RELEASE-1.0.0.md).
+
+For other problems, [open an issue](https://github.com/BillBalint-SM/bontaflowstack/issues/new)
+with the BFS and host versions, setup command, reproduction steps and exact error.
+Remove credentials, personal paths and private content from logs.

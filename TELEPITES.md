@@ -4,7 +4,8 @@
 
 ### Az első ötlettől az átadható eredményig.
 
-**34 egymáshoz kapcsolódó skill a Codexhez és a Claude Code-hoz.** Formálj terméket az ötletedből,
+**34 egymáshoz kapcsolódó skill a Codex, Claude Code, Gemini CLI, GitHub Copilot CLI,
+Cursor IDE és OpenCode CLI platformokra.** Formálj terméket az ötletedből,
 tervezd meg a felületét, építsd meg az elfogadott terv alapján, és ellenőrizd valódi
 böngészőben. Később ott folytathatod, ahol abbahagytad: a projektdöntések és az
 elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
@@ -12,15 +13,16 @@ elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 [![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.1.0)
 [![Licenc: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
-![Hostok: Codex és Claude Code](https://img.shields.io/badge/Hosts-Codex%20%2B%20Claude%20Code-222222)
+![Agentplatformok: 6](https://img.shields.io/badge/Agentplatformok-6-222222)
 
 **Publikált npm-kiadás: `1.1.0`.**
 · [Telepítés lépésről lépésre](#telepítés-windowsra)
 · [Korábbi 1.0.0-s bizonyítékok](docs/bontaflowstack/RELEASE-1.0.0.md)
 
-Az `1.1.0` kiadás az Impeccable CLI-t is
-automatikusan telepíti és beállítja mindkét hosthoz. A változtatás és a próbák
-az [Impeccable-telepítés leírásában](docs/bontaflowstack/IMPECCABLE-SETUP.md) szerepelnek.
+A repository mind a hat platform adapterét tartalmazza. Az npm-en elérhető
+`1.1.0` a Codexet és a Claude Code-ot tartalmazza; a négy új adapter a következő
+npm-kiadásba kerül. A közös telepítő a böngésző/render motort és az Impeccable-t
+is beállítja. [Platformútmutató](docs/bontaflowstack/PLATFORMS.md).
 
 Ezen az oldalon együtt találod a BontaFlowStack bemutatóját, a skillek listáját
 és a teljes magyar telepítési útmutatót. A projekt alapértelmezett főoldala az
@@ -29,7 +31,7 @@ Ezen az oldalon együtt találod a BontaFlowStack bemutatóját, a skillek list�
 ## Vidd végig a terméked útját a saját projektedben
 
 Van egy kipróbálandó ötleted, egy javítandó képernyőd vagy egy befejezésre váró
-funkciód? A BontaFlowStack célzott munkamódszereket ad a Codexnek és a Claude Code-nak ezekhez:
+funkciód? A BontaFlowStack célzott munkamódszereket ad az agentednek ezekhez:
 
 - **Találd meg a következő hasznos lépést.** A kezdeti elképzelésből legyen
   megfogalmazott ügyfélprobléma, specifikáció, tervezési irány vagy fejlesztési terv.
@@ -70,6 +72,29 @@ $bfs-router Segíts megtervezni egy időpontfoglaló oldalt a szolgáltatásomho
 Claude Code-ban a `/bontaflowstack:bfs-router` paranccsal kezdd. A telepítő nem
 ad hook-bizalmat, és nem módosítja a host jogosultságait; a hookokat a host szokásos
 bizalmi felületén kell áttekinteni és jóváhagyni, ha erre kér.
+
+## Válaszd ki a platformodat
+
+| Platform | Telepítőkapcsoló | Natív integráció |
+| --- | --- | --- |
+| Codex | `--host codex` | Plugin és helyi marketplace |
+| Claude Code | `--host claude` | Felhasználói plugin és marketplace |
+| Gemini CLI | `--host gemini` | Gemini extension |
+| GitHub Copilot CLI | `--host copilot` | Copilot agentplugin |
+| Cursor IDE | `--host cursor` | Helyi plugin; telepítés után ablakújratöltés |
+| OpenCode CLI | `--host opencode` | Helyi V1 plugin |
+
+A táblázat a repository hatplatformos telepítőjét írja le. Kapcsoló nélkül a
+megtalált platformokat állítja be; a `--host all` mind a hat meglétét kéri.
+Az alábbi, publikált `1.1.0`-s parancsok annak két platformjára vonatkoznak.
+
+A négy új platformon kérd az agentet a telepített `bfs-router` skill használatára.
+Cursorban előbb mentsd a munkádat, futtasd a **Developer: Reload Window** parancsot,
+majd nyiss új Agent chatet. A közös projektmemóriát több platformról is használhatod;
+az aktív munkamenetek és a böngészők tulajdonosa elkülönül.
+
+A verziókövetelmények és az első indítás részletei a
+[platformútmutatóban](docs/bontaflowstack/PLATFORMS.md) találhatók.
 
 ## Válassz a feladatodhoz illő skillt
 
@@ -153,25 +178,9 @@ A böngésző függőségei és a Chromium a beállítás során töltődnek le.
 designintegrációkat akkor adhatod hozzá, amikor szükség van a képességeikre.
 
 [Helyi adatok, mentés és eltávolítás](docs/bontaflowstack/LOCAL-DATA.md).
-Az opcionális hookok mindkét hoston a natív bizalmi jóváhagyást igénylik; a
+Az opcionális hookok a host natív bizalmi jóváhagyását igénylik; a
 telepítő ezt nem kerüli meg. A guard feladatra korlátozott figyelmeztetést és szerkesztési ellenőrzést ad; nem
 operációs rendszer szintű biztonsági határ.
-
-## Mire épül az 1.0.0?
-
-Ez a kiadás az igazolt 0.7.5-ös megvalósítást viszi tovább **1.0.0** néven,
-frissített verziójelöléssel és felhasználói dokumentációval. A kiadási kapu
-ellenőrzi, hogy a pluginban csak a két verziómező változott: a többi pluginfájl,
-a motor, a setup és a marketplace bájtjainak egyezniük kell az elfogadott csomagéval.
-
-A megőrzött gyakorlati bizonyíték **Windows x64-en, valódi Codex Desktopban,
-Full Access mellett, ZIP-ből telepített pluginra** vonatkozik. Lefedi a projekthez
-kapcsolódást, a látható Chromiumot, az emberi beavatkozást, az agent folytatását,
-a visszaolvasást és a lezárást. Ez a futás 0.7.5-tel történt; az eredeti verzióval
-és környezettel őrizzük meg, nem nevezzük át új 1.0.0-s próbának.
-
-[Bizonyítékok és kompatibilitási határok](docs/bontaflowstack/RELEASE-1.0.0.md)
-· [Változásnapló](docs/bontaflowstack/CHANGELOG.md)
 
 ## Telepítés Windowsra
 
@@ -275,8 +284,8 @@ Az angol [Windows telepítési útmutató](docs/bontaflowstack/INSTALL-WINDOWS.m
 ## Alakítsd te is a folytatást
 
 Hibát találtál? [Nyiss hibajegyet](https://github.com/BillBalint-SM/bontaflowstack/issues),
-és add meg a plugin, a Desktop és a CLI verzióját, a megkísérelt műveletet és
-a tényleges hibaüzenetet. Távolítsd el a személyes útvonalakat, hitelesítési adatokat
+és add meg a BFS verzióját, a platform nevét és verzióját, a megkísérelt műveletet,
+a reprodukálás lépéseit és a tényleges hibaüzenetet. Távolítsd el a személyes útvonalakat, hitelesítési adatokat
 és privát oldaltartalmakat.
 
 Szívesen fogadunk hozzájárulásokat. Az architektúra és a működési szerződés
