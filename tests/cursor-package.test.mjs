@@ -25,6 +25,7 @@ test('Cursor package exposes all skills, prefixed MCP tools and native hooks fro
   }
   for(const skill of catalog.skills) {
     const file=path.join(output,'skills',skill.id,'SKILL.md'),text=fs.readFileSync(file,'utf8');checkLocalLinks(file);
+    assert.ok(text.includes("the installed plugin's `bfs-cursor` MCP `bfs_core` tool"),'Cursor skill must name its registered MCP server');
     assert.ok(text.includes(`{"args":["read","${skill.id}"]}`));assert.match(text,/`bfs_core`/);assert.doesNotMatch(text,/Codex|Claude|Gemini|Copilot|CODEX_THREAD_ID/);
     if(!['bfs-router','bfs-design-consultation','bfs-design-html'].includes(skill.id))assert.equal(text.split('\n').slice(9).join('\n'),fs.readFileSync(path.join(canonical,'skills',skill.id,'SKILL.md'),'utf8').split('\n').slice(9).join('\n'));
   }

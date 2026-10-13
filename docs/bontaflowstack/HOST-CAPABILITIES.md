@@ -17,7 +17,7 @@ a tényleges session/workspace kötése kell; a hiányzó kötést nem helyettes
 | --- | --- | --- | --- |
 | G | Gemini CLI 0.63.0 | Extension, engedélyezett BeforeTool argumentummódosítás és MCP; az npm-ből indított skill/model próbát a napi ingyenes kvóta blokkolta. | [Gemini-port](ports/gemini-cli.md), E19–E20 |
 | P | GitHub Copilot CLI 1.0.96 | Agent Plugins csomag, preToolUse módosítás, engedélyezett MCP és a feladat natív eszközei; a host timeoutja önmagában nem bizonyít tiltást. | [Copilot-port](ports/copilot-cli.md), E27–E28, E40, E42, E48, E50 |
-| C | Cursor IDE 3.24.12 | Helyi plugin, aktív preToolUse és argumentummódosítás, engedélyezett MCP; az importkapcsoló kikapcsolása a plugin-hookokat is kikapcsolta. E61: a külön `bontaflowstack-cursor`/`bfs-cursor` jelölt natív státuszhívása importált BFS mellett is sikeres; teljes skillfeladatút még nem igazolt. | [Cursor-port](ports/cursor-ide.md), E29–E31, E51, E61 |
+| C | Cursor IDE 3.24.12 | Helyi plugin, aktív preToolUse és argumentummódosítás, engedélyezett MCP; az importkapcsoló kikapcsolása a plugin-hookokat is kikapcsolta. E61: a külön `bontaflowstack-cursor`/`bfs-cursor` jelölt natív státuszhívása importált BFS mellett is sikeres; E64-ben a telepített memória-skill írás/visszaolvasása is sikeres. A motoros IDE-út külön nyitott. | [Cursor-port](ports/cursor-ide.md), E29–E31, E51, E61, E64 |
 | O | OpenCode CLI 1.19.0, V1 API | Config callback, tool.execute.before, engedélyezett MCP és feladateszközök. Health és context sikeres; a szabad modell context-próbájában bash:ask kellett, shell nem futott. A teljes tiltás melletti upstream elutasítást a setup nem írhatja felül. | [OpenCode-port](ports/opencode-cli.md), E33–E37, E55 |
 
 A verziók a vizsgált verziók; ez a lista nem állítja, hogy minden későbbi verzió
@@ -31,8 +31,8 @@ megfelel. A Cursor CLI, felhős agentek, OpenCode Desktop, macOS és Linux nem e
   elérhetetlenné a többi alapműveletet.
 - **U:** az instrukció és csomagolás jelen van, de a mód teljes natív feladatútja
   nincs igazolva. Nem jelenti sem a támogatás elfogadását, sem az elérhetetlenséget.
-- **B:** a telepített Cursor-csomag normál együttélési útján megfigyelt hívási akadály.
-  A külön projekt-hookkal előkészített diagnosztika nem általános setupjavítás.
+- **B:** megfigyelt hívási akadály. A Cursor korábbi közös kötési akadályát
+  E61/E64 feloldotta; a még nem vizsgált módok ezért U jelölésűek.
 - **N:** az adott mód egy konkrét natív npm-feladatútja sikeres, a hivatkozott
   bizonyíték szűk határán. Más projektre, modellre és összes bemenetre nem garancia.
 - **X:** az extra műveletet a port nem biztosítja. `U + X`/`B + X` esetén az
@@ -51,55 +51,55 @@ módhoz szükséges hozzáférést jelöli; a telepítés ezt sem biztosítja au
 
 | Skill | Mód | Besorolás | További feltétel | G | P | C | O | Bizonyíték |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `bfs-router` | `route`, `guide` | Alap | Aktuális projekt és elérhető célskill; soros útválasztás | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-router` | `setup` | Alap | Helyes npm-verzió, telepítő-hozzáférés, natív trust és szükség esetén újratöltés | U | U | B | U | E19/E27/E29/E35: npm-setup; a skill útja E-NONE |
-| `bfs-implement` | `implement` | Alap + extra | Elfogadott alap, engedélyezett szerkesztés és tesztparancs; párhuzamos végrehajtás kizárva | U + X | N + X | B + X | U + X | E48: Copilot elfogadási checkpoint, tényleges RED/GREEN, mentett output és külön elfogadási próba |
-| `bfs-business-builder` | `explore`, `diagnose` | Alap | Felhasználói cél és döntések; szükség szerint olvasható források | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-spec` | `draft`, `revise` | Alap | Projektolvasás, specifikáció írása a kért helyre | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-autoplan` | `review` | Alap + extra | Olvasható terv, soros review; párhuzamos BFS-review nincs engedélyezve | U + X | U + X | B + X | U + X | E-BUILD; E-NONE |
-| `bfs-plan-ceo-review` | `review` | Alap | Olvasható terv és üzleti cél | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-plan-eng-review` | `review` | Alap | Olvasható terv, kód és projektutasítások | U | N | B | U | E48: Copilot forrásolvasás, mentett engineering review és soros workflow |
-| `bfs-plan-design-review` | `review` | Alap | Olvasható tervezett képernyők és folyamatok; nem helyettesít böngészős mérést | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-plan-devex-review` | `review` | Alap | Olvasható interfész- és onboardingterv | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-plan-tune` | `inspect` | Extra | Preferenciák olvasása | U | U | B | U | E28/E36: preferences effective; a skill módja E-NONE |
-| `bfs-plan-tune` | `configure`, `proposals` | Extra | Tényleges felhasználói választás és állapotírás; panel helyett chat megengedett | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-design-consultation` | `consult`, `refine` | Alap | Designbrief, olvasás/írás és valós felhasználói választás | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-design-consultation` | `variants` | Alap | Render MCP, sandboxolt Chromium, írható projekt és képeredmény megtekintése | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-design-consultation` | `images` | Alap + extra | Megadott asset vagy készített HTML/SVG; raszteres generálás/szerkesztés kizárva, képértés modellfüggő | U + X | U + X | B + X | U + X | Generált skillutasítás; E-NONE |
-| `bfs-design-html` | `implement`, `refine` | Alap + extra | Elfogadott design, fájlszerkesztés, render és screenshot-megtekintés; külső rasztergenerálás nincs bekötve | U + X | U + X | B + X | U + X | E-BUILD; E-NONE |
-| `bfs-design-review` | `inspect` | Alap | Browser MCP, elérhető céloldal és képeredmény megtekintése | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-design-review` | `fix` | Alap | Browser MCP, engedélyezett forrásjavítás és ismételt ellenőrzés | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-browse` | `browse` | Alap | Browser MCP és elérhető URL; csak engedélyezett interakciók | U | N | B | N | E42/E56: natív Copilot/OpenCode, helyi oldal, kattintás, visszaolvasás és saját cleanup; E56 teljes engine-próbája az Impeccable-híváson hibázott |
-| `bfs-browse` | `open`, `login` | Alap | Látható saját böngésző és emberi átadás, ugyanazon session folytatása | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-scrape` | `extract`, `answer` | Alap | Browser MCP, ténylegesen hozzáférhető oldal és szükség esetén emberi belépés | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-benchmark` | `quick`, `baseline`, `compare` | Alap | Browser MCP és összehasonlítható mérési környezet; compare esetén létező baseline | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-benchmark` | `trend` | Alap | Olvasható, összevethető korábbi mérési adatok | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-bug-issue-investigate` | `diagnose` | Alap | Hibaadatok, kód és engedélyezett reprodukció | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-bug-issue-investigate` | `fix` | Alap | Igazolt reprodukció, engedélyezett szerkesztés és regressziópróba | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-review` | `inspect`, `fix` | Alap | Azonosított diff, követelmények; fix esetén módosítás és ellenőrzés | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-cso-audit` | `audit` | Alap | Olvasható, engedélyezett kódbázis és ellenőrzési határ | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-health` | `check` | Alap | A projekt meglévő ellenőrző parancsának engedélyezett futtatása | U | N | B | N | E28/E36: natív skill, HOST, preferencia, status és fixture-teszt; E48: Copilot workflow utolsó lépése |
-| `bfs-qa` | `inspect` | Alap | Browser MCP, célfolyamat és engedélyezett tesztadatok; coverage-feltételek lent | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-qa` | `fix` | Alap | A QA feltételei és engedélyezett forrásjavítás/újrapróba | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-documentation` | `create`, `update`, `coverage` | Alap | Olvasható forrás; create/update esetén engedélyezett dokumentumírás | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-finisher` | `prepare` | Alap | Git-állapot és friss ellenőrzési eredmények | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-finisher` | `publish` | Alap | Kért konkrét külső művelet, Git/hosting-hozzáférés és ellenőrzött tartalom | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-prod-deploy` | `inspect`, `verify` | Alap | A kijelölt integráció/telepítés állapotának olvasása, szükséges hitelesítés | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-prod-deploy` | `integrate`, `deploy` | Alap | Kért konkrét külső művelet, friss bizonyíték és célszolgáltatás hozzáférése | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-landing-report` | `report` | Alap | Meglévő feladat-/integrációs adatok olvasása; nem indít workert | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-bontaflow-memory` | `read` | Alap | A tényleges projekthez kötött állapot olvasása | U | N | B | N | E40/E55: Copilot/OpenCode új session és másik projekt; E52: közös memória két Git-worktree-ben |
-| `bfs-bontaflow-memory` | `write` | Alap | Kért állapotmódosítás és tényleges forrás | U | N | B | N | E40/E55: Copilot/OpenCode forráshoz kötött döntés és visszaolvasás |
-| `bfs-bontaflow-memory` | `prune`, `export`, `import` | Alap | Kért állapotmódosítás vagy kijelölt export/import; prune csak konkrét rekordokon | U | U | B | U | E-BOUNDARY; E-NONE |
-| `bfs-save-context` | `pause`, `list` | Alap | Saját workflow/checkpoint, pause esetén írható állapot | U | N | B | N | E40/E55: Copilot/OpenCode teljes pause-snapshot és másik projekt üres listája |
-| `bfs-save-context` | `save`, `export` | Alap | Saját workflow/checkpoint és írható állapot; exportnál kijelölt cél | U | U | B | U | E-BOUNDARY; E-NONE |
-| `bfs-load-context` | `resume` | Alap | Meglévő snapshot, driftellenőrzés és kért tulajdonátvétel | U | N | B | N | E40/E55: Copilot/OpenCode új session, drift és megőrzött snapshot; E50: Copilot leállított folyamat után azonos session, saját lépés újraellenőrzése |
-| `bfs-load-context` | `load`, `import` | Alap | Meglévő snapshot; importnál kijelölt fájl és kérés | U | U | B | U | E-BOUNDARY; E-NONE |
-| `bfs-guard` | `status`, `warnings`, `boundary`, `combined`, `release`, `off` | Extra | Kifejezett kérés, tényleges hookmegfigyelés; az editkorlát nem shell-sandbox | U | U | B | U | E-BOUNDARY; E28/E36 guardjelzés, teljes skillút E-NONE |
-| `bfs-retro` | `report` | Alap | Tényleges munka- és ellenőrzési nyomok olvasása | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-prototype` | `explore` | Alap | Elkülönített írható kísérleti könyvtár és engedélyezett próbaeszközök | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-triage` | `report` | Alap | Hibaadatok és projektforrások olvasása | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-wayfinder` | `guide` | Alap | Aktuális projekt- és munkafolyamat-adatok olvasása | U | U | B | U | E-BUILD; E-NONE |
-| `bfs-learn` | `practice`, `review` | Alap | Kijelölt gyakorlókönyvtár; practice esetén írás/futtatás, review esetén valós bizonyíték | U | U | B | U | E-BUILD; E-NONE |
+| `bfs-router` | `route`, `guide` | Alap | Aktuális projekt és elérhető célskill; soros útválasztás | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-router` | `setup` | Alap | Helyes npm-verzió, telepítő-hozzáférés, natív trust és szükség esetén újratöltés | U | U | U | U | E19/E27/E29/E35: npm-setup; a skill útja E-NONE |
+| `bfs-implement` | `implement` | Alap + extra | Elfogadott alap, engedélyezett szerkesztés és tesztparancs; párhuzamos végrehajtás kizárva | U + X | N + X | U + X | U + X | E48: Copilot elfogadási checkpoint, tényleges RED/GREEN, mentett output és külön elfogadási próba |
+| `bfs-business-builder` | `explore`, `diagnose` | Alap | Felhasználói cél és döntések; szükség szerint olvasható források | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-spec` | `draft`, `revise` | Alap | Projektolvasás, specifikáció írása a kért helyre | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-autoplan` | `review` | Alap + extra | Olvasható terv, soros review; párhuzamos BFS-review nincs engedélyezve | U + X | U + X | U + X | U + X | E-BUILD; E-NONE |
+| `bfs-plan-ceo-review` | `review` | Alap | Olvasható terv és üzleti cél | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-plan-eng-review` | `review` | Alap | Olvasható terv, kód és projektutasítások | U | N | U | U | E48: Copilot forrásolvasás, mentett engineering review és soros workflow |
+| `bfs-plan-design-review` | `review` | Alap | Olvasható tervezett képernyők és folyamatok; nem helyettesít böngészős mérést | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-plan-devex-review` | `review` | Alap | Olvasható interfész- és onboardingterv | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-plan-tune` | `inspect` | Extra | Preferenciák olvasása | U | U | U | U | E28/E36: preferences effective; a skill módja E-NONE |
+| `bfs-plan-tune` | `configure`, `proposals` | Extra | Tényleges felhasználói választás és állapotírás; panel helyett chat megengedett | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-design-consultation` | `consult`, `refine` | Alap | Designbrief, olvasás/írás és valós felhasználói választás | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-design-consultation` | `variants` | Alap | Render MCP, sandboxolt Chromium, írható projekt és képeredmény megtekintése | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-design-consultation` | `images` | Alap + extra | Megadott asset vagy készített HTML/SVG; raszteres generálás/szerkesztés kizárva, képértés modellfüggő | U + X | U + X | U + X | U + X | Generált skillutasítás; E-NONE |
+| `bfs-design-html` | `implement`, `refine` | Alap + extra | Elfogadott design, fájlszerkesztés, render és screenshot-megtekintés; külső rasztergenerálás nincs bekötve | U + X | U + X | U + X | U + X | E-BUILD; E-NONE |
+| `bfs-design-review` | `inspect` | Alap | Browser MCP, elérhető céloldal és képeredmény megtekintése | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-design-review` | `fix` | Alap | Browser MCP, engedélyezett forrásjavítás és ismételt ellenőrzés | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-browse` | `browse` | Alap | Browser MCP és elérhető URL; csak engedélyezett interakciók | U | N | U | N | E42/E56: natív Copilot/OpenCode, helyi oldal, kattintás, visszaolvasás és saját cleanup; E56 teljes engine-próbája az Impeccable-híváson hibázott |
+| `bfs-browse` | `open`, `login` | Alap | Látható saját böngésző és emberi átadás, ugyanazon session folytatása | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-scrape` | `extract`, `answer` | Alap | Browser MCP, ténylegesen hozzáférhető oldal és szükség esetén emberi belépés | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-benchmark` | `quick`, `baseline`, `compare` | Alap | Browser MCP és összehasonlítható mérési környezet; compare esetén létező baseline | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-benchmark` | `trend` | Alap | Olvasható, összevethető korábbi mérési adatok | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-bug-issue-investigate` | `diagnose` | Alap | Hibaadatok, kód és engedélyezett reprodukció | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-bug-issue-investigate` | `fix` | Alap | Igazolt reprodukció, engedélyezett szerkesztés és regressziópróba | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-review` | `inspect`, `fix` | Alap | Azonosított diff, követelmények; fix esetén módosítás és ellenőrzés | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-cso-audit` | `audit` | Alap | Olvasható, engedélyezett kódbázis és ellenőrzési határ | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-health` | `check` | Alap | A projekt meglévő ellenőrző parancsának engedélyezett futtatása | U | N | U | N | E28/E36: natív skill, HOST, preferencia, status és fixture-teszt; E48: Copilot workflow utolsó lépése |
+| `bfs-qa` | `inspect` | Alap | Browser MCP, célfolyamat és engedélyezett tesztadatok; coverage-feltételek lent | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-qa` | `fix` | Alap | A QA feltételei és engedélyezett forrásjavítás/újrapróba | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-documentation` | `create`, `update`, `coverage` | Alap | Olvasható forrás; create/update esetén engedélyezett dokumentumírás | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-finisher` | `prepare` | Alap | Git-állapot és friss ellenőrzési eredmények | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-finisher` | `publish` | Alap | Kért konkrét külső művelet, Git/hosting-hozzáférés és ellenőrzött tartalom | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-prod-deploy` | `inspect`, `verify` | Alap | A kijelölt integráció/telepítés állapotának olvasása, szükséges hitelesítés | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-prod-deploy` | `integrate`, `deploy` | Alap | Kért konkrét külső művelet, friss bizonyíték és célszolgáltatás hozzáférése | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-landing-report` | `report` | Alap | Meglévő feladat-/integrációs adatok olvasása; nem indít workert | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-bontaflow-memory` | `read` | Alap | A tényleges projekthez kötött állapot olvasása | U | N | U | N | E40/E55: Copilot/OpenCode új session és másik projekt; E52: közös memória két Git-worktree-ben |
+| `bfs-bontaflow-memory` | `write` | Alap | Kért állapotmódosítás és tényleges forrás | U | N | N | N | E40/E55: Copilot/OpenCode forráshoz kötött döntés és visszaolvasás; E64: Cursor telepített skill, natív memóriaírás és history-visszaolvasás |
+| `bfs-bontaflow-memory` | `prune`, `export`, `import` | Alap | Kért állapotmódosítás vagy kijelölt export/import; prune csak konkrét rekordokon | U | U | U | U | E-BOUNDARY; E-NONE |
+| `bfs-save-context` | `pause`, `list` | Alap | Saját workflow/checkpoint, pause esetén írható állapot | U | N | U | N | E40/E55: Copilot/OpenCode teljes pause-snapshot és másik projekt üres listája |
+| `bfs-save-context` | `save`, `export` | Alap | Saját workflow/checkpoint és írható állapot; exportnál kijelölt cél | U | U | U | U | E-BOUNDARY; E-NONE |
+| `bfs-load-context` | `resume` | Alap | Meglévő snapshot, driftellenőrzés és kért tulajdonátvétel | U | N | U | N | E40/E55: Copilot/OpenCode új session, drift és megőrzött snapshot; E50: Copilot leállított folyamat után azonos session, saját lépés újraellenőrzése |
+| `bfs-load-context` | `load`, `import` | Alap | Meglévő snapshot; importnál kijelölt fájl és kérés | U | U | U | U | E-BOUNDARY; E-NONE |
+| `bfs-guard` | `status`, `warnings`, `boundary`, `combined`, `release`, `off` | Extra | Kifejezett kérés, tényleges hookmegfigyelés; az editkorlát nem shell-sandbox | U | U | U | U | E-BOUNDARY; E28/E36 guardjelzés, teljes skillút E-NONE |
+| `bfs-retro` | `report` | Alap | Tényleges munka- és ellenőrzési nyomok olvasása | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-prototype` | `explore` | Alap | Elkülönített írható kísérleti könyvtár és engedélyezett próbaeszközök | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-triage` | `report` | Alap | Hibaadatok és projektforrások olvasása | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-wayfinder` | `guide` | Alap | Aktuális projekt- és munkafolyamat-adatok olvasása | U | U | U | U | E-BUILD; E-NONE |
+| `bfs-learn` | `practice`, `review` | Alap | Kijelölt gyakorlókönyvtár; practice esetén írás/futtatás, review esetén valós bizonyíték | U | U | U | U | E-BUILD; E-NONE |
 
 A QA `quick`, `full`, `regression`, `diff` értékei lefedettségek, nem külön
 módok. A `regression` megnevezett baseline-t, a `diff` konkrét diffBase-t

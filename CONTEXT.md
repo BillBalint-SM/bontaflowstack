@@ -175,7 +175,18 @@ of blocked adminpolicy or an exact-name marketplace conflict remain unverified.
 Draft PR #5 is open at https://github.com/BillBalint-SM/bontaflowstack/pull/5.
 Its initial CI found two test-only Windows short-path comparisons (152/154).
 The Cursor/OpenCode package fixtures now canonicalize their temporary roots;
-the targeted tests passed 2/2. The updated CI outcome still needs readback.
+the targeted tests passed 2/2. Both push and PR Windows Node 24 CI passed at
+`fa0af7d` (runs 38468120988 and 38468127207).
+
+E63 fixes a generated Cursor instruction mismatch: skills and references now
+name the registered `bfs-cursor` MCP server. The new Cursor assertion failed
+before the fix; all four host package checks passed afterward. A new local
+npm candidate, `9.9.9-cursor-skill.1`, was installed through npx and reloaded.
+E64 passed the installed memory skill's write/readback journey in a new Cursor
+Agent chat (Grok 4.6 Medium, 58 seconds). The expanded native MCP history result
+and an independent read-only core query matched. This closes the missing basic
+Cursor skill/model path, not browser/render or adminpolicy acceptance. No npm
+publication occurred; PR #5 remains draft for the recorded open requirements.
 
 ## Terms
 
