@@ -14,7 +14,7 @@ test('portable MCP entry and bundled engine match their release records',()=>{
   assert.deepEqual(connection.env_vars,['BFS_STATE_HOME']);
   assert.ok(fs.statSync(path.join(plugin,connection.args[0])).isFile());
   const lock=JSON.parse(fs.readFileSync(path.join(plugin,'engines.lock.json'),'utf8'));
-  assert.equal(lock.version,'0.3.4');
+  assert.equal(lock.version,'0.3.5');
   const bytes=fs.readFileSync(path.join(plugin,lock.bundledArchive));
   assert.equal(createHash('sha256').update(bytes).digest('hex'),lock.sha256);
 });

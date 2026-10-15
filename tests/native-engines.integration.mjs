@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
 import {pathToFileURL} from 'node:url';
+import {spawnSync} from 'node:child_process';
 
 // Explicit opt-in: this test uses an existing isolated setup result, never a model.
 if(process.env.BFS_RUN_NATIVE_ENGINES==='1') {
@@ -24,8 +25,11 @@ if(process.env.BFS_RUN_NATIVE_ENGINES==='1') {
     await browser.run(['click','button'],project);
     assert.match(await browser.run(['text'],project),/Clicked/);
     const cdp=await browser.browser.newBrowserCDPSession();
-    const command=await cdp.send('Browser.getBrowserCommandLine');
-    assert.equal(command.arguments.includes('--no-sandbox'),false);
+    const processes=await cdp.send('SystemInfo.getProcessInfo');
+    const pid=processes.processInfo.find(item=>item.type==='browser')?.id;assert.ok(pid);
+    const command=spawnSync('ps',['-p',String(pid),'-o','args='],{encoding:'utf8'});
+    assert.equal(command.status,0,command.stderr);assert.match(command.stdout,/chrom(?:e|ium)/i);
+    assert.equal(command.stdout.includes('--no-sandbox'),false);
     await cdp.detach();
     await browser.current.screenshot({path:path.join(project,'browser.png')});
     const rendered=await render([url,'--width','640','--height','480','--screenshot','render.png'],project);

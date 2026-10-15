@@ -36,6 +36,7 @@ jobs:
           BFS_RUN_NATIVE_ENGINES: '1'
         run: node tests/native-engines.integration.mjs "$RUNNER_TEMP/native-setup.log"
       - name: Native Gemini, Copilot and OpenCode setup without model requests
+        if: ${{ !cancelled() }}
         run: |
           export BFS_RUN_GEMINI_SETUP=1 BFS_RUN_COPILOT_SETUP=1 BFS_RUN_OPENCODE_SETUP=1
           export BFS_GEMINI_CLI="$(node -p 'require("node:fs").realpathSync(process.argv[1])' "$(command -v gemini)")"
