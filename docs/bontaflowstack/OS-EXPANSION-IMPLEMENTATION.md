@@ -1283,3 +1283,13 @@ a takarítás előtti egyenlőségasserten mutatja a hibát. Az öt takarítási
 assert most ugyanazt a natív feloldást használja, mint a létrehozás; a
 könyvtárhatár és prefix ellenőrzése nem lazult. Három célzott helyi
 Windows-eset sikeres; a rövidút-specifikus regressziót a teljes CI igazolja.
+
+A következő Alpine CI a setup két további `cpSync` pontján is kimutatta
+ugyanezt az új Node-viselkedést: a runtime helyreállítás és az Impeccable
+stagingje már létező célkönyvtár volt. Mindkettő most a saját lefoglalt
+staginggyökér új alkönyvtárába másol. Az ütközés-, inventory- és adatmegőrzési
+ellenőrzések megmaradtak. A javított setup mind a 37 tesztje sikeres a helyi
+Alpine userlandben, natív musl Node 24.22.0-val, az előfeltétel Git telepítése
+után. A teljes közös teszt még fut. Az első helyi teljes helper hibái hiányzó
+Gitből és hibás munkakönyvtárból adódtak; ezeket nem tekintjük termékhibának
+vagy sikeres ellenőrzésnek. A nyers sikertelen helpernaplók megmaradtak.

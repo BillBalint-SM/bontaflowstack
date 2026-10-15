@@ -266,13 +266,14 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
     if (fs.existsSync(installationRoot)) {
       if(platform!=='win32' && !sameInventory(runtimeCopy.source)) {
         writeRuntimeRecord(runtimeRecord?.activeNode || legacyNode || process.execPath);
-        const stage=fs.mkdtempSync(path.join(installationRoot,'.runtime-build-'));
+        const stagingRoot=fs.mkdtempSync(path.join(installationRoot,'.runtime-build-'));
+        const stage=path.join(stagingRoot,'next');
         fs.cpSync(source,stage,{recursive:true,errorOnExist:true,force:false});
         for(const [file,contents] of runtimeFiles)fs.writeFileSync(path.join(stage,file),contents);
         for(const details of Object.values(layout))fs.writeFileSync(path.join(stage,details.plugin,'install-state.json'),pin,{flag:'wx'});
         requireValue(sameInventory(stage),'Runtime staging differed; files were preserved.');
         replaceSource({...runtimeCopy,pluginRoot:stage});
-        requireValue(path.dirname(stage)===installationRoot && path.basename(stage).startsWith('.runtime-build-') && sameInventory(stage),'Unexpected runtime stage was preserved.');noLinks(stage);fs.rmSync(stage,{recursive:true});
+        requireValue(path.dirname(stagingRoot)===installationRoot && path.basename(stagingRoot).startsWith('.runtime-build-') && sameInventory(stage),'Unexpected runtime stage was preserved.');noLinks(stagingRoot);fs.rmSync(stagingRoot,{recursive:true});
         progress.runtime.recovery.status='pending';
       }
       requireValue(sameInventory(path.join(installationRoot, 'hosts')), `Installed version ${pkg.version} differs from this package; files were preserved. Use a new release version.`);
@@ -355,10 +356,12 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
         requireValue(sameTool(toolRoot), `Impeccable installation differs; files were preserved at ${toolRoot}`);
       } else {
         fs.mkdirSync(path.dirname(toolRoot), { recursive:true });
-        const stage = fs.mkdtempSync(path.join(path.dirname(toolRoot), '.staging-'));
+        const stagingRoot = fs.mkdtempSync(path.join(path.dirname(toolRoot), '.staging-'));
+        const stage = path.join(stagingRoot,'tool');
         fs.cpSync(toolSource, stage, { recursive:true, force:false, errorOnExist:true });
         requireValue(sameTool(stage), `Impeccable copy differs; files were preserved at ${stage}`);
         fs.renameSync(stage, toolRoot);
+        fs.rmdirSync(stagingRoot);
       }
       const executable = path.join(toolRoot, platform==='win32'?'bin/impeccable.exe':'bin/impeccable');
       if(platform!=='win32')fs.accessSync(executable,fs.constants.X_OK);
