@@ -14,7 +14,15 @@ from the loaded skill and invoke its absolute launcher path from the project:
 & "<plugin>/scripts/bfstack.ps1" -Command workflow -Action start -InputFile "request.json"
 ```
 
-The equivalent direct interface is:
+On Linux/macOS use the direct Node entry point; Windows also supports it:
+
+```sh
+node "/absolute/path/to/plugin/core/cli.mjs" doctor
+node "/absolute/path/to/plugin/core/cli.mjs" read bfs-router
+node "/absolute/path/to/plugin/core/cli.mjs" workflow start --input request.json
+```
+
+Resolve the absolute plugin path from this installation. The direct interface is:
 `node "<plugin>/core/cli.mjs" <command> <action> --input request.json`.
 Use `--input -` for UTF-8 JSON on stdin. Do not interpolate user/page data into
 shell code. Inspect JSON, stderr and exit status. `read` returns instructions;

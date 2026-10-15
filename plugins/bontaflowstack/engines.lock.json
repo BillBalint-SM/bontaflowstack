@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "0.3.3",
-  "bundledArchive": "engines/BontaFlowStack-engines-0.3.3-source.zip",
-  "sha256": "f48d62c878894d537e163aa4ac1864495f4b167573fe6eb1f8e7067cda6b61a9"
+  "version": "0.3.5",
+  "bundledArchive": "engines/BontaFlowStack-engines-0.3.5-source.zip",
+  "sha256": "1f06b011cd5250931ca818cfb8dda1a974a029de568684e1d8015b920109b182"
 }

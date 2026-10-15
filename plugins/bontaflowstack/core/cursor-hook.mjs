@@ -21,8 +21,8 @@ export function cursorHook(event,env=process.env) {
   if(kind==='postToolUse')return guard(ctx,'status').hookObservedRecently?{additional_context:`BFS_GUARD_OBSERVED task=${ctx.taskId} workspace=${ctx.workspaceId}`} : {};
   object(event.tool_input);
   const name=cursorTools.find(name=>cursorToolName(name)===event.tool_name);
-  const input=name?callArguments(event.tool_input):event.tool_name==='Shell'?{...event.tool_input,workdir:event.tool_input.working_directory?path.resolve(ctx.cwd,event.tool_input.working_directory):ctx.cwd}:event.tool_input;
-  const result=preTool(ctx,{...event,hook_event_name:'PreToolUse',session_id:ctx.taskId,cwd:ctx.cwd,tool_name:event.tool_name==='Shell'?'PowerShell':event.tool_name,tool_input:input}).hookSpecificOutput;
+  const input=name?callArguments(event.tool_input):event.tool_name==='Shell'?{...event.tool_input,...(process.platform==='win32'?{}:{shell:'unknown'}),workdir:event.tool_input.working_directory?path.resolve(ctx.cwd,event.tool_input.working_directory):ctx.cwd}:event.tool_input;
+  const result=preTool(ctx,{...event,hook_event_name:'PreToolUse',session_id:ctx.taskId,cwd:ctx.cwd,tool_name:event.tool_name==='Shell'?(process.platform==='win32'?'PowerShell':'exec_command'):event.tool_name,tool_input:input}).hookSpecificOutput;
   if(result.permissionDecision==='deny')return {permission:'deny',agent_message:result.permissionDecisionReason};
   return name?{updated_input:issueCall(ctx,name,event.tool_input)}:{};
 }

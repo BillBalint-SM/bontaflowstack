@@ -5,6 +5,65 @@ on:
 permissions:
   contents: read
 jobs:
+  native-setup:
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Initialize private native test directory
+        run: |
+          mkdir -m 700 "$RUNNER_TEMP/bfs-native"
+          echo "TMPDIR=$RUNNER_TEMP/bfs-native" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned native host CLIs in a disposable prefix
+        run: |
+          npm install --prefix "$RUNNER_TEMP/native-hosts" --no-audit --no-fund @openai/codex@0.162.0 @anthropic-ai/claude-code@2.1.296 @google/gemini-cli@0.63.0 @github/copilot@1.0.96 opencode-ai@1.19.0
+          echo "$RUNNER_TEMP/native-hosts/node_modules/.bin" >> "$GITHUB_PATH"
+      # This provisions only the GitHub Ubuntu runner, never a user's Linux setup.
+      - name: Provision Chromium libraries on the Linux CI runner
+        if: runner.os == 'Linux'
+        run: npx --yes --package playwright@1.62.1 playwright install-deps chromium
+      - name: Allow Chromium user namespaces only in the disposable CI directory
+        if: runner.os == 'Linux'
+        run: |
+          printf 'abi <abi/4.0>,\nprofile bfs-native-chromium "%s/**/.browsers/**/{chrome,chrome-headless-shell,headless_shell}" flags=(unconfined) {\n  userns,\n}\n' "$TMPDIR" | sudo tee /etc/apparmor.d/bfs-native-chromium
+          sudo apparmor_parser -r /etc/apparmor.d/bfs-native-chromium
+      - name: Native Codex and Claude install, repeat, update and removal
+        shell: bash
+        env:
+          BFS_RUN_NPM_SETUP_INTEGRATION: '1'
+        run: node tests/npm-setup.integration.mjs | tee "$RUNNER_TEMP/native-setup.log"
+      - name: Native Mac case-sensitive and insensitive volume identities
+        if: ${{ !cancelled() && runner.os == 'macOS' }}
+        env:
+          BFS_RUN_NATIVE_FILESYSTEM: '1'
+        shell: bash
+        run: |
+          node tests/posix-filesystem.integration.mjs "$TMPDIR" insensitive
+          hdiutil create -size 64m -fs HFSX -volname BFSCase "$RUNNER_TEMP/bfs-case.dmg"
+          mkdir "$RUNNER_TEMP/bfs-case-mount"
+          hdiutil attach "$RUNNER_TEMP/bfs-case.dmg" -mountpoint "$RUNNER_TEMP/bfs-case-mount" -nobrowse
+          trap 'hdiutil detach "$RUNNER_TEMP/bfs-case-mount"' EXIT
+          node tests/posix-filesystem.integration.mjs "$RUNNER_TEMP/bfs-case-mount" sensitive
+      - name: Native browser, render and sandbox launch arguments
+        env:
+          BFS_RUN_NATIVE_ENGINES: '1'
+        run: node tests/native-engines.integration.mjs "$RUNNER_TEMP/native-setup.log"
+      - name: Native Gemini, Copilot and OpenCode setup without model requests
+        if: ${{ !cancelled() }}
+        run: |
+          export BFS_RUN_GEMINI_SETUP=1 BFS_RUN_COPILOT_SETUP=1 BFS_RUN_OPENCODE_SETUP=1
+          export BFS_GEMINI_CLI="$(node -p 'require("node:fs").realpathSync(process.argv[1])' "$(command -v gemini)")"
+          export BFS_COPILOT_CLI="$(node -p 'require("node:fs").realpathSync(process.argv[1])' "$(command -v copilot)")"
+          export BFS_OPENCODE_CLI="$(command -v opencode)"
+          node --test --test-concurrency=3 tests/gemini-setup.integration.mjs tests/copilot-setup.integration.mjs tests/opencode-setup.integration.mjs
   core:
     # Dedicated release-proof pushes run only the three gate cases in release-gate-proof.yml.
     if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
@@ -18,3 +77,128 @@ jobs:
       - run: ./scripts/build-package.ps1 -OutputDirectory artifacts/source-check
       - run: ./scripts/test-package.ps1 -Archive (Get-ChildItem artifacts/source-check/*-source.zip).FullName
       - run: node --test tests/npm-release.test.mjs tests/release-gate.test.mjs tests/release-workflow.test.mjs tests/release-promotion.test.mjs
+  posix:
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux
+            arch: x64
+          - runner: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+          - runner: macos-15
+            platform: darwin
+            arch: arm64
+          - runner: macos-15-intel
+            platform: darwin
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Record native runtime
+        run: node -e "const a=require('node:assert/strict'); a.equal(process.platform,process.argv[1]); a.equal(process.arch,process.argv[2]); console.log(JSON.stringify({platform:process.platform,arch:process.arch,node:process.version}))" '${{ matrix.platform }}' '${{ matrix.arch }}'
+      - name: Check temp-directory aliases
+        run: |
+          temporary=$(mktemp -d)
+          ln -s "$temporary" "$RUNNER_TEMP/bfs-temp-alias"
+          TMPDIR="$RUNNER_TEMP/bfs-temp-alias" node --test --test-name-pattern='essential context retains fact' tests/core.test.mjs
+      - run: node scripts/check.mjs
+  linux-candidate:
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      # Linux distro checks do not wait for the Mac runner results.
+      - name: Build the shared Linux distro candidate
+        run: |
+          node scripts/build-npm-package.mjs --output artifacts/npm-check/package
+          npm pack ./artifacts/npm-check/package --pack-destination artifacts/npm-check
+          sha256sum artifacts/npm-check/*.tgz > artifacts/npm-check/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-distro-candidate
+          path: |
+            artifacts/npm-check/*.tgz
+            artifacts/npm-check/SHA256SUMS
+          if-no-files-found: error
+  linux-distro:
+    needs: linux-candidate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: debian:13-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
+            prerequisites: apt-get update && apt-get install -y --no-install-recommends git ca-certificates libstdc++6
+          - image: fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+            prerequisites: dnf install -y git ca-certificates libstdc++ tar gzip
+          - image: archlinux:base@sha256:3c64b538588416593f69a1aebd2f2ec0f2541b29159f32556fa7def2167147a0
+            prerequisites: pacman -Syu --noconfirm git ca-certificates gcc-libs tar gzip
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      - name: Install CI prerequisites
+        run: ${{ matrix.prerequisites }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-distro-candidate
+          path: artifacts/npm-check
+      - name: Record distribution and native runtime
+        run: |
+          cat /etc/os-release
+          node -e "console.log(JSON.stringify({platform:process.platform,arch:process.arch,node:process.version}))"
+      - run: node scripts/check.mjs
+      - name: Check the same packed core
+        run: |
+          sha256sum -c artifacts/npm-check/SHA256SUMS
+          set -- artifacts/npm-check/*.tgz
+          test "$#" -eq 1
+          mkdir "$RUNNER_TEMP/bfs-packed"
+          tar -xzf "$1" -C "$RUNNER_TEMP/bfs-packed"
+          export BFS_STATE_HOME="$RUNNER_TEMP/bfs-packed-state"
+          node "$RUNNER_TEMP/bfs-packed/package/bin/setup.mjs" --help
+          node "$RUNNER_TEMP/bfs-packed/package/hosts/codex/plugins/bontaflowstack/core/cli.mjs" doctor
+  linux-musl:
+    needs: linux-candidate
+    runs-on: ubuntu-24.04
+    env:
+      MUSL_IMAGE: node:24-alpine3.24@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-distro-candidate
+          path: artifacts/npm-check
+      - name: Check Alpine core with its native musl Node
+        run: |
+          docker pull "$MUSL_IMAGE"
+          docker image inspect "$MUSL_IMAGE" --format '{{json .RepoDigests}}'
+          docker run --rm --volume "$PWD:/work:ro" --workdir /work "$MUSL_IMAGE" /bin/sh -ec '
+            apk add --no-cache git
+            cp -a /work /tmp/bfs-source
+            cd /tmp/bfs-source
+            cat /etc/os-release
+            node -e "console.log(JSON.stringify({platform:process.platform,arch:process.arch,node:process.version}))"
+            node scripts/check.mjs
+            sha256sum -c artifacts/npm-check/SHA256SUMS
+            set -- artifacts/npm-check/*.tgz
+            test "$#" -eq 1
+            mkdir /tmp/bfs-packed
+            tar -xzf "$1" -C /tmp/bfs-packed
+            export BFS_STATE_HOME=/tmp/bfs-packed-state
+            node /tmp/bfs-packed/package/bin/setup.mjs --help
+            node /tmp/bfs-packed/package/hosts/codex/plugins/bontaflowstack/core/cli.mjs doctor
+          '

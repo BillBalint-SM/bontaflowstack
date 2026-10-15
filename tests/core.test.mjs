@@ -11,22 +11,87 @@ import { memory, preferences } from '../plugins/bontaflowstack/core/memory.mjs';
 import { guard, preTool, classify } from '../plugins/bontaflowstack/core/guard.mjs';
 import { delivery, versionNext } from '../plugins/bontaflowstack/core/delivery.mjs';
 import { engines } from '../plugins/bontaflowstack/core/engines.mjs';
+import { issueCall } from '../plugins/bontaflowstack/core/call-binding.mjs';
 import { checkLocalLinks } from '../scripts/check.mjs';
 import { loadCatalog, resolveSkill, pluginRoot } from '../plugins/bontaflowstack/core/cli.mjs';
 
 const catalog = loadCatalog();
+
+test('PowerShell literal parser refuses variable and subexpression arguments', {skip:process.platform!=='win32'}, t=>{
+  const {project}=fixture(t);
+  for(const command of ['git $args','git "$(Get-Location)"'])assert.equal(classify(command,project,project,'powershell')?.decision,'ask');
+  assert.equal(classify('git log --oneline',project,project,'powershell'),null);
+});
+
+test('guard does not certify an unknown shell as PowerShell or Bash', t => {
+  const {project}=fixture(t);
+  for(const shell of ['/bin/zsh','/bin/sh','/usr/bin/fish','unrecognized']) {
+    const decision=classify('git status --short',project,project,shell);
+    assert.equal(decision?.decision,'ask',shell);
+    assert.match(decision.reason,/shell/i);
+  }
+  assert.equal(classify('git status --short',project,project,'/bin/bash'),null);
+});
+
+test('state roots follow the native platform and reject a relative override', t => {
+  const {project,root,env}=fixture(t);
+  const nativeEnv={...env,LOCALAPPDATA:path.join(root,'local'),XDG_STATE_HOME:path.join(root,'xdg-state')};
+  delete nativeEnv.BFS_STATE_HOME;
+  const result=context(project,nativeEnv);
+  const expected=process.platform==='win32' ? path.join(nativeEnv.LOCALAPPDATA,'BontaFlowStack','state','v2')
+    : process.platform==='linux' ? path.join(nativeEnv.XDG_STATE_HOME,'bontaflowstack','state','v2')
+    : path.join(os.homedir(),'Library','Application Support','BontaFlowStack','state','v2');
+  assert.equal(result.home,expected);
+  assert.equal(fs.existsSync(result.home),false,'reading must not initialize state');
+  assert.throws(()=>context(project,{...env,BFS_STATE_HOME:'relative-state'}),/absolute/);
+  if(process.platform==='linux') {
+    for(const value of ['', 'relative-xdg']) assert.equal(context(project,{...nativeEnv,XDG_STATE_HOME:value}).home,path.join(os.homedir(),'.local/state/bontaflowstack/state/v2'));
+  }
+});
+
+test('private state creation preserves POSIX directory and file permissions', {skip:process.platform==='win32'}, t => {
+  const {root,ctx}=fixture(t),directory=path.join(root,'private','nested'),file=path.join(directory,'state.json');
+  const existing=path.join(root,'existing');fs.mkdirSync(existing,{mode:0o755});
+  atomicWrite(file,{value:'private'});
+  assert.equal(fs.statSync(directory).mode & 0o777,0o700);
+  assert.equal(fs.statSync(path.dirname(directory)).mode & 0o777,0o700);
+  assert.equal(fs.statSync(file).mode & 0o777,0o600);
+  atomicWrite(path.join(existing,'state.json'),{value:'preserved directory'});
+  assert.equal(fs.statSync(existing).mode & 0o777,0o755,'existing directories must not be chmodded');
+  issueCall({...ctx,host:'copilot-cli',sessionId:'native-session',agentId:'native-agent'},'status',{});
+  assert.equal(fs.statSync(path.join(ctx.home,'copilot-cli','calls')).mode & 0o777,0o700);
+});
 function hookCommand(event = 'PreToolUse') {
   const hook = readJson(path.join(pluginRoot,'hooks/hooks.json')).hooks[event][0].hooks[0];
-  assert.equal(hook.command,hook.commandWindows);
-  return hook.commandWindows.match(/ -Command "(.+)"$/)[1];
+  assert.match(hook.command,/^node /);
+  return process.platform==='win32'
+    ? ['powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-Command',hook.commandWindows.match(/ -Command "(.+)"$/)[1]]]
+    : ['/bin/sh',['-c',hook.command]];
 }
+
+test('POSIX hook commands retain context and interrupted workflow contracts', {skip:process.platform==='win32'}, t => {
+  const {ctx,project,env}=fixture(t),hooks=readJson(path.join(pluginRoot,'hooks/hooks.json')).hooks;
+  const invoke=(event,input)=>spawnSync('/bin/sh',['-c',hooks[event][0].hooks[0].command],{
+    cwd:project,env:{...env,PLUGIN_ROOT:pluginRoot,PATH:`${path.dirname(process.execPath)}${path.delimiter}${env.PATH || ''}`},
+    input:JSON.stringify({cwd:project,session_id:ctx.taskId,hook_event_name:event,...input}),encoding:'utf8',timeout:10000});
+  assert.match(hooks.PreToolUse[0].hooks[0].command,/^node /);
+  const pre=invoke('PreToolUse',{tool_name:'Bash',tool_input:{command:'git status --short'}});
+  assert.equal(pre.status,0,pre.stderr);
+  assert.match(JSON.parse(pre.stdout).hookSpecificOutput.additionalContext,/BFS_GUARD_OBSERVED/);
+  const work=workflow(ctx,'start',{goal:'POSIX interruption fixture',skills:['bfs-spec']},catalog);
+  workflow(ctx,'begin',{id:work.id,step:'1'},catalog);
+  const stop=invoke('Stop',{});
+  assert.equal(stop.status,0,stop.stderr);
+  assert.deepEqual(JSON.parse(stop.stdout),{});
+  assert.equal(workflow(ctx,'resume',{id:work.id},catalog).steps[0].status,'interrupted');
+});
 function fixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(),'bfs-core-'));
+  const root = fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-core-'));
   const project = path.join(root,'project'); fs.mkdirSync(project);
   const env = { ...process.env, BFS_STATE_HOME:path.join(root,'state'), CODEX_THREAD_ID:'fixture-task' };
   const ctx = context(project,env);
   t.after(() => {
-    assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));
+    assert.equal(path.dirname(root),fs.realpathSync.native(os.tmpdir()));
     assert.match(path.basename(root),/^bfs-core-/);
     fs.rmSync(root,{recursive:true,force:true});
   });
@@ -484,7 +549,7 @@ test('guard fixture enforces edit targets and independent toggles; fixture is no
   assert.equal(guard(ctx,'status').warnings,true); assert.equal(guard(ctx,'status').boundary,null);
 });
 
-test('guard recognizes destructive commands with global Git options and PowerShell aliases', t => {
+test('guard recognizes destructive commands with global Git options and PowerShell aliases', {skip:process.platform!=='win32'}, t => {
   const {ctx,project,root}=fixture(t);
   assert.equal(classify('git -c core.pager=cat reset --hard',project,project).decision,'ask');
   const rootDelete=classify(`Remove-Item -LiteralPath '${project}' -Recurse -Force`,project,project);
@@ -512,20 +577,21 @@ test('guard blocks a warning until the exact operation has a single-use confirma
 
 test('guard covers destructive Git aliases and default worktree restores', t => {
   const {ctx,project}=fixture(t);
-  const event={hook_event_name:'PreToolUse',session_id:ctx.taskId,cwd:project,tool_name:'functions.exec_command',tool_input:{cmd:'git status --short'}};
+  const shell=process.platform==='win32'?'powershell':'bash';
+  const event={hook_event_name:'PreToolUse',session_id:ctx.taskId,cwd:project,tool_name:'functions.exec_command',tool_input:{cmd:'git status --short',shell}};
   const observation=preTool(ctx,event).hookSpecificOutput.additionalContext;
   guard(ctx,'set',{observation,warnings:true});
   for (const cmd of ['git clean --force','git -C . clean --force','git restore file.txt','git restore -W file.txt',
     'git checkout -- file.txt','git checkout HEAD -- file.txt','git branch --delete --force fixture','git branch -df fixture']) {
-    const call={...event,tool_input:{cmd}};
-    assert.equal(classify(cmd,project,project)?.decision,'ask',cmd);
+    const call={...event,tool_input:{cmd,shell}};
+    assert.equal(classify(cmd,project,project,shell)?.decision,'ask',cmd);
     assert.equal(preTool(ctx,call).hookSpecificOutput.permissionDecision,'deny',cmd);
     guard(ctx,'approve',{observation,id:guard(ctx,'status').pending.id,confirmation:'Fixture authorizes this exact simulated command; it is never executed'});
     assert.equal(preTool(ctx,call).hookSpecificOutput.permissionDecision,undefined,cmd);
     assert.equal(preTool(ctx,call).hookSpecificOutput.permissionDecision,'deny',cmd);
   }
   for (const cmd of ['git status --short','git clean --dry-run','git checkout fixture','git branch --list --force',
-    'git restore --help','git restore --staged file.txt']) assert.equal(classify(cmd,project,project),null,cmd);
+    'git restore --help','git restore --staged file.txt']) assert.equal(classify(cmd,project,project,shell),null,cmd);
 });
 
 test('delivery preserves command exit and rejects stale evidence', t => {
@@ -541,7 +607,7 @@ test('delivery preserves command exit and rejects stale evidence', t => {
   assert.equal(versionNext('1.2.3.4','minor'),'1.3.0.0');
 });
 
-test('PowerShell launcher resolves a renamed skill and reads from a fresh package path', t => {
+test('PowerShell launcher resolves a renamed skill and reads from a fresh package path', {skip:process.platform!=='win32'}, t => {
   const {env,project}=fixture(t);
   const result=spawnSync('powershell.exe',['-NoProfile','-File',path.join(pluginRoot,'scripts/bfstack.ps1'),'-Command','catalog','-Action','resolve','bfstack'],{cwd:project,env,encoding:'utf8',windowsHide:true});
   assert.equal(result.status,0,result.stderr);
@@ -559,6 +625,9 @@ test('Node engine bridge preserves failures and isolates missing external design
   const bytes=JSON.stringify(manifest);fs.writeFileSync(path.join(engine,'engine.json'),bytes);
   engines(ctx,'register',{root:engine,sha256:digest(bytes)});
   const state=engines(ctx,'status');assert.equal(state.capabilities.browser.ready,true);assert.equal(state.capabilities['design-md'].ready,false);
+  assert.equal(state.capabilities.browser.status,'ready');assert.equal(state.runtime.status,'unverified');
+  assert.equal(state.capabilities['design-md'].status,'unavailable');assert.ok(state.capabilities['design-md'].nextAction);
+  assert.match(state.capabilities['design-md'].nextAction,/BFS_TEST_MISSING_COMMAND/);
   const result=engines(ctx,'browser',{args:['status']});assert.equal(result.exitCode,7);assert.equal(result.status,'failed');
   assert.ok(JSON.parse(result.stdout).session.startsWith(ctx.workspaceDir));
 });
@@ -590,11 +659,10 @@ test('Impeccable uses persisted configuration, honors overrides and preserves de
   assert.deepEqual(JSON.parse(engines(ctx,'design-detect').stdout),[process.execPath,'custom']);
 });
 
-test('PowerShell native-hook command forwards UTF-8 stdin and returns the host contract', t => {
+test('native-hook command forwards UTF-8 stdin and returns the host contract', t => {
   const {env,project}=fixture(t);
   const payload={hook_event_name:'PreToolUse',session_id:env.CODEX_THREAD_ID,cwd:project,tool_name:'functions.exec_command',tool_input:{cmd:'git status'}};
-  const command=hookCommand();
-  const result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-Command',command],{cwd:project,env:{...env,PLUGIN_ROOT:pluginRoot},input:JSON.stringify(payload),encoding:'utf8',windowsHide:true,timeout:15000});
+  const result=spawnSync(...hookCommand(),{cwd:project,env:{...env,PLUGIN_ROOT:pluginRoot},input:JSON.stringify(payload),encoding:'utf8',windowsHide:true,timeout:15000});
   assert.equal(result.status,0,result.stderr);
   assert.match(JSON.parse(result.stdout).hookSpecificOutput.additionalContext,/BFS_GUARD_OBSERVED/);
 });
@@ -603,7 +671,7 @@ test('native hook preserves inspection failure exit codes and Stop success', t =
   const {env,project}=fixture(t);
   for (const [event,code] of [['PreToolUse',2],['Stop',0]]) {
     const payload={hook_event_name:event,session_id:env.CODEX_THREAD_ID,cwd:project,tool_name:'functions.exec_command',tool_input:null};
-    const result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-Command',hookCommand(event)],{cwd:project,env:{...env,PLUGIN_ROOT:pluginRoot},input:JSON.stringify(payload),encoding:'utf8',windowsHide:true,timeout:8000});
+    const result=spawnSync(...hookCommand(event),{cwd:project,env:{...env,PLUGIN_ROOT:pluginRoot},input:JSON.stringify(payload),encoding:'utf8',windowsHide:true,timeout:8000});
     assert.equal(result.status,code,result.stderr || result.stdout);
     if(event==='PreToolUse') assert.match(JSON.parse(result.stdout).hookSpecificOutput.permissionDecisionReason,/Malformed native tool input/);
     else assert.deepEqual(JSON.parse(result.stdout),{});
@@ -624,7 +692,7 @@ test('parallel native hooks refresh missing and stale observations and wait for 
     }
     const payload={hook_event_name:'PreToolUse',session_id:ctx.taskId,cwd:project,tool_name:'functions.exec_command',tool_input:{cmd:'git status'}};
     const results=await Promise.all(Array.from({length:8},()=>new Promise(resolve=>{
-      const child=spawn('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-Command',hookCommand()],{cwd:project,env:runEnv,windowsHide:true,timeout:8000});
+      const child=spawn(...hookCommand(),{cwd:project,env:runEnv,windowsHide:true,timeout:8000});
       let stdout='',stderr='';
       child.stdout.on('data',data=>stdout+=data); child.stderr.on('data',data=>stderr+=data);
       child.on('error',error=>resolve({error:error.message}));

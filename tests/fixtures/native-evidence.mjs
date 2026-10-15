@@ -30,6 +30,10 @@ export function writeCommandEvidence(file,result) {
   fs.writeFileSync(file,JSON.stringify(summary,null,2)+'\n');return summary;
 }
 
+export function setupFailure(result) {
+  return String(result.stderr || '').split(/\r?\n/).filter(line=>/^(?:BontaFlowStack setup:|Setup incomplete|npm (?:error|ERR!)|\w*Error(?: \[[A-Z_]+\])?:)|sandbox|error while loading shared libraries|browserType.launch|Operation not permitted/.test(line)).slice(0,8).join('; ').replace(/https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]+|(?:gh[pousr]_|sk-)[\w-]+/gi,'[redacted]').slice(0,2400);
+}
+
 const toolNames=new Set([
   'skill','activate_skill','view','read','glob','grep','list','powershell','bash','apply_patch','create','edit','write',
   ...['core','status','browser','render','select_project'].flatMap(name=>['bfs-'+name,'bfs_'+name,'mcp_bfs_'+name]),

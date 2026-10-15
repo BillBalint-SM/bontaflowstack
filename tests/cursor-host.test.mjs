@@ -85,7 +85,8 @@ test('Cursor native edit and shell guards reject invalid context and retain host
   const denied=f.hook('preToolUse',{tool_name:'Shell',tool_input:{command:'Remove-Item -LiteralPath ./target.txt',working_directory:f.project}});
   assert.equal(denied.status,0,denied.stderr);assert.equal(JSON.parse(denied.stdout).permission,'deny');
   const allowedCall=f.hook('preToolUse',{tool_name:'Shell',tool_input:{command:'git status --short',working_directory:f.project}});
-  assert.equal(allowedCall.status,0,allowedCall.stderr);assert.equal(JSON.parse(allowedCall.stdout).permission,undefined);
+  assert.equal(allowedCall.status,0,allowedCall.stderr);assert.equal(JSON.parse(allowedCall.stdout).permission,process.platform==='win32'?undefined:'deny');
+  if(process.platform!=='win32')assert.match(JSON.parse(allowedCall.stdout).agent_message,/shell|inspect/i);
   for(const extra of [{session_id:'different'},{workspace_roots:[]},{workspace_roots:[f.nativeRoot,f.nativeRoot]},{conversation_id:'../forged'}]) {
     const invalid=f.hook('preToolUse',{tool_name:'MCP:bfs_status',tool_input:{},...extra});
     assert.equal(invalid.status,2);assert.equal(JSON.parse(invalid.stdout).permission,'deny');

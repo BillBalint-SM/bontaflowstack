@@ -23,6 +23,10 @@ Az `1.2.0` mind a hat platform adapterét tartalmazza egyetlen npm-csomagban.
 A közös telepítő a böngésző/render motort és az Impeccable-t is beállítja.
 [Platformútmutató](docs/bontaflowstack/PLATFORMS.md).
 
+A #6 Linux/macOS-portja még nem publikált jelölt. A
+[telepítési útmutató és OS-bizonyítékmátrix](docs/bontaflowstack/OS-SUPPORT.md)
+külön jelzi a tesztelt disztribúciókat, a hostkorlátokat és a hiányzó natív Mac/ARM64 próbákat.
+
 Ezen az oldalon együtt találod a BontaFlowStack bemutatóját, a skillek listáját
 és a teljes magyar telepítési útmutatót. A projekt alapértelmezett főoldala az
 [angol README](README.md).

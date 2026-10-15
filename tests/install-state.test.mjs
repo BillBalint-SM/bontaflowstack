@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const fixture = fs.mkdtempSync(path.join(os.tmpdir(), `bfs-install-state-${randomUUID()}-`));
+const fixture = fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()), `bfs-install-state-${randomUUID()}-`));
 const evidenceDir = path.join(repo, '.tmp', `install-state-${randomUUID()}`);
 const plugin = path.join(fixture, 'host-plugin');
 const core = path.join(plugin, 'core');
@@ -20,8 +20,12 @@ try {
   const localA = path.join(fixture, 'codex-localappdata');
   const localB = path.join(fixture, 'claude-localappdata');
   const pinned = path.join(fixture, 'shared-bfs-state');
+  const defaultEnv={LOCALAPPDATA:localA,XDG_STATE_HOME:path.join(fixture,'xdg-state')};
+  const fallback=process.platform==='win32' ? path.join(localA,'BontaFlowStack','state','v2')
+    : process.platform==='linux' ? path.join(defaultEnv.XDG_STATE_HOME,'bontaflowstack','state','v2')
+    : path.join(os.homedir(),'Library','Application Support','BontaFlowStack','state','v2');
 
-  assert.equal(context(project, { LOCALAPPDATA: localA }).home, path.join(localA, 'BontaFlowStack', 'state', 'v2'), 'without a host config, legacy LOCALAPPDATA fallback is retained');
+  assert.equal(context(project,defaultEnv).home,fallback,'without a host config, the native platform fallback is used');
 
   fs.writeFileSync(path.join(plugin, 'install-state.json'), JSON.stringify({ schema: 1, stateHome: pinned }));
   assert.equal(context(project, { LOCALAPPDATA: localA }).home, pinned, 'installed host config pins shared state');
@@ -41,7 +45,7 @@ try {
 
   fs.mkdirSync(evidenceDir, { recursive: true });
   const evidence = path.join(evidenceDir, 'result.json');
-  fs.writeFileSync(evidence, JSON.stringify({ status: 'passed', fallback: path.join(localA, 'BontaFlowStack', 'state', 'v2'), pinned, explicit, cases: ['legacy-fallback', 'pinned-across-hosts', 'environment-override', 'malformed-config-rejected', 'relative-config-rejected', 'wrong-schema-rejected'] }, null, 2) + '\n');
+  fs.writeFileSync(evidence, JSON.stringify({ status: 'passed', fallback, pinned, explicit, cases: ['native-fallback', 'pinned-across-hosts', 'environment-override', 'malformed-config-rejected', 'relative-config-rejected', 'wrong-schema-rejected'] }, null, 2) + '\n');
   console.log(JSON.stringify({ status: 'passed', evidence }));
 } finally {
   // The fixture is a unique mkdtemp child created by this test.

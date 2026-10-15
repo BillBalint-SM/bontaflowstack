@@ -22,7 +22,8 @@ function build(host,outputValue) {
   if(within(fs.realpathSync(source),projected))throw new Error('Output must be outside the canonical plugin tree');
   const catalog=JSON.parse(fs.readFileSync(path.join(source,'catalog.json'),'utf8'));
   fs.mkdirSync(path.dirname(output),{recursive:true});
-  const stage=fs.mkdtempSync(path.join(path.dirname(output),'.bfs-host-'));
+  const stagingRoot=fs.mkdtempSync(path.join(path.dirname(output),'.bfs-host-'));
+  const stage=path.join(stagingRoot,'plugin');
   try {
     fs.cpSync(source,stage,{recursive:true,errorOnExist:true,force:false,filter:file=>{
       const relative=path.relative(source,file).replaceAll(path.sep,'/');
@@ -102,7 +103,7 @@ function build(host,outputValue) {
     if(fs.existsSync(output))throw new Error(`Output already exists; choose a new directory: ${output}`);
     fs.renameSync(stage,output);
     return {output,host,version:catalog.version,skillCount:catalog.skills.length};
-  }catch(error){fs.rmSync(stage,{recursive:true,force:true});throw error;}
+  }finally{fs.rmSync(stagingRoot,{recursive:true,force:true});}
 }
 
 try {

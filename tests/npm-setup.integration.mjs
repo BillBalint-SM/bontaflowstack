@@ -1,17 +1,18 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
+import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { writeCommandEvidence ,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import { writeCommandEvidence ,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
 
 if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   console.log('SKIP: set BFS_RUN_NPM_SETUP_INTEGRATION=1 to run real npm pack/npx setup for Codex and Claude (downloads pinned browser engines).');
 } else {
-  assert.equal(process.platform, 'win32', 'native setup integration is Windows-only');
   const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const evidenceDir = path.join(repo, '.tmp', `npm-setup-integration-${randomUUID()}`);
+  const evidenceDir = path.join(process.platform==='win32'?path.join(repo,'.tmp'):fs.realpathSync.native(os.tmpdir()), `npm-setup-integration-${randomUUID()}`);
   const version = JSON.parse(fs.readFileSync(path.join(repo,'installers/npm/package.json'),'utf8')).version;
   const packageRoot = path.join(evidenceDir, 'source-package');
   const upgradeRoot = path.join(evidenceDir, 'synthetic-upgrade-package');
@@ -29,17 +30,25 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
     npm_config_cache:npmCache,
     npm_config_yes:'true',
   };
+  env.CODEX_THREAD_ID ||= 'npm-setup-validation';
+  if(process.platform!=='win32')Object.assign(env,{HOME:path.join(evidenceDir,'Home'),XDG_DATA_HOME:path.join(evidenceDir,'xdg-data'),XDG_CONFIG_HOME:path.join(evidenceDir,'xdg-config'),XDG_STATE_HOME:path.join(evidenceDir,'xdg-state')});
+  const {installRoot}=dataPaths(env);
+  const versionRoot=path.join(installRoot,'versions',...(process.platform==='win32'?[]:[`${process.platform}-${process.arch}`]));
   for (const directory of [evidenceDir, env.LOCALAPPDATA, env.USERPROFILE, env.CODEX_HOME, env.CLAUDE_CONFIG_DIR, stateHome, packDir, npmCache]) fs.mkdirSync(directory, { recursive:true });
 
   delete env.BFS_IMPECCABLE_COMMAND;
   const commandLogs = [];
   function execute(name, command, args, { cwd = repo, allowFailure = false, commandEnv = env } = {}) {
+    console.log(`Running ${name}; evidence: ${evidenceDir}`);
     const result = spawnSync(command, args, { cwd, env:commandEnv, encoding:'utf8', windowsHide:true, timeout:45 * 60 * 1000, maxBuffer:32 * 1024 * 1024 });
     const record = { name, command, args, cwd, status:result.status, signal:result.signal, error:result.error?.message, stdout:result.stdout || '', stderr:result.stderr || '' };
     const diagnostic=writeCommandEvidence(path.join(evidenceDir, `${name}.command-evidence.json`),record);
     commandLogs.push({ name, ...diagnostic });
     if (result.error) throw result.error;
-    if (!allowFailure) assert.equal(result.status, 0, `${name} failed; retained command evidence contains the exit code and output sizes`);
+    if (!allowFailure) {
+      const reason=setupFailure(result);
+      assert.equal(result.status, 0, `${name} failed${reason?`: ${reason}`:''}; retained command evidence contains the exit code and output sizes`);
+    }
     return record;
   }
   function resolveNpmCli(fileName) {
@@ -47,10 +56,16 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
       process.env.npm_execpath && path.join(path.dirname(process.env.npm_execpath), fileName),
       env.APPDATA && path.join(env.APPDATA, 'npm', 'node_modules', 'npm', 'bin', fileName),
       path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', fileName),
+      path.resolve(path.dirname(process.execPath), '../lib/node_modules/npm/bin', fileName),
     ].filter(Boolean);
     return candidates.find(file => fs.statSync(file, { throwIfNoEntry:false })?.isFile());
   }
   function findNative(name) {
+    if(process.platform!=='win32') {
+      const command=name.replace(/\.exe$/,'');
+      const file=env.PATH.split(path.delimiter).map(base=>path.join(base,command)).find(file=>fs.statSync(file,{throwIfNoEntry:false})?.isFile());
+      assert.ok(file,`Install native ${command} on PATH before opting in.`);return file;
+    }
     const result = execute(`where-${name}`, 'where.exe', [name], { allowFailure:true });
     assert.equal(result.status, 0, `Install ${name} and make it available on PATH before opting in.`);
     const file = result.stdout.trim().split(/\r?\n/)[0];
@@ -103,11 +118,10 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   assert.match(build.stdout, /"hosts":\["codex","claude","gemini","copilot","cursor","opencode"\]/);
   const firstTarball = pack('npm-pack-first', packageRoot);
   const firstInstall = npx('npx-first-noargs', firstTarball.archive);
-  assert.ok(firstInstall.stdout.includes(`installed at ${path.join(env.LOCALAPPDATA,'BontaFlowStack','npm','versions',version)}`));
+  assert.ok(firstInstall.stdout.includes(`completed at ${path.join(versionRoot,version)}`));
   const repeatInstall = npx('npx-repeat-noargs', firstTarball.archive);
-  assert.ok(repeatInstall.stdout.includes(`BontaFlowStack ${version} installed`));
+  assert.ok(repeatInstall.stdout.includes(`BontaFlowStack ${version} completed`));
 
-  const versionRoot = path.join(env.LOCALAPPDATA, 'BontaFlowStack', 'npm', 'versions');
   const firstRoot = path.join(versionRoot, version);
   const firstCodexRoot = path.join(firstRoot, 'hosts', 'codex', 'plugins', 'bontaflowstack');
   const firstClaudeRoot = path.join(firstRoot, 'hosts', 'claude');
@@ -121,7 +135,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   updateVersion(upgradeRoot, '9.9.9-test.1');
   const upgradeTarball = pack('npm-pack-upgrade', upgradeRoot);
   const upgradedInstall = npx('npx-synthetic-upgrade', upgradeTarball.archive);
-  assert.match(upgradedInstall.stdout, /installed at .*9\.9\.9-test\.1/i);
+  assert.match(upgradedInstall.stdout, /completed at .*9\.9\.9-test\.1/i);
   const upgradedRoot = path.join(versionRoot, '9.9.9-test.1');
   const codexRoot = path.join(upgradedRoot, 'hosts', 'codex', 'plugins', 'bontaflowstack');
   const claudeRoot = path.join(upgradedRoot, 'hosts', 'claude');
@@ -145,7 +159,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   assert.equal(path.resolve(claudeMarkets.find(item => item.name === 'bontaflowstack-npx')?.path || ''), path.resolve(path.join(upgradedRoot, 'hosts', 'claude')));
 
   const downgradedInstall = npx('npx-original-archive-downgrade', firstTarball.archive);
-  assert.ok(downgradedInstall.stdout.includes(`BontaFlowStack ${version} installed`));
+  assert.ok(downgradedInstall.stdout.includes(`BontaFlowStack ${version} completed`));
   const downgradedCodex = JSON.parse(execute('codex-plugin-list-after-downgrade', codex, ['--no-daemon','plugin','list','--json']).stdout).installed.find(item => item.pluginId === 'bontaflowstack@bontaflowstack');
   assert.equal(downgradedCodex?.version, version);
   assert.equal(downgradedCodex?.enabled, true);
@@ -160,13 +174,14 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   fs.writeFileSync(priorState, 'state survives uninstall');
   for (const pluginRoot of [firstCodexRoot, firstClaudeRoot]) {
     const doctorEnv = { ...env, LOCALAPPDATA:path.join(evidenceDir, 'RedirectedLocalAppData') };
+    if(process.platform!=='win32')doctorEnv.XDG_STATE_HOME=path.join(evidenceDir,'redirected-state');
     delete doctorEnv.BFS_STATE_HOME;
     const result = execute(`doctor-${path.basename(pluginRoot)}`, process.execPath, [path.join(pluginRoot, 'core', 'cli.mjs'), 'doctor', 'bfs-browse'], { cwd:evidenceDir, commandEnv:doctorEnv });
     const doctor = JSON.parse(result.stdout);
     assert.equal(doctor.core.ready, true);
     assert.equal(doctor.engines.installed, true);
     assert.equal(doctor.engines.capabilities['design-detect'].ready, true);
-    assert.equal(fs.existsSync(path.join(doctorEnv.LOCALAPPDATA, 'BontaFlowStack', 'state', 'v2', 'engines.json')), false, 'doctor should have used the pinned shared state, not redirected LOCALAPPDATA');
+    assert.equal(fs.existsSync(path.join(dataPaths(doctorEnv).stateHome,'engines.json')), false, 'doctor should have used the pinned shared state, not redirected defaults');
   }
 
   execute('codex-plugin-remove', codex, ['--no-daemon','plugin','remove','bontaflowstack@bontaflowstack','--json']);
@@ -193,6 +208,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   const cleanFile = path.join(evidenceDir,'clean.css');
   fs.writeFileSync(cleanFile,'body { margin: 0; }');
   const freshEnv = {...env, LOCALAPPDATA:path.join(evidenceDir,'RedirectedLocalAppData')};
+  if(process.platform!=='win32')freshEnv.XDG_STATE_HOME=path.join(evidenceDir,'redirected-state');
   delete freshEnv.BFS_STATE_HOME;
   for (const [name,root] of [['codex',firstCodexRoot],['claude',firstClaudeRoot]]) {
     for (const [label,target,exitCode,status] of [['findings',findingFile,2,'completed'],['clean',cleanFile,0,'completed'],['missing',path.join(evidenceDir,'missing.css'),1,'failed']]) {

@@ -5,6 +5,11 @@
 BontaFlowStack provides 34 skills across six agent platforms on Windows x64.
 Release `1.2.0` includes all six adapters in the same npm package.
 
+The unpublished Linux/macOS candidate has a separate
+[OS installation and evidence matrix](OS-SUPPORT.md). It distinguishes actual
+native host/engine results, provider limits and unverified targets from the
+released Windows baseline described below.
+
 ## One installer
 
 Install all detected platforms with the exact-version setup command:

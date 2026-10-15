@@ -25,7 +25,7 @@ const fingerprint=(name,input)=>digest(JSON.stringify(ordered({name,input:callAr
 export function issueCall(ctx,name,input) {
   requireValue(claudeTools.includes(name),'Unknown Claude BFS tool');
   const id=randomUUID(),folder=path.join(ctx.home,'claude-code','calls');
-  noLinks(folder);fs.mkdirSync(folder,{recursive:true});
+  noLinks(folder);fs.mkdirSync(folder,{recursive:true,mode:0o700});
   const record={schema:1,id,name,inputSha256:fingerprint(name,input),taskId:ctx.taskId,sessionId:ctx.sessionId,agentId:ctx.agentId,cwd:ctx.cwd,workspace:ctx.workspace,workspaceId:ctx.workspaceId,createdAt:Date.now()};
   atomicWrite(path.join(folder,`${id}.json`),record);
   return {...callArguments(input),_bfsCall:id};

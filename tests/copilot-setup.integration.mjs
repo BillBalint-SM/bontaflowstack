@@ -6,22 +6,28 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import {writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
+import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 
 test('real npm setup installs, repeats and upgrades Copilot with persistent engines and preserves disabled policy',{skip:process.env.BFS_RUN_COPILOT_SETUP!=='1'},async()=>{
-  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-copilot-setup-'));
+  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-copilot-setup-'));
   const project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
   const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,'UserProfile'),COPILOT_HOME:path.join(root,"Copilot's $profile"),COPILOT_CACHE_HOME:path.join(root,'copilot-cache'),BFS_STATE_HOME:path.join(root,'state'),npm_config_cache:path.join(root,'npm-cache'),npm_config_yes:'true'};
+  env.CODEX_THREAD_ID ||= 'copilot-setup-validation';
+  if(process.platform!=='win32')Object.assign(env,{HOME:path.join(root,'Home'),XDG_DATA_HOME:path.join(root,'xdg-data'),XDG_CONFIG_HOME:path.join(root,'xdg-config'),XDG_STATE_HOME:path.join(root,'xdg-state')});
+  const {installRoot}=dataPaths(env);
+  const versionRoot=path.join(installRoot,'versions',...(process.platform==='win32'?[]:[`${process.platform}-${process.arch}`]));
   delete env.BFS_IMPECCABLE_COMMAND;
   for(const directory of [project,packed,env.LOCALAPPDATA,env.USERPROFILE,env.COPILOT_HOME])fs.mkdirSync(directory,{recursive:true});
-  const npmBase=[process.env.npm_execpath && path.dirname(process.env.npm_execpath),path.join(process.env.APPDATA,'npm/node_modules/npm/bin'),path.join(path.dirname(process.execPath),'node_modules/npm/bin')].filter(Boolean).find(base=>fs.existsSync(path.join(base,'npm-cli.js')));
+  const npmBase=[process.env.npm_execpath && path.dirname(process.env.npm_execpath),process.env.APPDATA && path.join(process.env.APPDATA,'npm/node_modules/npm/bin'),path.join(path.dirname(process.execPath),'node_modules/npm/bin'),path.resolve(path.dirname(process.execPath),'../lib/node_modules/npm/bin')].filter(Boolean).find(base=>fs.existsSync(path.join(base,'npm-cli.js')));
   assert.ok(npmBase,'npm CLI must be installed');
   const copilot=process.env.BFS_COPILOT_CLI || path.join(process.env.APPDATA,'npm/node_modules/@github/copilot/npm-loader.js'),records=[];
-  const progressFile=path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/setup-status.json');
+  const progressFile=path.join(installRoot,'setup-status.json');
   async function run(label,args,{cwd=project,allowFailure=false,interruptPhase,interruptMarker,commandEnv=env}={}) {
     console.log(`Running ${label}; evidence: ${root}`);
     const result=await new Promise((resolve,reject)=>{
-      const child=spawn(process.execPath,args,{cwd,env:commandEnv,windowsHide:true,stdio:['ignore','pipe','pipe']});
+      const child=spawn(process.execPath,args,{cwd,env:commandEnv,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});
+      const stop=()=>{if(!child.pid)return;if(process.platform==='win32')spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});else try{process.kill(-child.pid,'SIGTERM');}catch(error){if(error.code!=='ESRCH')throw error;}};
       let stdout='',stderr='';
       let interrupted=false;
       const monitor=interruptPhase || interruptMarker?setInterval(()=>{
@@ -29,17 +35,17 @@ test('real npm setup installs, repeats and upgrades Copilot with persistent engi
         const progress=fs.existsSync(progressFile)?JSON.parse(fs.readFileSync(progressFile,'utf8')):null;
         if(interruptMarker?fs.existsSync(interruptMarker):progress?.status==='running' && progress.phase===interruptPhase) {
           interrupted=true;
-          spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});
+          stop();
         }
       },10):null;
-      const timer=setTimeout(()=>{clearInterval(monitor);if(child.pid)spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});reject(new Error(`${label} timed out`));},15*60*1000);
+      const timer=setTimeout(()=>{clearInterval(monitor);stop();reject(new Error(`${label} timed out`));},15*60*1000);
       child.stdout.on('data',chunk=>stdout+=String(chunk));child.stderr.on('data',chunk=>stderr+=String(chunk));
       child.on('error',error=>{clearInterval(monitor);clearTimeout(timer);reject(error);});
       child.on('close',code=>{clearInterval(monitor);clearTimeout(timer);resolve({code,stdout,stderr,interrupted});});
     });
     writeCommandEvidence(path.join(root,`${label}.command-evidence.json`),result);
     records.push({label,code:result.code});
-    if(!allowFailure)assert.equal(result.code,0,`${label} failed; retained command evidence contains the exit code and output sizes`);
+    if(!allowFailure)assert.equal(result.code,0,`${label} failed: ${setupFailure(result)}; retained command evidence contains the exit code and output sizes`);
     return result;
   }
   await run('build',[path.join(repo,'scripts/build-npm-package.mjs'),'--output',built]);
@@ -55,9 +61,9 @@ test('real npm setup installs, repeats and upgrades Copilot with persistent engi
   assert.equal(interrupted.interrupted,true);assert.notEqual(interrupted.code,0);
   const unfinished=JSON.parse(fs.readFileSync(progressFile,'utf8'));
   assert.equal(unfinished.status,'running');assert.equal(unfinished.phase,'engines');
-  assert.deepEqual(unfinished.hosts,[{host:'copilot',status:'placed'}]);
+  assert.equal(unfinished.hosts.length,1);assert.equal(unfinished.hosts[0].host,'copilot');assert.equal(unfinished.hosts[0].status,'registered');
   fs.writeFileSync(path.join(root,'interrupted-status.json'),JSON.stringify(unfinished,null,2)+'\n');
-  assert.equal((await plugins('interrupted-registration')).some(item=>item.name==='bontaflowstack'),false);
+  assert.equal((await plugins('interrupted-registration')).find(item=>item.name==='bontaflowstack')?.enabled,true);
   await npx('install',first);await npx('repeat',first);
   const initial=(await plugins('first-registration')).find(item=>item.name==='bontaflowstack');
   assert.equal(initial.enabled,true);assert.equal(initial.source,'live');assert.equal(initial.marketplace,'bontaflowstack-npx');
@@ -74,7 +80,7 @@ test('real npm setup installs, repeats and upgrades Copilot with persistent engi
   const interruptedSwap=await npx('interrupted-upgrade',second,{allowFailure:true,interruptMarker:swapMarker,commandEnv:{...env,NODE_OPTIONS:`${env.NODE_OPTIONS || ''} --import=${pathToFileURL(freeze).href}`.trim()}});
   assert.equal(interruptedSwap.interrupted,true);assert.notEqual(interruptedSwap.code,0);
   const saved=JSON.parse(fs.readFileSync(swapMarker,'utf8'));
-  assert.equal(saved.from,initial.installedFrom);assert.ok(path.resolve(saved.to).startsWith(path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/sources/copilot')+path.sep));
+  assert.equal(saved.from,initial.installedFrom);assert.ok(path.resolve(saved.to).startsWith(path.join(installRoot,'sources/copilot')+path.sep));
   assert.equal(fs.existsSync(initial.installedFrom),false);
   assert.deepEqual(fs.readFileSync(path.join(saved.to,'HOST.md')),beforeSwap);
   const pendingSwap=JSON.parse(fs.readFileSync(progressFile,'utf8'));assert.equal(pendingSwap.status,'running');assert.equal(pendingSwap.hosts[0].status,'registering');
@@ -84,7 +90,7 @@ test('real npm setup installs, repeats and upgrades Copilot with persistent engi
   const active=(await plugins('upgraded-registration')).find(item=>item.name==='bontaflowstack');
   assert.equal(active.version,next);assert.equal(active.enabled,true);assert.equal(active.installedFrom,initial.installedFrom);
   assert.equal(fs.readFileSync(memory,'utf8'),'preserved user state');
-  assert.ok(fs.existsSync(path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/versions',initial.version,'hosts/copilot/plugin.json')));
+  assert.ok(fs.existsSync(path.join(versionRoot,initial.version,'hosts/copilot/plugin.json')));
   fs.renameSync(env.npm_config_cache,env.npm_config_cache+'-removed');fs.renameSync(built,built+'-removed');fs.renameSync(upgrade,upgrade+'-removed');
   const after=(await plugins('without-cache')).find(item=>item.name==='bontaflowstack');assert.equal(after.version,next);
   const skills=JSON.parse((await run('skills',[copilot,'skill','list','--json'])).stdout).filter(item=>item.name.startsWith('bfs-'));

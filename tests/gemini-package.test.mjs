@@ -12,7 +12,7 @@ const catalog=JSON.parse(fs.readFileSync(path.join(source,'catalog.json'),'utf8'
 const build=output=>spawnSync(process.execPath,[path.join(repo,'scripts/build-host-package.mjs'),'--host','gemini-cli','--output',output],{encoding:'utf8',windowsHide:true});
 
 test('Gemini extension contains the complete skill catalog and native entry points without granting host permissions',t=>{
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-gemini-package-')),output=path.join(root,'extension with spaces');
+  const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-gemini-package-')),output=path.join(root,'extension with spaces');
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   const built=build(output);assert.equal(built.status,0,built.stderr);
   const manifest=JSON.parse(fs.readFileSync(path.join(output,'gemini-extension.json'),'utf8'));

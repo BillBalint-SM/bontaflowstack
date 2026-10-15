@@ -68,7 +68,7 @@ export function createNativeHost({env=process.env,confirmProject,consumeCall,hos
     if(['--help','help'].includes(args.args[0]))return api.help;
     if(!current.browser) {
       const folder=path.join(selected.workspaceDir,'engine-sessions',ctx.taskId,`${hostId.split('-')[0]}-browser`);
-      noLinks(folder);fs.mkdirSync(folder,{recursive:true});current.browser=api.createBrowser(folder);
+      noLinks(folder);fs.mkdirSync(folder,{recursive:true,mode:0o700});current.browser=api.createBrowser(folder);
     }
     const result=await current.browser.run(args.args,selected.cwd,args.stdin);
     await current.browser.save();return result;

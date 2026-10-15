@@ -9,7 +9,7 @@ import {checkLocalLinks} from '../scripts/check.mjs';
 
 test('Copilot package uses Agent Plugins 1.0 and its own hooks while preserving all skills',t=>{
   const repo=fileURLToPath(new URL('../',import.meta.url)),source=path.join(repo,'plugins/bontaflowstack');
-  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-copilot-package-')),output=path.join(temp,'package');
+  const temp=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-copilot-package-')),output=path.join(temp,'package');
   t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
   const built=spawnSync(process.execPath,[path.join(repo,'scripts/build-host-package.mjs'),'--host','copilot-cli','--output',output],{encoding:'utf8',windowsHide:true});
   assert.equal(built.status,0,built.stderr);

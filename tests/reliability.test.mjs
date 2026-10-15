@@ -11,16 +11,32 @@ import { createFixtures, snapshot } from './acceptance-fixtures.mjs';
 
 const catalog=loadCatalog();
 function fixture(t) {
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-reliability-'));
+  const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-reliability-'));
   const project=path.join(root,'project');fs.mkdirSync(project);
   const env={...process.env,BFS_STATE_HOME:path.join(root,'state'),CODEX_THREAD_ID:'fixture-task'};
-  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));assert.match(path.basename(root),/^bfs-reliability-/);fs.rmSync(root,{recursive:true,force:true});});
+  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync.native(os.tmpdir()));assert.match(path.basename(root),/^bfs-reliability-/);fs.rmSync(root,{recursive:true,force:true});});
   return {root,project,env,ctx:context(project,env)};
 }
 function cli(env,project,args,input={}) {
   const result=spawnSync(process.execPath,[path.join(pluginRoot,'core/cli.mjs'),...args,'--input','-'],{env,cwd:project,input:JSON.stringify(input),encoding:'utf8',windowsHide:true});
   return {...result,value:result.stdout?JSON.parse(result.stdout):null};
 }
+
+test('doctor keeps core usable without engines and explains requested capability recovery',t=>{
+  const {project,env}=fixture(t);
+  const core=cli(env,project,['doctor']);
+  assert.equal(core.status,0);assert.equal(core.value.core.ready,true);
+  assert.equal(core.value.core.status,'ready');
+  assert.equal(core.value.platform,process.platform);assert.equal(core.value.arch,process.arch);
+  if(process.platform==='linux')assert.ok(['glibc','unknown'].includes(core.value.libc));
+  const browser=cli(env,project,['doctor','bfs-browse']);
+  assert.equal(browser.status,1);assert.equal(browser.value.core.ready,true);
+  assert.deepEqual(browser.value.missing,['browser']);
+  const capability=browser.value.capabilities.browser;
+  assert.equal(capability.ready,false);assert.equal(capability.status,'unavailable');
+  assert.match(capability.reason,/not installed/);
+  assert.match(capability.nextAction,/npx bontaflowstack@.* setup/);
+});
 
 test('QA settings survive storage, legacy reading and doctor without rewriting reads',t=>{
   const {ctx,project,env}=fixture(t);

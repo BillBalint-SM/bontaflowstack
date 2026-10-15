@@ -6,24 +6,28 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import {writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
+import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
+import {captureCommand} from '../installers/npm/bin/setup.mjs';
 
 test('real npm setup installs, repeats and upgrades the Gemini extension with persistent engines',{skip:process.env.BFS_RUN_GEMINI_SETUP!=='1'},async()=>{
-  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-gemini-setup-'));
+  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-gemini-setup-'));
   const project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
   const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,'UserProfile'),GEMINI_CLI_HOME:path.join(root,'Gemini'),BFS_STATE_HOME:path.join(root,'state'),npm_config_cache:path.join(root,'npm-cache'),npm_config_yes:'true'};
+  env.CODEX_THREAD_ID ||= 'gemini-setup-validation';
+  if(process.platform!=='win32')Object.assign(env,{HOME:path.join(root,'Home'),XDG_DATA_HOME:path.join(root,'xdg-data'),XDG_CONFIG_HOME:path.join(root,'xdg-config'),XDG_STATE_HOME:path.join(root,'xdg-state')});
   delete env.BFS_IMPECCABLE_COMMAND;
   for(const directory of [project,packed,env.LOCALAPPDATA,env.USERPROFILE,env.GEMINI_CLI_HOME])fs.mkdirSync(directory,{recursive:true});
-  const npmBase=[process.env.npm_execpath && path.dirname(process.env.npm_execpath),path.join(process.env.APPDATA,'npm/node_modules/npm/bin'),path.join(path.dirname(process.execPath),'node_modules/npm/bin')].filter(Boolean).find(base=>fs.existsSync(path.join(base,'npm-cli.js')));
+  const npmBase=[process.env.npm_execpath && path.dirname(process.env.npm_execpath),process.env.APPDATA && path.join(process.env.APPDATA,'npm/node_modules/npm/bin'),path.join(path.dirname(process.execPath),'node_modules/npm/bin'),path.resolve(path.dirname(process.execPath),'../lib/node_modules/npm/bin')].filter(Boolean).find(base=>fs.existsSync(path.join(base,'npm-cli.js')));
   assert.ok(npmBase,'npm CLI must be installed');
   const gemini=process.env.BFS_GEMINI_CLI || path.join(process.env.APPDATA,'npm/node_modules/@google/gemini-cli/bundle/gemini.js');
   const records=[];
   async function run(label,args,{cwd=project,consent=false,allowFailure=false,command=process.execPath,input}={}) {
     console.log(`Running ${label}; evidence: ${root}`);
-    const result=await new Promise((resolve,reject)=>{
+    const result=process.platform==='darwin' && !consent && args.includes('--output-format') ? (()=>{const value=captureCommand(command,args,{env,cwd,timeout:15*60*1000});if(value.error)throw value.error;return {...value,code:value.status};})() : await new Promise((resolve,reject)=>{
       const child=spawn(command,args,{cwd,env,windowsHide:true,stdio:['pipe','pipe','pipe']});
       let stdout='',stderr='',promptBuffer='',replies=0;
-      const timer=setTimeout(()=>{if(child.pid)spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});reject(new Error(`${label} timed out`));},15*60*1000);
+      const timer=setTimeout(()=>{if(child.pid){if(process.platform==='win32')spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});else child.kill('SIGTERM');}reject(new Error(`${label} timed out`));},15*60*1000);
       const collect=(chunk,stream)=>{
         const text=String(chunk);if(stream==='stdout')stdout+=text;else stderr+=text;
         promptBuffer=(promptBuffer+text).slice(-3000);
@@ -40,7 +44,7 @@ test('real npm setup installs, repeats and upgrades the Gemini extension with pe
     });
     writeCommandEvidence(path.join(root,`${label}.command-evidence.json`),result);
     records.push({label,code:result.code,consentReplies:result.consentReplies});
-    if(!allowFailure)assert.equal(result.code,0,`${label} failed; retained command evidence contains the exit code and output sizes`);
+    if(!allowFailure)assert.equal(result.code,0,`${label} failed: ${setupFailure(result)}; retained command evidence contains the exit code and output sizes`);
     return result;
   }
   await run('build',[path.join(repo,'scripts/build-npm-package.mjs'),'--output',built]);
@@ -64,7 +68,7 @@ test('real npm setup installs, repeats and upgrades the Gemini extension with pe
   const second=await pack('pack-upgrade',upgrade);await npx('upgrade',second);
   const active=await extensions('upgraded-registration');assert.equal(active.version,next);assert.equal(active.isActive,true);assert.equal(active.skills.length,34);
   assert.equal(active.installMetadata.source,initial.installMetadata.source);assert.equal(fs.readFileSync(memory,'utf8'),'preserved user state');
-  const versionRoot=path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/versions');
+  const versionRoot=path.join(dataPaths(env).installRoot,'versions',...(process.platform==='win32'?[]:[`${process.platform}-${process.arch}`]));
   assert.ok(fs.existsSync(path.join(versionRoot,initial.version,'hosts/gemini/catalog.json')));
   fs.renameSync(env.npm_config_cache,env.npm_config_cache+'-removed');fs.renameSync(built,built+'-removed');fs.renameSync(upgrade,upgrade+'-removed');
   const after=await extensions('without-cache');assert.equal(after.version,next);

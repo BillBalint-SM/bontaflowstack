@@ -6,10 +6,20 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { setup } from '../installers/npm/bin/setup.mjs';
+import { setup,captureCommand } from '../installers/npm/bin/setup.mjs';
+import { findCursor } from '../installers/npm/bin/cursor.mjs';
+import { dataPaths } from '../plugins/bontaflowstack/core/state.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), `bfs-universal-setup-${randomUUID()}-`));
+test('native command capture retains exit and separate output streams',()=>{
+  const result=captureCommand(process.execPath,['-e','process.stdout.write("out");process.stderr.write("err");process.exitCode=7']);
+  assert.equal(result.status,7);assert.equal(result.stdout,'out');assert.equal(result.stderr,'err');
+});
+test('Darwin captures complete large CLI JSON even when the CLI exits immediately',{skip:process.platform!=='darwin'},()=>{
+  const result=captureCommand(process.execPath,['-e','process.stdout.write(JSON.stringify({text:"x".repeat(256000)}));process.exit(0)']);
+  assert.equal(result.status,0);assert.equal(JSON.parse(result.stdout).text.length,256000);
+});
+const scratch = fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()), `bfs-universal-setup-${randomUUID()}-`));
 const packageRoot = path.join(scratch, 'package');
 const built = spawnSync(process.execPath, [path.join(repo, 'scripts', 'build-npm-package.mjs'), '--output', packageRoot], { cwd:repo, encoding:'utf8', windowsHide:true });
 assert.equal(built.status, 0, built.stderr || built.stdout);
@@ -20,7 +30,52 @@ fs.writeFileSync(path.join(impeccablePackage, 'bin/impeccable.exe'), 'fixture Im
 fs.writeFileSync(path.join(impeccablePackage, 'LICENSE'), 'fixture license');
 fs.mkdirSync(path.join(packageRoot, 'node_modules/impeccable'), {recursive:true});
 fs.writeFileSync(path.join(packageRoot, 'node_modules/impeccable/package.json'), JSON.stringify({name:'impeccable',version:'4.5.2',optionalDependencies:{'@impeccable/cli-windows-x64':'0.1.14'}}));
+for(const platform of ['linux','darwin']) {
+  const name=`@impeccable/cli-${platform}-x64`,folder=path.join(packageRoot,'node_modules',name);
+  fs.mkdirSync(path.join(folder,'bin'),{recursive:true});
+  fs.writeFileSync(path.join(folder,'package.json'),JSON.stringify({name,version:'0.1.14'}));
+  fs.writeFileSync(path.join(folder,'bin/impeccable'),'fixture POSIX binary',{mode:0o755});
+  const manifest=path.join(packageRoot,'node_modules/impeccable/package.json'),value=JSON.parse(fs.readFileSync(manifest));
+  value.optionalDependencies[name]='0.1.14';fs.writeFileSync(manifest,JSON.stringify(value));
+}
 after(() => fs.rmSync(scratch, { recursive:true, force:true }));
+
+test('POSIX npm bin symlink runs setup CLI instead of silently succeeding',{skip:process.platform==='win32'},()=>{
+  const bin=path.join(scratch,'bontaflowstack');fs.symlinkSync(path.join(packageRoot,'bin/setup.mjs'),bin);
+  const version=spawnSync(process.execPath,[bin,'--version'],{encoding:'utf8'});
+  assert.equal(version.status,0,version.stderr);assert.equal(version.stdout.trim(),'1.2.0');
+  const invalid=spawnSync(process.execPath,[bin,'--invalid'],{encoding:'utf8'});
+  assert.equal(invalid.status,1);assert.match(invalid.stderr,/Unknown arguments/);
+});
+
+test('Cursor discovery reads native POSIX product layouts without LOCALAPPDATA',()=>{
+  for(const platform of ['linux','darwin']) {
+    const root=path.join(scratch,`cursor-${platform}`),bin=path.join(root,'resources','app','bin');
+    fs.mkdirSync(bin,{recursive:true});
+    fs.writeFileSync(path.join(bin,'cursor'),'fixture CLI',{mode:0o755});
+    const resources=platform==='darwin'?'Resources':'resources';
+    fs.mkdirSync(path.join(root,resources,'app'),{recursive:true});
+    fs.writeFileSync(path.join(root,resources,'app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.12'}));
+    const found=findCursor({PATH:bin},platform);
+    assert.equal(found?.root,root);
+    assert.equal(found.version,'3.24.12');
+  }
+  const root=path.join(scratch,'cursor-linux-appimage'),bin=path.join(root,'bin');
+  fs.mkdirSync(bin,{recursive:true});fs.writeFileSync(path.join(bin,'cursor'),'fixture CLI',{mode:0o755});
+  fs.mkdirSync(path.join(root,'resources/app'),{recursive:true});fs.writeFileSync(path.join(root,'resources/app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.18'}));
+  assert.equal(findCursor({PATH:bin},'linux')?.root,root);
+});
+
+test('POSIX Cursor placement uses HOME even when a Windows USERPROFILE is inherited',async()=>{
+  const env=makeEnv('cursor-posix-profile'),mock=runner(env,undefined,{available:[]});
+  env.HOME=path.join(scratch,'cursor-posix-home');env.XDG_DATA_HOME=path.join(env.HOME,'data');
+  const app=path.join(env.HOME,'app'),bin=path.join(app,'resources/app/bin');
+  fs.mkdirSync(bin,{recursive:true});fs.writeFileSync(path.join(bin,'cursor'),'fixture CLI',{mode:0o755});env.PATH=bin;
+  fs.writeFileSync(path.join(app,'resources/app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.18'}));
+  const result=await setup(options(env,mock.run,{platform:'linux',host:'cursor'}));
+  assert.equal(result.hosts[0].sourceRoot,path.join(env.HOME,'.cursor/plugins/local/bontaflowstack'));
+  assert.equal(fs.existsSync(path.join(env.USERPROFILE,'.cursor')),false);
+});
 
 function makeEnv(label = 'run') {
   const home = path.join(scratch, label);
@@ -51,6 +106,7 @@ function runner(env, state = { codexMarketplaces:[], codexPlugins:[], claudeMark
   }
   const run = (command, args = [], options = {}) => {
     calls.push({ command, args:[...args], options });
+    if(args.includes('doctor')) return JSON.stringify({core:{ready:true,status:'ready'},engines:{installed:true,capabilities:Object.fromEntries(['browser','browser-host','render','design','design-detect','pretext'].map(name=>[name,{ready:true,status:'ready'}]))}});
     if (path.basename(command) === 'impeccable.exe' && args[0] === '--version') return '4.0.0';
     const raw = args.filter(arg => arg !== '--no-daemon');
     const lowerCommand = path.basename(command).toLowerCase();
@@ -104,6 +160,41 @@ function runner(env, state = { codexMarketplaces:[], codexPlugins:[], claudeMark
 function options(env, run, rest = {}) {
   return { packageRoot, env, run, platform:'win32', arch:'x64', ...rest };
 }
+
+test('POSIX setup discovers both CLI hosts without Windows environment variables',async()=>{
+  for(const platform of ['linux','darwin']) {
+    const env=makeEnv(`posix-${platform}`),mock=runner(env,undefined,{native:false});
+    env.HOME=env.USERPROFILE;env.XDG_DATA_HOME=path.join(env.HOME,'data');env.XDG_STATE_HOME=path.join(env.HOME,'state');
+    delete env.LOCALAPPDATA;delete env.APPDATA;delete env.USERPROFILE;
+    const run=(command,args,options)=>{
+      assert.ok(command===process.execPath || !command.endsWith('.exe') && command!=='powershell.exe','POSIX must not probe a Windows host executable');
+      if(path.basename(command)==='impeccable')return '4.0.0';
+      return mock.run(command,args,options);
+    };
+    const result=await setup(options(env,run,{platform,host:'auto'}));
+    assert.deepEqual(result.hosts.map(item=>item.host),['codex','claude']);
+    assert.match(result.installationRoot,new RegExp(`${platform}-x64`));
+    assert.equal(result.stateHome,env.BFS_STATE_HOME);
+    const repeated=await setup(options(env,run,{platform,host:'auto'}));assert.equal(repeated.installationRoot,result.installationRoot);
+  }
+});
+
+test('every POSIX CLI host reaches its own native registration protocol',async()=>{
+  const versions={codex:'codex-cli 0.162.0',claude:'2.1.296',gemini:'0.63.0',copilot:'1.0.96',opencode:'1.19.0'};
+  for(const platform of ['linux','darwin'])for(const [host,version] of Object.entries(versions)) {
+    const env=makeEnv(`discovery-${platform}-${host}`);env.HOME=env.USERPROFILE;env.XDG_DATA_HOME=path.join(env.HOME,'data');
+    delete env.LOCALAPPDATA;delete env.APPDATA;delete env.USERPROFILE;
+    const calls=[];
+    const run=(command,args)=>{
+      calls.push({command,args});
+      assert.equal(command,host,'discovery uses the POSIX host executable');
+      if(args.length===1 && args[0]==='--version')return version;
+      throw new Error(`Discovered native ${host} protocol`);
+    };
+    await assert.rejects(setup(options(env,run,{platform,host})),new RegExp(`Discovered native ${host} protocol`));
+    assert.ok(calls.some(call=>call.args.length>1),'native host-specific protocol was reached');
+  }
+});
 
 function upgradePackage(label,version) {
   const target=path.join(scratch,label);fs.cpSync(packageRoot,target,{recursive:true});
@@ -232,6 +323,118 @@ function geminiRunner(env) {
   return {run,state,calls};
 }
 
+function probePosixRuntime(host,plugin,env) {
+  if(process.platform==='win32')return;
+  const project=path.join(plugin,'fixture-project');fs.mkdirSync(project,{recursive:true});
+  const event=host==='gemini'?{hook_event_name:'BeforeTool',session_id:`${host}-posix`,cwd:project,tool_name:'mcp_bfs_status',tool_input:{}}
+    :{hook_event_name:'preToolUse',conversation_id:`${host}-posix`,workspace_roots:[project],cwd:project,tool_name:'MCP:bfs_status',tool_input:{}};
+  const settings={cwd:project,env:{...env,PATH:'',GEMINI_PROJECT_DIR:project,CURSOR_PLUGIN_ROOT:plugin},encoding:'utf8',timeout:15000};
+  const hooks=JSON.parse(fs.readFileSync(path.join(plugin,'hooks/hooks.json'),'utf8')).hooks;
+  const command=host==='gemini'?hooks.BeforeTool[0].hooks[0].command:hooks.preToolUse[0].command;
+  const hook=spawnSync('/bin/sh',['-c',command],{...settings,input:JSON.stringify(event)});
+  assert.equal(hook.status,0,hook.stderr);const output=JSON.parse(hook.stdout);
+  const bound=host==='gemini'?output.hookSpecificOutput.tool_input:output.updated_input;
+  assert.equal(typeof bound._bfsCall,'string');
+  const config=JSON.parse(fs.readFileSync(path.join(plugin,host==='gemini'?'gemini-extension.json':'mcp.json'),'utf8'));
+  const server=Object.values(config.mcpServers)[0];
+  const args=server.args.map(arg=>arg.replace(host==='gemini'?'${extensionPath}':'${CURSOR_PLUGIN_ROOT}',plugin));
+  const request={jsonrpc:'2.0',id:1,method:'tools/call',params:{name:host==='gemini'?'status':'bfs_status',arguments:bound}};
+  const rpc=spawnSync(server.command,args,{...settings,input:JSON.stringify(request)+'\n'});
+  assert.equal(rpc.status,0,rpc.stderr);const result=JSON.parse(rpc.stdout).result;
+  assert.equal(result.isError,undefined,result.content[0].text);assert.equal(JSON.parse(result.content[0].text).hostWorkspace,project);
+  fs.rmdirSync(project);
+}
+
+test('POSIX Gemini hooks are materialized safely and repeated registration keeps identical files',async()=>{
+  for(const platform of ['linux','darwin']) {
+    const env=makeEnv(`gemini-posix-${platform}`),mock=geminiRunner(env),profile=env.USERPROFILE;
+    env.HOME=profile;env.XDG_DATA_HOME=path.join(profile,"data's $literal");
+    const run=(command,args,settings)=>command==='gemini'?mock.run(path.join(profile,'.local/bin/gemini.exe'),args,settings):path.basename(command)==='impeccable'?'4.0.0':mock.run(command,args,settings);
+    const result=await setup(options(env,run,{platform,host:'gemini'}));
+    const plugin=result.hosts[0].pluginRoot,read=file=>JSON.parse(fs.readFileSync(path.join(plugin,file),'utf8'));
+    for(const [event,entries] of Object.entries(read('hooks/hooks.json').hooks)) {
+      const command=entries[0].hooks[0].command;
+      assert.doesNotMatch(command,/Join-Path|powershell|\$bfsExtension/);
+      assert.ok(command.endsWith(` ${event}`));assert.match(command,/gemini-hook\.mjs/);
+    }
+    if(platform==='darwin')assert.equal(read('gemini-extension.json').mcpServers.bfs.command,process.execPath);
+    probePosixRuntime('gemini',plugin,env);
+    const repeated=await setup(options(env,run,{platform,host:'gemini'}));assert.equal(repeated.hosts[0].pluginRoot,plugin);
+  }
+});
+
+test('removed Node path is repaired on the same release without losing state or accepting user edits',()=>{
+  const home=path.join(scratch,'runtime-relocation'),env=makeEnv('runtime-relocation');env.HOME=home;env.USERPROFILE=home;
+  const input=path.join(home,'input.json'),oldNode=path.join(home,'old-node',path.basename(process.execPath));
+  fs.mkdirSync(path.dirname(oldNode),{recursive:true});fs.copyFileSync(process.execPath,oldNode);
+  const platform=process.platform==='win32'?'darwin':'linux';
+  const app=path.join(home,'cursor'),bin=path.join(app,'resources/app/bin');
+  fs.mkdirSync(bin,{recursive:true});fs.writeFileSync(path.join(bin,'cursor'),'fixture CLI',{mode:0o755});env.PATH=bin;
+  const resources=platform==='darwin'?'Resources':'resources';
+  fs.mkdirSync(path.join(app,resources,'app'),{recursive:true});fs.writeFileSync(path.join(app,resources,'app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.12'}));
+  fs.writeFileSync(input,JSON.stringify({env,platform,arch:'x64'}));
+  const invoke=node=>spawnSync(node,[path.join(repo,'tests/fixtures/runtime-setup.mjs'),packageRoot,input],{encoding:'utf8',windowsHide:true,timeout:120000});
+  const first=invoke(oldNode);assert.equal(first.status,0,first.stderr);
+  const initial=JSON.parse(first.stdout.trim().split('\n').at(-1)),plugin=initial.hosts.find(item=>item.host==='gemini').pluginRoot;
+  fs.mkdirSync(env.BFS_STATE_HOME,{recursive:true});const memory=path.join(env.BFS_STATE_HOME,'keep.txt');fs.writeFileSync(memory,'existing memory');
+  const metadata=path.join(home,'.gemini/extensions/bontaflowstack/.gemini-extension-install.json'),metadataBefore=fs.readFileSync(metadata,'utf8');
+  fs.unlinkSync(path.join(initial.installationRoot,'runtime.json')); // Previous installers only recorded the pin in setup-status.
+  const interrupted=path.join(initial.installationRoot,'.runtime-swap-fixture');fs.mkdirSync(interrupted);
+  fs.renameSync(path.join(initial.installationRoot,'hosts'),path.join(interrupted,'previous'));
+  fs.unlinkSync(oldNode);
+  fs.writeFileSync(input,JSON.stringify({env,platform,arch:'x64',failRuntimeSwap:true}));
+  const failed=invoke(process.execPath);assert.notEqual(failed.status,0);assert.match(failed.stderr,/fixture runtime swap failure/);
+  assert.equal(fs.readFileSync(metadata,'utf8'),metadataBefore);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(home,'.gemini/extensions/bontaflowstack/gemini-extension.json'),'utf8')).mcpServers.bfs.command,oldNode,'failed active swap restores the old payload');
+  const activeRoot=path.dirname(metadata),activeInterrupted=path.join(path.dirname(activeRoot),'.bfs-runtime-fixture');fs.mkdirSync(activeInterrupted);
+  fs.renameSync(activeRoot,path.join(activeInterrupted,'previous'));
+  fs.writeFileSync(input,JSON.stringify({env,platform,arch:'x64'}));
+  const repaired=invoke(process.execPath);assert.equal(repaired.status,0,repaired.stderr);
+  const result=JSON.parse(repaired.stdout.trim().split('\n').at(-1));
+  assert.equal(result.installationRoot,initial.installationRoot);assert.equal(result.runtime.recovery.status,'repaired');
+  assert.equal(fs.readFileSync(memory,'utf8'),'existing memory');
+  const state=JSON.parse(fs.readFileSync(path.join(home,'host-fixture.json'),'utf8'));
+  assert.equal(state.extensions.length,1);assert.equal(state.installs,1,'same-version repair never reinstalls the extension');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(home,'.gemini/extensions/bontaflowstack/gemini-extension.json'),'utf8')).mcpServers.bfs.command,process.execPath);
+  assert.equal(fs.readFileSync(metadata,'utf8'),metadataBefore);
+  assert.ok(!fs.existsSync(interrupted),'interrupted canonical swap was recovered');
+  assert.ok(!fs.existsSync(activeInterrupted),'missing active extension was restored before native discovery');
+  probePosixRuntime('gemini',plugin,env);
+  const cursor=result.hosts.find(item=>item.host==='cursor');assert.equal(cursor.reloadRequired,true);assert.equal(cursor.registered,false);
+  const cursorSource=path.join(home,'.cursor/plugins/local/bontaflowstack');
+  assert.ok(Object.values(JSON.parse(fs.readFileSync(path.join(cursorSource,'mcp.json'),'utf8')).mcpServers).every(server=>server.command===process.execPath));
+  probePosixRuntime('cursor',cursorSource,env);
+  if(platform==='darwin')assert.ok(Object.values(JSON.parse(fs.readFileSync(path.join(result.installationRoot,'hosts/codex/plugins/bontaflowstack/.mcp.json'),'utf8')).mcpServers).every(server=>server.command===process.execPath));
+  const repeated=invoke(process.execPath);assert.equal(repeated.status,0,repeated.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(home,'host-fixture.json'),'utf8')).installs,1);
+  const activeManifest=path.join(home,'.gemini/extensions/bontaflowstack/gemini-extension.json'),activeBefore=fs.readFileSync(activeManifest,'utf8');
+  const edited=JSON.parse(activeBefore);edited.mcpServers.bfs.env={KEEP:'host edit'};fs.writeFileSync(activeManifest,JSON.stringify(edited));
+  const refused=invoke(process.execPath);assert.notEqual(refused.status,0);
+  assert.equal(JSON.parse(fs.readFileSync(activeManifest,'utf8')).mcpServers.bfs.env.KEEP,'host edit');
+  fs.writeFileSync(activeManifest,activeBefore);
+  const manifest=path.join(plugin,'gemini-extension.json'),data=JSON.parse(fs.readFileSync(manifest,'utf8'));
+  data.mcpServers.bfs.env={KEEP:'user edit'};fs.writeFileSync(manifest,JSON.stringify(data));
+  const rejected=invoke(process.execPath);assert.notEqual(rejected.status,0);
+  assert.equal(JSON.parse(fs.readFileSync(manifest,'utf8')).mcpServers.bfs.env.KEEP,'user edit');
+});
+
+test('Mac GUI Cursor and Codex pin the verified setup Node instead of requiring GUI PATH',async()=>{
+  const env=makeEnv('mac-gui'),mock=runner(env,undefined,{native:false}),app=path.join(scratch,'mac-cursor');
+  env.HOME=env.USERPROFILE;env.PATH=path.join(app,'resources/app/bin');
+  fs.mkdirSync(env.PATH,{recursive:true});fs.writeFileSync(path.join(env.PATH,'cursor'),'fixture',{mode:0o755});
+  fs.mkdirSync(path.join(app,'Resources/app'),{recursive:true});fs.writeFileSync(path.join(app,'Resources/app/product.json'),JSON.stringify({nameShort:'Cursor',version:'3.24.12'}));
+  const run=(command,args,settings)=>path.basename(command)==='impeccable'?'4.0.0':mock.run(command,args,settings);
+  const result=await setup(options(env,run,{platform:'darwin'}));
+  for(const host of ['codex','cursor']) {
+    const plugin=result.hosts.find(item=>item.host===host).pluginRoot;
+    const mcp=JSON.parse(fs.readFileSync(path.join(plugin,host==='cursor'?'mcp.json':'.mcp.json'),'utf8'));
+    assert.ok(Object.values(mcp.mcpServers).every(server=>server.command===process.execPath));
+    const hooks=fs.readFileSync(path.join(plugin,'hooks/hooks.json'),'utf8');assert.doesNotMatch(hooks,/"command": "node /);
+    if(host==='cursor')probePosixRuntime('cursor',plugin,env);
+  }
+  const repeat=await setup(options(env,run,{platform:'darwin'}));assert.equal(repeat.installationRoot,result.installationRoot);
+});
+
 test('Gemini setup uses native consent, a durable update source and host readback; repeated setup preserves user data',async()=>{
   const env=makeEnv('gemini'),mock=geminiRunner(env);
   const installed=await setup(options(env,mock.run,{host:'gemini'}));
@@ -270,7 +473,7 @@ test('Gemini refuses conflicting MCP configuration, foreign extensions, disabled
   assert.equal(mock.calls.filter(call=>['install','update'].includes(call.args[1])).length,before);
 });
 
-test('setup installs Impeccable outside npm cache and persists a shared command before host registration', async () => {
+test('setup registers core before installing Impeccable outside npm cache and persisting its command', async () => {
   const env = makeEnv('impeccable'), mock = runner(env);
   delete env.BFS_IMPECCABLE_COMMAND;
   await setup(options(env, mock.run));
@@ -283,29 +486,31 @@ test('setup installs Impeccable outside npm cache and persists a shared command 
   assert.match(config.sha256, /^[a-f0-9]{64}$/);
   const probe = mock.calls.findIndex(call => path.basename(call.command) === 'impeccable.exe');
   const register = mock.calls.findIndex(call => call.args.includes('marketplace') && call.args.includes('add'));
-  assert.ok(probe >= 0 && probe < register);
+  assert.ok(register >= 0 && probe > register);
   const before = fs.statSync(config.command[0]).mtimeMs;
   await setup(options(env, mock.run));
   assert.equal(fs.statSync(config.command[0]).mtimeMs, before, 'repeat setup reuses the verified binary');
 });
 
-test('Impeccable failures stop registration, allow retry and preserve modified installed files', async () => {
+test('Impeccable failures leave registered core, allow retry and preserve modified installed files', async () => {
   const env = makeEnv('impeccable-failure'), mock = runner(env);
   const run = (command, args, options) => {
     if (path.basename(command) === 'impeccable.exe') throw new Error('Impeccable probe failed');
     return mock.run(command,args,options);
   };
-  await assert.rejects(setup(options(env,run)), /Impeccable probe failed/);
-  assert.equal(mock.state.codexPlugins.length + mock.state.claudePlugins.length,0);
+  const incomplete=await setup(options(env,run));
+  assert.equal(incomplete.status,'incomplete');assert.match(incomplete.engines.issues[0].reason,/Impeccable probe failed/);
+  assert.equal(mock.state.codexPlugins.length + mock.state.claudePlugins.length,2);
   assert.equal(fs.existsSync(path.join(env.BFS_STATE_HOME,'impeccable.json')),false);
   await setup(options(env,mock.run));
   const config = JSON.parse(fs.readFileSync(path.join(env.BFS_STATE_HOME,'impeccable.json'),'utf8'));
   fs.writeFileSync(config.command[0],'user modification');
-  await assert.rejects(setup(options(env,mock.run)),/Impeccable installation differs/);
+  const changed=await setup(options(env,mock.run));
+  assert.equal(changed.status,'incomplete');assert.match(changed.engines.issues[0].reason,/Impeccable installation differs/);
   assert.equal(fs.readFileSync(config.command[0],'utf8'),'user modification');
 });
 
-test('explicit Impeccable environment override survives setup; invalid overrides stop registration', async () => {
+test('explicit Impeccable environment override survives setup; invalid overrides leave core registered', async () => {
   const env = makeEnv('impeccable-override'), mock = runner(env);
   env.BFS_IMPECCABLE_COMMAND = JSON.stringify([process.execPath,'custom-tool.mjs']);
   const original=env.BFS_IMPECCABLE_COMMAND;
@@ -314,8 +519,9 @@ test('explicit Impeccable environment override survives setup; invalid overrides
   assert.ok(mock.calls.every(call=>call.options.env.BFS_IMPECCABLE_COMMAND===original));
   const invalid = makeEnv('impeccable-invalid'), failed=runner(invalid);
   invalid.BFS_IMPECCABLE_COMMAND = '["missing.exe"]';
-  await assert.rejects(setup(options(invalid,failed.run)),/absolute executable/);
-  assert.equal(failed.state.codexPlugins.length+failed.state.claudePlugins.length,0);
+  const incomplete=await setup(options(invalid,failed.run));
+  assert.equal(incomplete.status,'incomplete');assert.match(incomplete.engines.issues[0].reason,/absolute executable/);
+  assert.equal(failed.state.codexPlugins.length+failed.state.claudePlugins.length,2);
 });
 
 test('universal setup auto-registers both native hosts, pins shared state, and repeats safely', async t => {
@@ -414,23 +620,102 @@ test('upgrade creates an immutable versioned copy and preserves unrelated plugin
   assert.equal(repeatWithoutOverride.stateHome, selectedState, 'the new installation-owned pin remains selected without the environment override');
 });
 
-test('engine preparation failure does not register hosts and same command can retry', async () => {
+test('engine preparation failure keeps core registered, reports incomplete and same command can retry', async () => {
   const env = makeEnv('retry'), mock = runner(env);
   let fail = true;
   const run = (...args) => {
     const [command, argv] = args;
-    if (fail && path.basename(command).toLowerCase().includes('powershell') && argv?.some(value => /install-engines\.ps1$/i.test(value))) throw new Error('engine preparation failed');
+    if (fail && argv?.some(value => /install-engines\.mjs$/i.test(value))) throw new Error('engine preparation failed');
     return mock.run(...args);
   };
-  await assert.rejects(setup(options(env, run)), /engine preparation failed/);
+  const partial = await setup(options(env, run));
+  assert.equal(partial.status,'incomplete');assert.equal(partial.exitCode,1);
+  assert.equal(partial.core.ready,true);
+  assert.match(partial.engines.issues[0].reason,/engine preparation failed/);
+  assert.match(partial.nextAction,/npx bontaflowstack@.* setup/);
   const progress=JSON.parse(fs.readFileSync(path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/setup-status.json'),'utf8'));
-  assert.equal(progress.status,'failed');assert.equal(progress.phase,'engines');
-  assert.ok(progress.hosts.every(item=>item.status==='placed' && !item.verified));
-  assert.equal(mock.state.codexMarketplaces.length + mock.state.claudeMarketplaces.length, 0);
-  assert.equal(mock.state.codexPlugins.length + mock.state.claudePlugins.length, 0);
+  assert.equal(progress.status,'incomplete');assert.equal(progress.phase,'complete');
+  assert.ok(progress.hosts.every(item=>item.status==='registered' && item.verified==='plugin-registration'));
+  assert.equal(mock.state.codexPlugins.length + mock.state.claudePlugins.length, 2);
+  const plugins=structuredClone(mock.state.codexPlugins);
+  const memory=path.join(env.BFS_STATE_HOME,'keep.txt');fs.writeFileSync(memory,'preserved memory');
   fail = false;
   const retried = await setup(options(env, run));
   assert.deepEqual(retried.hosts.map(item => item.host).sort(), ['claude','codex']);
+  assert.equal(retried.status,'completed');assert.equal(retried.exitCode,0);
+  assert.deepEqual(mock.state.codexPlugins,plugins);
+  assert.equal(fs.readFileSync(memory,'utf8'),'preserved memory');
+});
+
+test('missing Impeccable does not prevent the bundled engines or POSIX core registration',async()=>{
+  const env=makeEnv('partial-posix'),mock=runner(env,undefined,{native:false});
+  env.HOME=env.USERPROFILE;env.XDG_DATA_HOME=path.join(env.HOME,'data');delete env.LOCALAPPDATA;delete env.USERPROFILE;
+  const run=(command,args,settings)=>{
+    if(path.basename(command)==='impeccable')throw new Error('fixture missing Impeccable runtime');
+    if(args.includes('doctor'))return JSON.stringify({core:{ready:true,status:'ready'},engines:{installed:true,capabilities:{browser:{ready:true,status:'ready'},'design-detect':{ready:false,status:'unavailable',reason:'Impeccable is not installed'}}}});
+    return mock.run(command,args,settings);
+  };
+  const result=await setup(options(env,run,{platform:'linux'}));
+  assert.equal(result.status,'incomplete');assert.equal(result.exitCode,1);assert.equal(result.core.ready,true);
+  assert.ok(result.hosts.every(item=>item.registered));
+  assert.ok(mock.calls.some(call=>call.args.some(arg=>arg.endsWith('install-engines.mjs'))),'the bundled engine install still runs');
+  assert.equal(result.capabilities.browser.status,'ready');
+  assert.equal(result.capabilities['design-detect'].status,'unavailable');
+  assert.match(result.capabilities['design-detect'].reason,/Impeccable/);
+  assert.match(result.capabilities['design-detect'].nextAction,/npx bontaflowstack@.* setup/);
+  assert.equal(result.platform,'linux');assert.equal(result.arch,'x64');
+  assert.ok(['glibc','unknown'].includes(result.libc));
+});
+
+test('invalid doctor output is unverified and cannot report a completed setup',async()=>{
+  const env=makeEnv('invalid-doctor'),mock=runner(env);
+  const result=await setup(options(env,(command,args,settings)=>args.includes('doctor')?'{}':mock.run(command,args,settings)));
+  assert.equal(result.status,'incomplete');assert.equal(result.exitCode,1);
+  assert.ok(result.hosts.every(item=>item.registered));
+  assert.equal(result.capabilities.browser.status,'unverified');
+  assert.match(result.capabilities.browser.reason,/Unexpected engine doctor/);
+});
+
+test('setup CLI exits nonzero after core registration when the source checksum is wrong',()=>{
+  const env=makeEnv('actual-cli-incomplete'),isolated=path.join(scratch,'cli-package');
+  fs.cpSync(packageRoot,isolated,{recursive:true});
+  env.HOME=env.USERPROFILE;env.APPDATA=path.join(env.HOME,'AppData');env.PATH=process.env.PATH || process.env.Path;
+  env.XDG_DATA_HOME=path.join(env.HOME,'data');env.XDG_STATE_HOME=path.join(env.HOME,'state');
+  const hostScript=`import fs from 'node:fs';import path from 'node:path';
+const file=path.join(process.env.CODEX_HOME,'fixture-host.json');fs.mkdirSync(path.dirname(file),{recursive:true});
+const value=fs.existsSync(file)?JSON.parse(fs.readFileSync(file)): {marketplaces:[],installed:[]};
+const args=process.argv.slice(2).filter(arg=>arg!=='--no-daemon');
+if(args.includes('--version'))console.log('codex-cli 0.162.0');
+else if(args.includes('marketplace') && args.includes('list'))console.log(JSON.stringify({marketplaces:value.marketplaces}));
+else if(args.includes('list'))console.log(JSON.stringify({installed:value.installed}));
+else {if(args.includes('marketplace') && args.includes('add'))value.marketplaces=[{name:'bontaflowstack',root:args[3]}];
+else if(args.includes('add'))value.installed=[{pluginId:'bontaflowstack@bontaflowstack',version:${JSON.stringify(JSON.parse(fs.readFileSync(path.join(isolated,'package.json'),'utf8')).version)},enabled:true,installed:true}];
+fs.writeFileSync(file,JSON.stringify(value));console.log('{}');}`;
+  if(process.platform==='win32') {
+    const wrapper=path.join(env.APPDATA,'npm/node_modules/@openai/codex/bin/codex.js');
+    fs.mkdirSync(path.dirname(wrapper),{recursive:true});fs.writeFileSync(wrapper,hostScript);
+    fs.writeFileSync(path.join(env.APPDATA,'npm/node_modules/@openai/codex/package.json'),'{"type":"module"}');
+  } else {
+    const executable=path.join(env.HOME,'.local/bin/codex');fs.mkdirSync(path.dirname(executable),{recursive:true});
+    fs.writeFileSync(executable,'#!/usr/bin/env node\n'+hostScript,{mode:0o755});
+    fs.writeFileSync(path.join(env.HOME,'.local/bin/package.json'),'{"type":"module"}');
+  }
+  const lockFile=path.join(isolated,'hosts/codex/plugins/bontaflowstack/engines.lock.json');
+  const lock=JSON.parse(fs.readFileSync(lockFile,'utf8'));lock.sha256='0'.repeat(64);fs.writeFileSync(lockFile,JSON.stringify(lock));
+  fs.mkdirSync(env.HOME,{recursive:true});
+  const result=spawnSync(process.execPath,[path.join(isolated,'bin/setup.mjs'),'setup','--host','codex'],{cwd:env.HOME,env,encoding:'utf8',windowsHide:true,timeout:30000});
+  assert.equal(result.status,1,result.stderr || result.stdout);assert.match(result.stderr,/Setup incomplete: core registered/);
+  assert.match(result.stderr,/checksum does not match.*No source was executed/);
+  const state=JSON.parse(fs.readFileSync(path.join(env.CODEX_HOME,'fixture-host.json'),'utf8'));assert.equal(state.installed.length,1);
+  const plugin=path.join(state.marketplaces[0].root,'plugins/bontaflowstack');
+  const installRoot=dataPaths(env).installRoot;
+  const progress=JSON.parse(fs.readFileSync(path.join(installRoot,'setup-status.json'),'utf8'));
+  assert.match(progress.engines.issues.find(item=>item.phase==='install').reason,/checksum does not match/);
+  const doctor=skill=>spawnSync(process.execPath,[path.join(plugin,'core/cli.mjs'),'doctor',...skill],{cwd:env.HOME,env,encoding:'utf8',windowsHide:true});
+  const core=doctor([]),browser=doctor(['bfs-browse']);assert.equal(core.status,0,core.stderr);assert.equal(browser.status,1);
+  assert.equal(JSON.parse(core.stdout).core.ready,true);assert.equal(JSON.parse(browser.stdout).capabilities.browser.status,'unavailable');
+  const memory=spawnSync(process.execPath,[path.join(plugin,'core/cli.mjs'),'memory','list'],{cwd:env.HOME,env,encoding:'utf8',windowsHide:true});
+  assert.equal(memory.status,0,memory.stderr);assert.ok(JSON.parse(memory.stdout));
 });
 
 test('same-version edits are preserved and rejected', async () => {
