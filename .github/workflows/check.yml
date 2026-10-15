@@ -13,11 +13,11 @@ jobs:
       matrix:
         runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel]
     runs-on: ${{ matrix.runner }}
-    env:
-      TMPDIR: ${{ runner.temp }}/bfs-native
     steps:
       - name: Initialize private native test directory
-        run: mkdir -m 700 "$TMPDIR"
+        run: |
+          mkdir -m 700 "$RUNNER_TEMP/bfs-native"
+          echo "TMPDIR=$RUNNER_TEMP/bfs-native" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
