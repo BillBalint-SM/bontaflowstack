@@ -1293,3 +1293,32 @@ Alpine userlandben, natív musl Node 24.22.0-val, az előfeltétel Git telepít�
 után. A teljes közös teszt még fut. Az első helyi teljes helper hibái hiányzó
 Gitből és hibás munkakönyvtárból adódtak; ezeket nem tekintjük termékhibának
 vagy sikeres ellenőrzésnek. A nyers sikertelen helpernaplók megmaradtak.
+
+### Végső, tényleges CI-eredmény
+
+A [38746838745 futás](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38746838745)
+**mind a tíz feladata sikeres** a `b2e3973faa10c8801aa6ecc9b4d7149c788fc547`
+forráson. Windows: közös tesztek 171 PASS / 3 SKIP / 0 FAIL, forrás-ZIP
+build és teszt sikeres, további kiadási ellenőrzések 19 PASS / 0 FAIL.
+Linux x64/ARM64, Mac ARM64/Intel, Debian, Fedora, Arch és Alpine feladatai
+sikeresek. A Mac ARM64 és Alpine letöltött naplóiban a közös tesztek
+166 PASS / 7 Windows-specifikus SKIP / 0 FAIL. A POSIX-ágak tényleges
+temp-alias próbája is sikeres. Ez natív CI-runtime bizonyíték a közös kódra,
+nem natív GUI-, teljes engine- vagy modellből indított MCP-elfogadás.
+
+A disztribúciós feladatok azonos CI-tarballt ellenőriztek és használtak:
+SHA-256 `940371b5ed8fd4dd6258ddc73d3d1dbf22022c5e63a15674f39571403a0519f8`.
+Az Alpine core doctor `ready:true`; a libc-diagnózis továbbra is `unknown`.
+Helyben a teljes Alpine közös kör 166 PASS / 7 SKIP / 0 FAIL; a Windows
+setup-kör 36 PASS / 1 POSIX-specifikus SKIP / 0 FAIL. A helyi helper utolsó
+npm-cache hibáját saját írható HOME-mal javítottuk, termékkód-módosítás nélkül.
+
+A korábbi, már újabb commit által leváltott két köztes CI-futás hátralévő
+feladatait leállítottuk; eredményüket nem tekintjük sikernek. Az első hibás
+futás és minden hibajavítás története megmaradt. A végső dokumentációs commit
+`[skip ci]` jelölést kap: a fent nevezett tesztelt termékforrás változatlan,
+csak a tényleges eredményeket rögzítjük; emiatt nem ismételjük a teljes mátrixot.
+
+Új modellkérés nem indult. Cursor modell/MCP/pre-post-tool-hook: keretre váró.
+Mac GUI, külön Wayland/humán handoff és további teljes natív distro-host/engine
+utak továbbra is a #6 nyitott részei. Nincs kiadás vagy main-merge.

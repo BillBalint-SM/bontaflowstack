@@ -133,8 +133,10 @@ Those jobs do not establish full distro engine or graphical host acceptance.
 The [initial GitHub run](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38745221254)
 passed Linux x64/ARM64, Mac ARM64/Intel and Debian/Fedora/Arch common checks.
 It exposed Alpine checkout/copy handling and Windows short-temp-path fixture
-failures; fixes are under verification on the
-[candidate branch CI](https://github.com/BillBalint-SM/bontaflowstack/actions/workflows/check.yml?query=branch%3Acodex%2Flinux-macos).
+failures. After repair, [all ten CI jobs passed](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38746838745)
+on source commit `b2e3973faa10c8801aa6ecc9b4d7149c788fc547`, including Windows,
+Linux x64/ARM64, Mac ARM64/Intel, Debian, Fedora, Arch and Alpine.
+These are common core/package checks; native GUI/model acceptance remains separate.
 Local Linux/Windows results are recorded separately. Container image digests pin the base filesystem;
 package-manager prerequisites and GitHub runner images can still change.
 No model API, host login token, paid upgrade, publication or deployment is needed
