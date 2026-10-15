@@ -22,6 +22,10 @@ the work.
 Release `1.2.0` includes all six platform adapters in one npm package.
 See the [platform guide](docs/bontaflowstack/PLATFORMS.md).
 
+Linux/macOS work for issue #6 is an unpublished candidate. See its
+[installation guide and OS evidence matrix](docs/bontaflowstack/OS-SUPPORT.md)
+for tested distributions, host limits and pending native Mac/ARM64 checks.
+
 ## Bring the whole product journey into your project
 
 You have an idea to test, a screen to improve, or a feature to finish.
