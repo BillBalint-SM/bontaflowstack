@@ -13,7 +13,11 @@ jobs:
       matrix:
         runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel]
     runs-on: ${{ matrix.runner }}
+    env:
+      TMPDIR: ${{ runner.temp }}/bfs-native
     steps:
+      - name: Initialize private native test directory
+        run: mkdir -m 700 "$TMPDIR"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -26,6 +30,11 @@ jobs:
       - name: Provision Chromium libraries on the Linux CI runner
         if: runner.os == 'Linux'
         run: npx --yes --package playwright@1.62.1 playwright install-deps chromium
+      - name: Allow Chromium user namespaces only in the disposable CI directory
+        if: runner.os == 'Linux'
+        run: |
+          printf 'abi <abi/4.0>,\nprofile bfs-native-chromium "%s/**/.browsers/**/chrome{,-headless-shell}" flags=(unconfined) {\n  userns,\n}\n' "$TMPDIR" | sudo tee /etc/apparmor.d/bfs-native-chromium
+          sudo apparmor_parser -r /etc/apparmor.d/bfs-native-chromium
       - name: Native Codex and Claude install, repeat, update and removal
         shell: bash
         env:

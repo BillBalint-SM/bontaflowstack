@@ -46,7 +46,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
     commandLogs.push({ name, ...diagnostic });
     if (result.error) throw result.error;
     if (!allowFailure) {
-      const reason=result.stderr.split(/\r?\n/).filter(line=>/^(?:BontaFlowStack setup:|Setup incomplete|npm (?:error|ERR!)|\w*Error(?: \[[A-Z_]+\])?:)/.test(line)).slice(0,6).join('; ').replace(/https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]+|(?:gh[pousr]_|sk-)[\w-]+/gi,'[redacted]');
+      const reason=result.stderr.split(/\r?\n/).filter(line=>/^(?:BontaFlowStack setup:|Setup incomplete|npm (?:error|ERR!)|\w*Error(?: \[[A-Z_]+\])?:)|sandbox|error while loading shared libraries|browserType.launch|Operation not permitted/.test(line)).slice(0,8).join('; ').replace(/https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]+|(?:gh[pousr]_|sk-)[\w-]+/gi,'[redacted]');
       assert.equal(result.status, 0, `${name} failed${reason?`: ${reason}`:''}; retained command evidence contains the exit code and output sizes`);
     }
     return record;
