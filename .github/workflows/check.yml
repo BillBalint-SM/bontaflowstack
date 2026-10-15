@@ -5,6 +5,42 @@ on:
 permissions:
   contents: read
 jobs:
+  native-setup:
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned native host CLIs in a disposable prefix
+        run: |
+          npm install --prefix "$RUNNER_TEMP/native-hosts" --no-audit --no-fund @openai/codex@0.162.0 @anthropic-ai/claude-code@2.1.296 @google/gemini-cli@0.63.0 @github/copilot@1.0.96 opencode-ai@1.19.0
+          echo "$RUNNER_TEMP/native-hosts/node_modules/.bin" >> "$GITHUB_PATH"
+      # This provisions only the GitHub Ubuntu runner, never a user's Linux setup.
+      - name: Provision Chromium libraries on the Linux CI runner
+        if: runner.os == 'Linux'
+        run: npx --yes --package playwright@1.62.1 playwright install-deps chromium
+      - name: Native Codex and Claude install, repeat, update and removal
+        env:
+          BFS_RUN_NPM_SETUP_INTEGRATION: '1'
+        run: node tests/npm-setup.integration.mjs | tee "$RUNNER_TEMP/native-setup.log"
+      - name: Native browser, render and sandbox launch arguments
+        env:
+          BFS_RUN_NATIVE_ENGINES: '1'
+        run: node tests/native-engines.integration.mjs "$RUNNER_TEMP/native-setup.log"
+      - name: Native Gemini, Copilot and OpenCode setup without model requests
+        run: |
+          export BFS_RUN_GEMINI_SETUP=1 BFS_RUN_COPILOT_SETUP=1 BFS_RUN_OPENCODE_SETUP=1
+          export BFS_GEMINI_CLI="$(node -p 'require("node:fs").realpathSync(process.argv[1])' "$(command -v gemini)")"
+          export BFS_COPILOT_CLI="$(node -p 'require("node:fs").realpathSync(process.argv[1])' "$(command -v copilot)")"
+          export BFS_OPENCODE_CLI="$(command -v opencode)"
+          node --test --test-concurrency=3 tests/gemini-setup.integration.mjs tests/copilot-setup.integration.mjs tests/opencode-setup.integration.mjs
   core:
     # Dedicated release-proof pushes run only the three gate cases in release-gate-proof.yml.
     if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
