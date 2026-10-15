@@ -7,24 +7,29 @@ import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
+import {findCursor} from '../installers/npm/bin/cursor.mjs';
 
 test('real npm setup places, repeats and upgrades Cursor files with durable engines and preserves conflicts',{skip:process.env.BFS_RUN_CURSOR_SETUP!=='1'},async()=>{
   const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-cursor-setup-'));
   const project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
-  const cursorBin=path.join(process.env.LOCALAPPDATA,'Programs/cursor/resources/app/bin');
-  assert.ok(fs.existsSync(path.join(cursorBin,'cursor.cmd')),'The native Cursor IDE must be installed');
+  const cursorBin=process.env.BFS_CURSOR_BIN || (process.platform==='win32'?path.join(process.env.LOCALAPPDATA,'Programs/cursor/resources/app/bin'):null);
+  assert.ok(cursorBin && findCursor({...process.env,PATH:cursorBin},process.platform),'The native Cursor IDE must be installed; set BFS_CURSOR_BIN to its CLI directory');
   const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,"User's $profile"),BFS_STATE_HOME:path.join(root,'state'),npm_config_cache:path.join(root,'npm-cache'),npm_config_yes:'true',PATH:`${cursorBin}${path.delimiter}${process.env.PATH || process.env.Path}`};
+  env.CODEX_THREAD_ID ||= 'cursor-setup-validation';
+  if(process.platform!=='win32')Object.assign(env,{HOME:path.join(root,'Home'),XDG_DATA_HOME:path.join(root,'xdg-data'),XDG_CONFIG_HOME:path.join(root,'xdg-config'),XDG_STATE_HOME:path.join(root,'xdg-state')});
+  const profile=process.platform==='win32'?env.USERPROFILE:env.HOME,{installRoot}=dataPaths(env),versionRoot=path.join(installRoot,'versions',...(process.platform==='win32'?[]:[`${process.platform}-${process.arch}`]));
   delete env.BFS_IMPECCABLE_COMMAND;
   for(const directory of [project,packed,env.LOCALAPPDATA,env.USERPROFILE])fs.mkdirSync(directory,{recursive:true});
-  const mcpFile=path.join(env.USERPROFILE,'.cursor/mcp.json'),existingMcp=JSON.stringify({mcpServers:{bfs:{command:'node',args:['existing.mjs']}}});fs.mkdirSync(path.dirname(mcpFile),{recursive:true});fs.writeFileSync(mcpFile,existingMcp,{flag:'wx'});
-  const npmBase=[process.env.npm_execpath && path.dirname(process.env.npm_execpath),path.join(process.env.APPDATA,'npm/node_modules/npm/bin'),path.join(path.dirname(process.execPath),'node_modules/npm/bin')].filter(Boolean).find(base=>fs.existsSync(path.join(base,'npm-cli.js')));
+  const mcpFile=path.join(profile,'.cursor/mcp.json'),existingMcp=JSON.stringify({mcpServers:{bfs:{command:'node',args:['existing.mjs']}}});fs.mkdirSync(path.dirname(mcpFile),{recursive:true});fs.writeFileSync(mcpFile,existingMcp,{flag:'wx'});
+  const npmBase=[process.env.npm_execpath && path.dirname(process.env.npm_execpath),process.env.APPDATA && path.join(process.env.APPDATA,'npm/node_modules/npm/bin'),path.join(path.dirname(process.execPath),'node_modules/npm/bin'),path.resolve(path.dirname(process.execPath),'../lib/node_modules/npm/bin')].filter(Boolean).find(base=>fs.existsSync(path.join(base,'npm-cli.js')));
   assert.ok(npmBase,'npm CLI must be installed');
   const records=[];
   async function run(label,args,{cwd=project,allowFailure=false}={}) {
     console.log(`Running ${label}; evidence: ${root}`);
     const result=await new Promise((resolve,reject)=>{
-      const child=spawn(process.execPath,args,{cwd,env,windowsHide:true,stdio:['ignore','pipe','pipe']});let stdout='',stderr='';
-      const timer=setTimeout(()=>{if(child.pid)spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});reject(new Error(`${label} timed out`));},15*60*1000);
+      const child=spawn(process.execPath,args,{cwd,env,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});let stdout='',stderr='';
+      const timer=setTimeout(()=>{if(child.pid){if(process.platform==='win32')spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});else try{process.kill(-child.pid,'SIGTERM');}catch(error){if(error.code!=='ESRCH')throw error;}}reject(new Error(`${label} timed out`));},15*60*1000);
       child.stdout.on('data',chunk=>stdout+=String(chunk));child.stderr.on('data',chunk=>stderr+=String(chunk));
       child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('close',code=>{clearTimeout(timer);resolve({code,stdout,stderr});});
     });
@@ -39,7 +44,7 @@ test('real npm setup places, repeats and upgrades Cursor files with durable engi
     return {file,sha256:createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
   };
   const npx=(label,archive,options)=>run(label,[path.join(npmBase,'npx-cli.js'),'--yes','--package',archive.file,'--','bontaflowstack','setup','--host','cursor'],options);
-  const plugin=path.join(env.USERPROFILE,'.cursor/plugins/local/bontaflowstack'),manifest=()=>JSON.parse(fs.readFileSync(path.join(plugin,'.cursor-plugin/plugin.json'),'utf8'));
+  const plugin=path.join(profile,'.cursor/plugins/local/bontaflowstack'),manifest=()=>JSON.parse(fs.readFileSync(path.join(plugin,'.cursor-plugin/plugin.json'),'utf8'));
   const first=await pack('pack',built),installed=await npx('install',first);assert.match(installed.stdout,/active loading is not yet confirmed/i);
   await npx('repeat',first);const initial=manifest().version;
   assert.equal(manifest().name,'bontaflowstack-cursor');assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(path.join(plugin,'mcp.json'),'utf8')).mcpServers),['bfs-cursor']);assert.equal(fs.readFileSync(mcpFile,'utf8'),existingMcp);
@@ -49,7 +54,7 @@ test('real npm setup places, repeats and upgrades Cursor files with durable engi
     const target=path.join(upgrade,file),data=JSON.parse(fs.readFileSync(target,'utf8'));if(data.version)data.version=next;for(const entry of data.plugins || [])if(entry.version)entry.version=next;fs.writeFileSync(target,JSON.stringify(data,null,2)+'\n');
   }
   const second=await pack('pack-upgrade',upgrade);await npx('upgrade',second);assert.equal(manifest().version,next);
-  assert.equal(fs.readFileSync(memory,'utf8'),'preserved user state');assert.ok(fs.existsSync(path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/versions',initial,'hosts/cursor/.cursor-plugin/plugin.json')));
+  assert.equal(fs.readFileSync(memory,'utf8'),'preserved user state');assert.ok(fs.existsSync(path.join(versionRoot,initial,'hosts/cursor/.cursor-plugin/plugin.json')));
   fs.renameSync(env.npm_config_cache,env.npm_config_cache+'-removed');fs.renameSync(built,built+'-removed');fs.renameSync(upgrade,upgrade+'-removed');
   assert.equal(manifest().version,next);assert.equal(fs.readdirSync(path.join(plugin,'skills')).length,34);
   assert.equal(JSON.parse(fs.readFileSync(path.join(plugin,'install-state.json'),'utf8')).stateHome,env.BFS_STATE_HOME);

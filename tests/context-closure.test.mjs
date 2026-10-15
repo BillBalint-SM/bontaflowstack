@@ -12,7 +12,7 @@ import { loadCatalog, pluginRoot } from '../plugins/bontaflowstack/core/catalog.
 import { essentialContext } from '../plugins/bontaflowstack/core/context.mjs';
 
 function fixture(t,gitProject=false) {
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-closure-'));
+  const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-closure-'));
   t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
   const project=path.join(root,'source');fs.mkdirSync(project);
   fs.writeFileSync(path.join(project,'plan.md'),'Accepted complete plan');

@@ -13,4 +13,5 @@ $commands = @($tree.FindAll({ param($node) $node -is [Management.Automation.Lang
     })
     @{ name = $commandNode.GetCommandName(); args = $elements; text = $commandNode.Extent.Text }
 })
-@{ valid = ($parseErrors.Count -eq 0); commands = $commands } | ConvertTo-Json -Depth 6 -Compress
+$dynamic = @($tree.FindAll({ param($node) $node -is [Management.Automation.Language.VariableExpressionAst] -or $node -is [Management.Automation.Language.SubExpressionAst] }, $true)).Count -gt 0
+@{ valid = ($parseErrors.Count -eq 0 -and -not $dynamic); commands = $commands } | ConvertTo-Json -Depth 6 -Compress

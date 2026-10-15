@@ -6,6 +6,11 @@ CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI** on Windows x64.
 One npm setup prepares the selected platform adapters, browser/render engine and
 Impeccable CLI. Release `1.2.0` includes all six adapters.
 
+The issue #6 candidate also accepts Linux/macOS x64/ARM64. This is not a published
+POSIX release or a full native support claim. Recorded Linux evidence and pending
+Mac/ARM64/host-model checks are listed in the source checkout's
+`docs/bontaflowstack/OS-SUPPORT.md`. Linux capability checks do not use an Ubuntu allowlist.
+
 ## Install
 
 Install and configure detected platforms:
@@ -15,9 +20,9 @@ npx bontaflowstack@1.2.0 setup
 ```
 
 Running the same exact package without `setup` starts the same flow. Setup does
-not run as an npm install lifecycle script. Use Node.js 24+ with npm, Git for
-Windows, internet access and an installed host. Sign in through the host before
-model-driven work.
+not run as an npm install lifecycle script. Use Node.js 24+ with npm, Git,
+internet access and an installed host. On Windows, use Git for Windows.
+Sign in through the host before model-driven work.
 
 The installer accepts these selectors:
 
@@ -41,14 +46,14 @@ Start a fresh session after setup. In Cursor, save your work and run
 Use `$bfs-router` in Codex or `/bontaflowstack:bfs-router` in Claude Code. On the
 other platforms, ask the agent to use the installed `bfs-router` skill.
 
-The installer prepares adapters outside the npm cache under
+On Windows, the installer prepares adapters outside the npm cache under
 `%LOCALAPPDATA%\BontaFlowStack\npm\versions\<version>\hosts`. It configures native
 plugins/extensions, skills, hooks and MCP. Cursor uses plugin ID
 `bontaflowstack-cursor` and MCP server `bfs-cursor`; OpenCode uses a local V1
 plugin and preserves existing JSON/JSONC configuration.
 
 Setup reuses the sole existing BFS state root, including Windows Store
-redirected locations. Without previous state, it uses
+redirected locations. On Windows, without previous state, it uses
 `%LOCALAPPDATA%\BontaFlowStack\state\v2`. If multiple roots contain data, choose
 one with `BFS_STATE_HOME` and rerun. It does not merge state. Project memory can
 be shared across hosts; active workflows and browser ownership stay scoped to
@@ -58,6 +63,20 @@ The pinned Impeccable CLI and its shared configuration are installed
 automatically. Existing explicit command overrides and modified files are
 preserved. Setup does not install the host application, sign in or change host
 permissions. Review native hook/extension prompts when requested.
+
+On Linux the default adapter root is
+`${XDG_DATA_HOME:-$HOME/.local/share}/bontaflowstack/npm`, and new state uses
+`${XDG_STATE_HOME:-$HOME/.local/state}/bontaflowstack/state/v2`. Relative XDG values
+use the defaults. The macOS candidate uses
+`$HOME/Library/Application Support/BontaFlowStack/{npm,state/v2}`. POSIX adapters
+use `versions/<platform>-<arch>/<version>/hosts`. An existing state pin takes
+precedence over a changed default; `BFS_STATE_HOME` must be absolute.
+
+Missing engine prerequisites leave core registration available while setup
+reports `incomplete` and exits nonzero. Resolve the reported prerequisite, then
+rerun the same setup. The `setup-status.json` file under the adapter root records
+the actual phases and host outcomes. GUI hook/MCP Node-path recovery also uses
+the normal repeated setup command; no data migration is required.
 
 ## Update and recovery
 

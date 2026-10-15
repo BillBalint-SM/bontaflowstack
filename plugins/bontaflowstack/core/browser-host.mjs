@@ -147,7 +147,7 @@ export async function serveBrowserHost(input=process.stdin,output=process.stdout
     }
     if(!session) {
       const folder=path.join(ctx.workspaceDir,'engine-sessions',ctx.taskId,'host-browser');
-      noLinks(folder);fs.mkdirSync(folder,{recursive:true});session=api.createBrowser(folder);
+      noLinks(folder);fs.mkdirSync(folder,{recursive:true,mode:0o700});session=api.createBrowser(folder);
     }
     const result=await session.run(args.args,ctx.cwd,args.stdin);
     await session.save();return result;

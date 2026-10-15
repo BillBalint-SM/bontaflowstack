@@ -55,6 +55,8 @@ export function classify(command, cwd, root, shell = '') {
   // ponytail: only exact read-only status commands skip the measured parser startup;
   // keep all other syntax in the native parser, extend only for measured frequent reads.
   const bash = typeof shell === 'string' && /(?:^|[\\/])bash(?:\.exe)?$/i.test(shell.trim());
+  const powershell = typeof shell === 'string' && /(?:^|[\\/])(?:powershell|pwsh)(?:\.exe)?$/i.test(shell.trim());
+  if(!bash && !powershell && (shell || process.platform!=='win32')) return {decision:'ask',reason:'This shell is not supported by the command inspector; inspect the command before execution'};
   if (!bash && /^git status(?: --short| --porcelain)?\s*$/i.test(command)) return null;
   let parsed;
   if (bash) parsed = parseBash(command);

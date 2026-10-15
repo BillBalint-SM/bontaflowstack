@@ -3,6 +3,14 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { atomicWrite, readJson, digest, requireValue, canonical, within, noLinks } from './state.mjs';
 
+export function targetInfo(platform = process.platform, arch = process.arch) {
+  let libc = 'unknown';
+  if (platform === 'linux' && process.platform === 'linux') {
+    try { if (process.report?.getReport().header.glibcVersionRuntime) libc = 'glibc'; } catch { /* Unknown is a diagnostic, not a platform rejection. */ }
+  }
+  return { platform, arch, ...(platform === 'linux' ? { libc } : {}) };
+}
+
 function manifest(root) {
   noLinks(root);
   const file = path.join(root, 'engine.json');
@@ -20,7 +28,7 @@ function engineFile(root, relative) {
 }
 function registered(ctx) {
   const registration = readJson(path.join(ctx.home, 'engines.json'));
-  requireValue(registration?.root && /^[a-f0-9]{64}$/.test(registration.manifestSha256), 'Optional engines are not installed; run scripts/install-engines.ps1 explicitly');
+  requireValue(registration?.root && /^[a-f0-9]{64}$/.test(registration.manifestSha256), 'Optional engines are not installed; rerun the same npm setup command');
   const root = canonical(registration.root);
   const result = manifest(root);
   requireValue(result.hash === registration.manifestSha256 && result.value.version === registration.version, 'Engine installation changed; rebuild and register the verified package');
@@ -56,30 +64,39 @@ function availability(ctx, root, command, files) {
     if (files[relative]) requireValue(digest(fs.readFileSync(file)) === files[relative], `Engine component changed: ${relative}`);
   }
   if (command.environment) {
-    return externalCommand(ctx, command.environment);
+    try { return externalCommand(ctx, command.environment); }
+    catch(error) {
+      if(command.environment!=='BFS_IMPECCABLE_COMMAND')error.nextAction=`Configure ${command.environment} with the installed external tool's absolute executable JSON argv, then rerun doctor.`;
+      throw error;
+    }
   }
 }
-export function engines(ctx, action, input = {}) {
-  if (action === 'register') {
-    const root = canonical(input.root);
+export function verifyEngine(ctx, directory, sha256) {
+    const root = canonical(directory);
     const { value, hash } = manifest(root);
-    requireValue(input.sha256 === hash, 'Supply the exact engine manifest SHA-256 printed by the build');
+    requireValue(sha256 === hash, 'Supply the exact engine manifest SHA-256 printed by the build');
     for (const [relative, expected] of Object.entries(value.files)) {
       requireValue(/^[a-f0-9]{64}$/.test(expected), 'Malformed engine file hash');
       requireValue(digest(fs.readFileSync(engineFile(root, relative))) === expected, `Engine integrity check failed: ${relative}`);
     }
     for (const command of Object.values(value.commands)) if (!command.environment) availability(ctx, root, command, value.files);
+    return {root,value,hash};
+}
+export function engines(ctx, action, input = {}) {
+  if (action === 'register') {
+    const {root,value,hash}=verifyEngine(ctx,input.root,input.sha256);
     return atomicWrite(path.join(ctx.home, 'engines.json'), { schema: 1, root, version: value.version, manifestSha256: hash });
   }
   if (action === 'status') {
     try {
       const engine = registered(ctx);
       const capabilities = Object.fromEntries(Object.entries(engine.commands).map(([name, command]) => {
-        try { availability(ctx, engine.root, command, engine.files); return [name, { ready: true }]; }
-        catch (error) { return [name, { ready: false, reason: error.message }]; }
+        try { availability(ctx, engine.root, command, engine.files); return [name, { ready: true, status:'ready', verified:'component-files-and-configuration' }]; }
+        catch (error) { return [name, { ready: false, status:'unavailable', reason: error.message, nextAction:error.nextAction || 'Rerun the same npm setup command after resolving the reported engine prerequisite.' }]; }
       }));
-      return { installed: true, version: engine.version, capabilities };
-    } catch (error) { return { installed: false, reason: error.message, capabilities: {} }; }
+      return { installed: true, version: engine.version, capabilities,
+        runtime:{status:'unverified',reason:'Status checks component files and configuration; it does not launch engines.',nextAction:'Run the required engine operation in a new host session.'} };
+    } catch (error) { return { installed: false, status:'unavailable', reason: error.message, nextAction:'Rerun the same npm setup command after resolving the reported engine prerequisite.', capabilities: {} }; }
   }
   const engine = registered(ctx), command = engine.commands[action];
   requireValue(command, `Unknown engine capability: ${action}`);
@@ -89,7 +106,7 @@ export function engines(ctx, action, input = {}) {
   requireValue(Array.isArray(input.args || []) && (input.args || []).every(a => typeof a === 'string' && !a.includes('\0')), 'Engine arguments must be strings');
   requireValue(action !== 'browser' || input.args?.[0] !== 'skill', 'Reusable browser scripts are no longer supported');
   const taskRoot = path.join(ctx.workspaceDir, 'engine-sessions', ctx.taskId);
-  noLinks(taskRoot); fs.mkdirSync(taskRoot, { recursive: true });
+  noLinks(taskRoot); fs.mkdirSync(taskRoot, { recursive: true, mode:0o700 });
   const args = (command.args || []).map(a => a.startsWith('src/') ? engineFile(engine.root, a) : a).concat(input.args || []);
   const program = process.execPath;
   const env = { ...process.env, BFS_ENGINE_SESSION:path.join(taskRoot,'own-engine'),

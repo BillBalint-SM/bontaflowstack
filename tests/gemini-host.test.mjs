@@ -90,10 +90,12 @@ test('Gemini edit and shell tools honor the native guard after cwd changes witho
     const denied=f.hook('BeforeTool',{cwd:outside,tool_name,tool_input:{file_path:'escape.txt',content:'must not write'}});
     assert.equal(denied.status,0,denied.stderr);assert.equal(JSON.parse(denied.stdout).decision,'deny');
   }
-  const destructive=f.hook('BeforeTool',{tool_name:'run_shell_command',tool_input:{command:'Remove-Item -LiteralPath ./target.txt'}});
+  const destructive=f.hook('BeforeTool',{tool_name:'run_shell_command',tool_input:{command:process.platform==='win32'?'Remove-Item -LiteralPath ./target.txt':'rm ./target.txt'}});
   assert.equal(destructive.status,0,destructive.stderr);assert.equal(JSON.parse(destructive.stdout).decision,'deny');
   const readonly=f.hook('BeforeTool',{tool_name:'run_shell_command',tool_input:{command:'git status --short'}});
   assert.equal(readonly.status,0,readonly.stderr);assert.equal(JSON.parse(readonly.stdout).decision,undefined);
+  const dynamic=f.hook('BeforeTool',{tool_name:'run_shell_command',tool_input:{command:process.platform==='win32'?'git $args':'git "$ACTION"'}});
+  assert.equal(dynamic.status,0,dynamic.stderr);assert.equal(JSON.parse(dynamic.stdout).decision,'deny');
   assert.equal(f.call('status',{}, {cwd:outside}).hostWorkspace,f.project);
   const invalid=f.hook('BeforeTool',{session_id:'../forged',tool_name:'mcp_bfs_status',tool_input:{}});
   assert.equal(invalid.status,2);assert.equal(JSON.parse(invalid.stdout).decision,'deny');

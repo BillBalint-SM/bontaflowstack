@@ -147,7 +147,7 @@ test('OpenCode new user turns recover unfinished work and provide bounded record
   const unknown={system:[]};await f.plugin['experimental.chat.system.transform']({},unknown);assert.deepEqual(unknown,{system:[]});
 });
 
-test('OpenCode guard uses the configured Windows shell despite its native bash tool name',async t=>{
+test('OpenCode guard uses the configured Windows shell despite its native bash tool name',{skip:process.platform!=='win32'},async t=>{
   const f=await fixture(t);
   await f.call('core',{args:['guard','status']});
   const output={title:'',output:'',metadata:{}};

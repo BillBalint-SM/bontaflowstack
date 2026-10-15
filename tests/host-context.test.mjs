@@ -7,7 +7,7 @@ import {context} from '../plugins/bontaflowstack/core/state.mjs';
 import {run} from '../plugins/bontaflowstack/core/cli.mjs';
 
 test('host core dispatch preserves supplied project, owner and JSON input', t => {
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-host-context-'));
+  const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-host-context-'));
   t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));assert.match(path.basename(root),/^bfs-host-context-/);fs.rmSync(root,{recursive:true,force:true});});
   const ctx={...context(root,{BFS_STATE_HOME:path.join(root,'state')}),taskId:'claude-native-session'};
   const result=run(['workflow','start'],{context:ctx,input:{goal:'Host dispatch fixture',skills:['bfs-health']}});

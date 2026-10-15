@@ -14,6 +14,7 @@ test('OpenCode activates an npm-installed BFS skill and runs the actual project 
   fs.writeFileSync(path.join(project,'README.md'),'# Fixture\n\nExisting health check: `node --test check.test.mjs`.\n');
   fs.writeFileSync(path.join(project,'check.test.mjs'),"import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('BFS_INSTALLED_HEALTH_OK',()=>assert.equal(2+3,5));\n");
   const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,"User's $profile"),XDG_CONFIG_HOME:path.join(root,"User's $config")};
+  if(process.platform!=='win32')Object.assign(env,{HOME:path.join(root,'Home'),XDG_DATA_HOME:path.join(root,'xdg-data'),XDG_STATE_HOME:path.join(root,'xdg-state')});
   for(const name of ['BFS_STATE_HOME','BFS_IMPECCABLE_COMMAND','NODE_TEST_CONTEXT','OPENCODE_CONFIG','OPENCODE_CONFIG_DIR'])delete env[name];
   // Agent rules retain their order after the fixture's global bash deny; these permissions exist only in this test process.
   env.OPENCODE_CONFIG_CONTENT=JSON.stringify({agent:{build:{permission:{'*':'ask',skill:{'*':'deny','bfs-health':'allow'},bfs_core:'allow',bfs_status:'allow',read:'allow',glob:'allow',grep:'allow',bash:{'*':'deny','node --test check.test.mjs':'allow'}}}}});
@@ -23,8 +24,8 @@ test('OpenCode activates an npm-installed BFS skill and runs the actual project 
   const prompt='Use the installed bfs-health skill in check mode for this fixture project. Activate it with the native skill tool, follow its HOST read protocol and read effective preferences. Run the existing README health command exactly as written. Also call bfs_status once and report its host/sessionId and engine readiness. Do not modify files, use other skills, install anything or run any other shell command. Report actual results; do not retry errors.';
   console.log(`Native installed OpenCode evidence: ${project}`);
   const result=await new Promise((resolve,reject)=>{
-    const child=spawn(cli,['run','--agent','build','--model','opencode/longcat-2.5-preview-free','--format','json',prompt],{cwd:project,env,windowsHide:true,stdio:['ignore','pipe','pipe']});let stdout='',stderr='';
-    const timer=setTimeout(()=>{if(child.pid)spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});reject(new Error('Native installed skill probe timed out'));},180000);
+    const child=spawn(cli,['run','--dir',project,'--agent','build','--model','opencode/longcat-2.5-preview-free','--format','json',prompt],{cwd:project,env,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});let stdout='',stderr='';
+    const timer=setTimeout(()=>{writeNativeEvidence(path.join(project,'native-evidence.json'),{code:'timeout',stdout,stderr});if(child.pid){if(process.platform==='win32')spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});else try{process.kill(-child.pid,'SIGTERM');}catch(error){if(error.code!=='ESRCH')throw error;}}reject(new Error('Native installed skill probe timed out'));},180000);
     child.stdout.on('data',data=>stdout+=String(data));child.stderr.on('data',data=>stderr+=String(data));child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('close',code=>{clearTimeout(timer);resolve({code,stdout,stderr});});
   });
   const diagnostic=writeNativeEvidence(path.join(project,'native-evidence.json'),result);assert.equal(result.code,0,JSON.stringify(diagnostic));

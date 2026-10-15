@@ -9,7 +9,7 @@ import { checkLocalLinks } from '../scripts/check.mjs';
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = path.join(repo, 'plugins', 'bontaflowstack');
 const catalog = JSON.parse(fs.readFileSync(path.join(source, 'catalog.json'), 'utf8'));
-const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'bfs-claude-package-'));
+const temp = fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()), 'bfs-claude-package-'));
 const output = path.join(temp, 'package');
 
 try {

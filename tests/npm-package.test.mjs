@@ -14,13 +14,14 @@ function npmCliPath() {
   const candidates = [
     process.env.npm_execpath,
     process.env.APPDATA && path.join(process.env.APPDATA, 'npm', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
-    path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js')
+    path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    path.resolve(path.dirname(process.execPath), '../lib/node_modules/npm/bin/npm-cli.js')
   ].filter(Boolean);
   return candidates.find(file => fs.statSync(file, { throwIfNoEntry:false })?.isFile());
 }
 
-test('npm builder packages exact-version host plugins and only installable files', { skip:process.platform !== 'win32' }, t => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'bfs-npm-package-'));
+test('npm builder packages exact-version host plugins and only installable files', t => {
+  const temp = fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()), 'bfs-npm-package-'));
   const output = path.join(temp, 'package');
   const packDestination = path.join(temp, 'packed');
   fs.mkdirSync(packDestination);
@@ -38,8 +39,8 @@ test('npm builder packages exact-version host plugins and only installable files
   assert.equal(packedPackage.private, undefined);
   assert.deepEqual(packedPackage.bin, { bontaflowstack:'bin/setup.mjs' });
   assert.equal(packedPackage.engines.node, '>=24');
-  assert.deepEqual(packedPackage.os, ['win32']);
-  assert.deepEqual(packedPackage.cpu, ['x64']);
+  assert.deepEqual(packedPackage.os, ['win32','linux','darwin']);
+  assert.deepEqual(packedPackage.cpu, ['x64','arm64']);
   assert.deepEqual(packedPackage.dependencies, {impeccable:'4.5.2'});
   assert.equal(packedPackage.scripts, undefined);
 

@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'scripts/bfstack.ps1') -Command hook -Action pretool; exit $LASTEXITCODE\"",
+            "command": "node \"$PLUGIN_ROOT/core/cli.mjs\" hook pretool",
             "commandWindows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'scripts/bfstack.ps1') -Command hook -Action pretool; exit $LASTEXITCODE\"",
             "timeout": 10
           }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'scripts/bfstack.ps1') -Command hook -Action stop; exit $LASTEXITCODE\"",
+            "command": "node \"$PLUGIN_ROOT/core/cli.mjs\" hook stop",
             "commandWindows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'scripts/bfstack.ps1') -Command hook -Action stop; exit $LASTEXITCODE\"",
             "timeout": 8
           }

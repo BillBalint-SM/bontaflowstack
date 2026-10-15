@@ -47,6 +47,21 @@ export function noLinks(target) {
 export function git(cwd, args) {
   return spawnSync('git', ['-C', cwd, ...args], { encoding: 'utf8', windowsHide: true, timeout: 10000, maxBuffer: 4 * 1024 * 1024 });
 }
+export function dataPaths(env = process.env, platform = process.platform) {
+  const home=platform!=='win32' && env.HOME && path.isAbsolute(env.HOME) ? env.HOME : os.homedir();
+  if(platform==='win32') {
+    const base=path.join(env.LOCALAPPDATA || path.join(home,'AppData','Local'),'BontaFlowStack');
+    return {installRoot:path.join(base,'npm'),stateHome:path.join(base,'state','v2')};
+  }
+  if(platform==='darwin') {
+    const base=path.join(home,'Library','Application Support','BontaFlowStack');
+    return {installRoot:path.join(base,'npm'),stateHome:path.join(base,'state','v2')};
+  }
+  requireValue(platform==='linux',`Unsupported platform: ${platform}`);
+  const xdg=(value,fallback)=>value && path.isAbsolute(value) ? value : path.join(home,fallback);
+  return {installRoot:path.join(xdg(env.XDG_DATA_HOME,'.local/share'),'bontaflowstack','npm'),
+    stateHome:path.join(xdg(env.XDG_STATE_HOME,'.local/state'),'bontaflowstack','state','v2')};
+}
 export function context(cwd = process.cwd(), env = process.env) {
   const location = canonical(cwd);
   requireValue(fs.statSync(location).isDirectory(), 'Project must be a directory');
@@ -65,7 +80,8 @@ export function context(cwd = process.cwd(), env = process.env) {
       requireValue(path.isAbsolute(pinnedHome), 'Installed stateHome must be an absolute path');
     }
   }
-  const home = path.resolve(env.BFS_STATE_HOME || pinnedHome || path.join(env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'BontaFlowStack', 'state', 'v2'));
+  if(env.BFS_STATE_HOME) requireValue(typeof env.BFS_STATE_HOME==='string' && path.isAbsolute(env.BFS_STATE_HOME),'BFS_STATE_HOME must be an absolute directory');
+  const home = path.resolve(env.BFS_STATE_HOME || pinnedHome || dataPaths(env).stateHome);
   const projectId = key(anchor), workspaceId = key(workspace);
   const projectDir = path.join(home, 'projects', projectId);
   const workspaceDir = path.join(projectDir, 'workspaces', workspaceId);
@@ -117,7 +133,7 @@ export function atomicWriteText(file, value, {overwrite=false} = {}) {
 }
 function writeSerialized(file, serialized, createOnly=false) {
   noLinks(file);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.mkdirSync(path.dirname(file), { recursive: true, mode:0o700 });
   noLinks(file);
   const previous = fs.existsSync(file) ? fs.readFileSync(file) : null;
   if (previous?.equals(Buffer.from(serialized))) return;
@@ -142,12 +158,12 @@ function writeSerialized(file, serialized, createOnly=false) {
 }
 export function changeJson(file, fallback, update) {
   noLinks(file);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.mkdirSync(path.dirname(file), { recursive: true, mode:0o700 });
   const lock = `${file}.lock`;
   const deadline = performance.now() + 2000;
   const sleeper = new Int32Array(new SharedArrayBuffer(4));
   while (true) {
-    try { fs.mkdirSync(lock); break; }
+    try { fs.mkdirSync(lock,{mode:0o700}); break; }
     catch (error) {
       if (error.code !== 'EEXIST' && error.code !== 'EPERM') throw error;
       const remaining = deadline - performance.now();

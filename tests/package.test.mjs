@@ -12,7 +12,7 @@ const readme=fs.readFileSync(fileURLToPath(new URL('../README.md',import.meta.ur
 const policies=Object.fromEntries(catalog.skills.map(skill=>[skill.id,skill.id!=='bfs-guard']));
 
 test('local documentation links validate files and section anchors',t=>{
-  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-links-'));
+  const directory=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-links-'));
   t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
   const source=path.join(directory,'source.md');
   fs.writeFileSync(path.join(directory,'target.md'),'# Guard\n\n## Guard\n');

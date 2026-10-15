@@ -7,23 +7,28 @@ import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 
 test('real npm setup registers and upgrades OpenCode while preserving JSONC, state and conflicts',{skip:process.env.BFS_RUN_OPENCODE_SETUP!=='1'},async()=>{
   const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-opencode-setup-')),project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
   const cli=process.env.BFS_OPENCODE_CLI || path.join(process.env.APPDATA,'npm/node_modules/opencode-ai/bin/opencode.exe');assert.ok(fs.existsSync(cli));
   const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,"User's $profile"),XDG_CONFIG_HOME:path.join(root,"User's $config"),BFS_STATE_HOME:path.join(root,'state'),npm_config_cache:path.join(root,'npm-cache'),npm_config_yes:'true'};
+  env.CODEX_THREAD_ID ||= 'opencode-setup-validation';
+  if(process.platform!=='win32')Object.assign(env,{HOME:path.join(root,'Home'),XDG_DATA_HOME:path.join(root,'xdg-data'),XDG_STATE_HOME:path.join(root,'xdg-state')});
+  const {installRoot}=dataPaths(env);
+  const versionRoot=path.join(installRoot,'versions',...(process.platform==='win32'?[]:[`${process.platform}-${process.arch}`]));
   for(const name of ['BFS_IMPECCABLE_COMMAND','OPENCODE_CONFIG_DIR','OPENCODE_CONFIG','OPENCODE_CONFIG_CONTENT','NODE_TEST_CONTEXT'])delete env[name];
   const configRoot=path.join(env.XDG_CONFIG_HOME,'opencode'),loader=path.join(configRoot,'plugins/bontaflowstack.js'),configFile=path.join(configRoot,'opencode.jsonc');
   for(const dir of [project,packed,env.LOCALAPPDATA,env.USERPROFILE,path.join(configRoot,'plugins')])fs.mkdirSync(dir,{recursive:true});
   const original='// Preserve comments, trailing commas and user permission.\n{"share":"disabled","permission":{"bash":"deny"},}\n';fs.writeFileSync(configFile,original);
   const otherPlugin=path.join(configRoot,'plugins/keep.js'),otherSource='export const Keep=async()=>({});\n';fs.writeFileSync(otherPlugin,otherSource);
-  const npmBase=[process.env.npm_execpath && path.dirname(process.env.npm_execpath),path.join(process.env.APPDATA,'npm/node_modules/npm/bin'),path.join(path.dirname(process.execPath),'node_modules/npm/bin')].filter(Boolean).find(base=>fs.existsSync(path.join(base,'npm-cli.js')));assert.ok(npmBase);
+  const npmBase=[process.env.npm_execpath && path.dirname(process.env.npm_execpath),process.env.APPDATA && path.join(process.env.APPDATA,'npm/node_modules/npm/bin'),path.join(path.dirname(process.execPath),'node_modules/npm/bin'),path.resolve(path.dirname(process.execPath),'../lib/node_modules/npm/bin')].filter(Boolean).find(base=>fs.existsSync(path.join(base,'npm-cli.js')));assert.ok(npmBase);
   const records=[];
   async function run(label,command,args,{cwd=project,allowFailure=false}={}) {
     console.log(`Running ${label}; evidence: ${root}`);
     const result=await new Promise((resolve,reject)=>{
-      const child=spawn(command,args,{cwd,env,windowsHide:true,stdio:['ignore','pipe','pipe']});let stdout='',stderr='';
-      const timer=setTimeout(()=>{if(child.pid)spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});reject(new Error(`${label} timed out`));},15*60*1000);
+      const child=spawn(command,args,{cwd,env,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});let stdout='',stderr='';
+      const timer=setTimeout(()=>{if(child.pid){if(process.platform==='win32')spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});else try{process.kill(-child.pid,'SIGTERM');}catch(error){if(error.code!=='ESRCH')throw error;}}reject(new Error(`${label} timed out`));},15*60*1000);
       child.stdout.on('data',data=>stdout+=String(data));child.stderr.on('data',data=>stderr+=String(data));child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('close',code=>{clearTimeout(timer);resolve({code,stdout,stderr});});
     });
     writeCommandEvidence(path.join(root,label+'.command-evidence.json'),result);records.push({label,code:result.code});
@@ -37,7 +42,7 @@ test('real npm setup registers and upgrades OpenCode while preserving JSONC, sta
   const upgrade=path.join(root,'upgrade'),next='9.9.9-opencode-test.1';fs.cpSync(built,upgrade,{recursive:true});
   for(const file of ['package.json','hosts/codex/plugins/bontaflowstack/catalog.json','hosts/codex/plugins/bontaflowstack/.codex-plugin/plugin.json','hosts/claude/catalog.json','hosts/claude/.claude-plugin/plugin.json','hosts/claude/.claude-plugin/marketplace.json','hosts/gemini/catalog.json','hosts/gemini/gemini-extension.json','hosts/copilot/catalog.json','hosts/copilot/plugin.json','hosts/copilot/marketplace.json','hosts/cursor/catalog.json','hosts/cursor/.cursor-plugin/plugin.json','hosts/opencode/catalog.json','hosts/opencode/package.json']){const target=path.join(upgrade,file),value=JSON.parse(fs.readFileSync(target,'utf8'));if(value.version)value.version=next;for(const entry of value.plugins || [])if(entry.version)entry.version=next;fs.writeFileSync(target,JSON.stringify(value,null,2)+'\n');}
   const second=await pack('pack-upgrade',upgrade);await npx('upgrade',second);
-  const plugin=path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/versions',next,'hosts/opencode');assert.match(fs.readFileSync(loader,'utf8'),/9\.9\.9-opencode-test\.1/);
+  const plugin=path.join(versionRoot,next,'hosts/opencode');assert.match(fs.readFileSync(loader,'utf8'),/9\.9\.9-opencode-test\.1/);
   fs.renameSync(env.npm_config_cache,env.npm_config_cache+'-removed');fs.renameSync(built,built+'-removed');fs.renameSync(upgrade,upgrade+'-removed');
   const skills=JSON.parse((await run('skills',cli,['debug','skill'])).stdout).filter(skill=>skill.name.startsWith('bfs-'));assert.equal(skills.length,34);for(const skill of skills)assert.equal(path.resolve(skill.location),path.join(plugin,'skills',skill.name,'SKILL.md'));
   const mcp=await run('mcp',cli,['mcp','list']);assert.match(mcp.stdout.replace(/\u001b\[[0-9;]*m/g,''),/bfs connected/);

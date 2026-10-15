@@ -27,7 +27,7 @@ export function geminiHook(event,env=process.env) {
   }
   object(event.tool_input);
   const name=geminiTools.find(name=>geminiToolName(name)===event.tool_name);
-  const toolName=({run_shell_command:'PowerShell',write_file:'Write',replace:'Edit'})[event.tool_name] || event.tool_name;
+  const toolName=({run_shell_command:process.platform==='win32'?'PowerShell':'Bash',write_file:'Write',replace:'Edit'})[event.tool_name] || event.tool_name;
   const input=name?callArguments(event.tool_input):event.tool_name==='run_shell_command'?{...event.tool_input,workdir:event.tool_input.dir_path?path.resolve(event.cwd,event.tool_input.dir_path):event.cwd}:event.tool_input;
   const result=preTool(ctx,{...event,hook_event_name:'PreToolUse',session_id:ctx.taskId,tool_name:toolName,tool_input:input}).hookSpecificOutput;
   if(result.permissionDecision==='deny')return {decision:'deny',reason:result.permissionDecisionReason};

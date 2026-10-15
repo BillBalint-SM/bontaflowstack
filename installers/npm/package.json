@@ -11,8 +11,8 @@
   "engines": {
     "node": ">=24"
   },
-  "os": ["win32"],
-  "cpu": ["x64"],
+  "os": ["win32", "linux", "darwin"],
+  "cpu": ["x64", "arm64"],
   "dependencies": { "impeccable": "4.5.2" },
   "bin": {
     "bontaflowstack": "bin/setup.mjs"

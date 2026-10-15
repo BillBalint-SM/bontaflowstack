@@ -6,7 +6,7 @@ import { context, readJson, object, requireValue, digest } from './state.mjs';
 import { workflow, stopWorkflows } from './workflow.mjs';
 import { memory, preferences } from './memory.mjs';
 import { guard, preTool } from './guard.mjs';
-import { engines } from './engines.mjs';
+import { engines, targetInfo } from './engines.mjs';
 import { delivery } from './delivery.mjs';
 import { pluginRoot, loadCatalog, resolveSkill, selection } from './catalog.mjs';
 import { essentialContext, contextForRead } from './context.mjs';
@@ -70,7 +70,18 @@ export function run(argv, {context: hostContext, input: hostInput} = {}) {
     }
     if (skill?.id === 'bfs-guard' && !hooks.observed) missing.push('native-guard-hook');
     const version = Number(process.versions.node.split('.')[0]);
-    return { core:{ ready:version >= 24, node:process.version }, skill:skill?.id || null, mode:skill?.mode || null,
+    const nextAction = `npx bontaflowstack@${catalog.version} setup`;
+    if (!engine.installed) engine.nextAction = nextAction;
+    for (const capability of Object.values(engine.capabilities)) if (!capability.ready && capability.nextAction.startsWith('Rerun the same npm setup command')) capability.nextAction = nextAction;
+    hooks.status = hooks.observed ? 'ready' : 'unverified';
+    const capabilities = {...engine.capabilities};
+    for (const name of requirements) {
+      const capability = capabilities[name];
+      if (!capability?.ready) capabilities[name] = {ready:false,status:'unavailable',reason:capability?.reason || engine.reason || `Engine capability is not provided: ${name}`,nextAction:capability?.nextAction || nextAction};
+    }
+    if (missing.includes('native-guard-hook')) capabilities['native-guard-hook'] = {ready:false,status:'unverified',reason:hooks.reason,nextAction:'Enable and trust the native plugin hooks, then verify PreToolUse in a new host session.'};
+    return { ...targetInfo(), core:{ ready:version >= 24, status:version >= 24 ? 'ready' : 'unavailable', node:process.version }, capabilities,
+      ...(missing.length ? {nextAction:capabilities[missing[0]].nextAction} : {}), skill:skill?.id || null, mode:skill?.mode || null,
       ...(skill?.coverage ? {coverage:skill.coverage, ...(skill.baseline ? {baseline:skill.baseline} : {}), ...(skill.diffBase ? {diffBase:skill.diffBase} : {})} : {}),
       ready:version >= 24 && !missing.length, missing, hooks, engines:engine, projectId:ctx.projectId, workspaceId:ctx.workspaceId, git:ctx.git, skillCount:catalog.skills.length };
   }

@@ -6,7 +6,7 @@ import path from 'node:path';
 import {writeNativeEvidence,writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
 
 test('native diagnostic file retains outcomes without transcripts, credentials or personal content',t=>{
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   const privateText='CANARY-secret user@example.invalid C:\\Users\\PrivatePerson',binding='CANARY-binding';
   const events=[
     {type:'assistant.message',data:{content:privateText,reasoningText:privateText,reasoningOpaque:privateText,encryptedContent:privateText}},
@@ -33,7 +33,7 @@ test('native diagnostic file retains outcomes without transcripts, credentials o
 });
 
 test('setup diagnostics retain command outcomes without captured output or personal paths',t=>{
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   const file=path.join(root,'command-evidence.json'),secret='CANARY-secret user@example.invalid C:\\Users\\PrivatePerson';
   const result={status:1,stdout:secret,stderr:secret,command:secret,args:[secret],cwd:secret,error:{message:secret}};
   assert.deepEqual(writeCommandEvidence(file,result),{schema:1,exitCode:1,stdoutBytes:Buffer.byteLength(secret),stderrBytes:Buffer.byteLength(secret)});
@@ -43,7 +43,7 @@ test('setup diagnostics retain command outcomes without captured output or perso
 });
 
 test('shareable acceptance summary keeps checked outcomes and leaves private continuation data unchanged',t=>{
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   const file=path.join(root,'result.json'),secret='CANARY-secret user@example.invalid C:\\Users\\PrivatePerson';
   const report={status:'passed',host:'opencode-cli',skillCount:34,hostSha256:'a'.repeat(64),configPreserved:true,impeccable:false,
     version:secret,sessionId:secret,workspace:secret,tarballs:[secret],events:[{output:secret}],failedTools:[{tool:secret,args:[secret]}],[secret]:true};
