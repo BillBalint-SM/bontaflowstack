@@ -5,7 +5,10 @@ Felhasználói elfogadás: „Rendben, kezdd el a #6 issue megvalósítását a 
 szerinti sorrendben. A meglévő Windows-működést őrizd meg, és a Linux-támogatás
 ne legyen Ubuntuhoz kötve.”
 
-**Állapot: hat közös kódszelet megvalósítva; az issue nincs kész.**
+Aktuális állapot: [tételes elfogadási jegyzék](OS-EXPANSION-ACCEPTANCE.md).
+Az alábbi korábbi szeletek történeti állapotokat írnak le.
+
+**Történeti indulóállapot: hat közös kódszelet megvalósítva; az issue nincs kész.**
 Nincs teljes Linux/Mac támogatási vagy natív hostelfogadási állítás.
 A helyi npm-jelölt Linux/macOS x64/ARM64 célokat is elfogad; Windows x64 megmarad.
 Ez fejlesztési állapot, nem publikált vagy minden hoston natívan elfogadott támogatás.
@@ -1322,3 +1325,90 @@ csak a tényleges eredményeket rögzítjük; emiatt nem ismételjük a teljes m
 Új modellkérés nem indult. Cursor modell/MCP/pre-post-tool-hook: keretre váró.
 Mac GUI, külön Wayland/humán handoff és további teljes natív distro-host/engine
 utak továbbra is a #6 nyitott részei. Nincs kiadás vagy main-merge.
+
+## OS19 – A végrehajtható, modellfüggetlen munka lezárása
+
+A felhasználó kérése: a fennmaradó modellfüggetlen feladatok befejezése,
+a blokkolt próbákon további időtöltés és új modellkérés nélkül.
+A [végső CI-futás](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38754515090)
+mind a **14 feladata sikeres**, forrás:
+`e5f8b79a0a5e3b1e684dd65d48425030be2085a3`.
+
+### Tényleges eredmény
+
+- Linux x64/ARM64 és Mac ARM64/Intel: valódi, rögzített öt CLI-vel futó
+  npm/npx telepítés, ismétlés, szintetikus verziófrissítés és natív visszaolvasás.
+  Codex/Claude rollback és eltávolítás is ellenőrzött, adatok törlése nélkül.
+  Impeccable CSS-próbák npm-cache nélkül is sikeresek.
+- Mind a négy célon tényleges engine click/readback, screenshot és 640×480
+  render; a böngészőfolyamat parancssorában nincs `--no-sandbox`.
+- Mindkét Mac-CPU-n case-insensitive runnerkötet és külön HFSX case-sensitive
+  kötet: kanonikus alias, különböző valódi case-útvonalak, Unicode és szóköz.
+- Windows CI: 173 PASS / 4 SKIP / 0 FAIL; forráscsomag build/teszt sikeres,
+  további kiadási tesztek 19/19 PASS. Valódi Windows engine-suite:
+  12 PASS / 1 Linux-specifikus SKIP / 0 FAIL.
+- Fedora 44 és frissített Arch privát userland: azonos natív OpenCode-próba,
+  ugyanaz a tarball (`e98ad0bd1cc2220315298d3ba7327df39390dda18a61e56d0c003ae8b7d0f7e1`),
+  telepítés/ismétlés/frissítés, 34 skill/MCP-regisztráció, CSS-detektor,
+  npm-cache nélküli működés és idegen JSONC/plugin/policy/state megőrzése.
+  A későbbi Mac-kimenetjavítást ezekre a bájtokra nem jelentjük újrafuttatottnak.
+- Debian 13 privát, checksumhoz kötött userland: ugyanaz a natív OpenCode
+  lifecycle a végső forrásból épített jelölttel sikeres. A CI Debian/Fedora/Arch
+  közös packed-core próbái külön azonos, végső CI-tarballt használtak:
+  `294207b9b9802b859feada78e08bef460d527b3c486a254c934a0e35d320da38`.
+- Kontrollált ismeretlen `/etc/os-release` a bevizsgált Fedora userlandben:
+  valódi setup completed, core doctor és headless click/readback sikeres.
+  Ez metadata-kontroll, nem egy újabb fizikai disztribúció állítása.
+- Alpine 3.24.2, natív musl Node 24.22.0 és Codex 0.162.0: a végső CI-tarball
+  valódi npx setupja regisztrálta a core-t és megőrizte az adatjelzőt.
+  A teljes setup helyesen exit 1 / incomplete, a core doctor sikeres,
+  a browser doctor exit 1 / nem ready. A tényleges, létező Chromium ELF
+  `/lib64/ld-linux-x86-64.so.2` interpretert kér, amely a rootfsben nincs:
+  az ENOENT indítási hiba ezzel külön is igazolt. Nincs teljes Alpine browser-PASS.
+- WSLg Wayland, X11 nélkül: tényleges visible launch, kattintás/visszaolvasás,
+  PNG és folyamat-parancssor ellenőrzés sikeres. A képet külön megtekintettük.
+  Ez nem emberi handoff és nem modellből indított MCP-hívás.
+
+### Megtalált és javított hibák
+
+1. A natív CI első pipeline-jában a `tee` elfedte a hibakódot. Explicit Bash
+   pipefail került a lépésre; a kezdeti zöld részlépés nem elfogadási bizonyíték.
+   A téves korai állítást a chatben azonnal pontosítottuk.
+2. A Mac natív setup-fixture `/var` temp-aliasa linkvédelmet aktivált;
+   a fixture kanonikus szülőből készül. A Gemini-fixture install-rootját is
+   a közös platformhelyes `dataPaths` adja. Az ellenőrzések nem lazultak.
+3. A Gemini és OpenCode nagy JSON-kimenete Macen 64 KiB körül csonkult,
+   sikeres processzexit mellett is. A közös Darwin capture privát 0700/0600
+   ideiglenes fájlokat használ, 8 MiB olvasási limittel és normál cleanup-pal.
+   A külön 256000 karakteres, azonnal kilépő CLI-próba és a valódi regisztrációk
+   sikeresek. A natív tesztek közvetlen JSON-visszaolvasása ugyanazt a capture-t
+   használja; eredeti skill-/verzió-/policy-assertjeik megmaradtak.
+4. Wayland-only környezetben a Chromium X11-et indított, majd hiányzó DISPLAY
+   hibával leállt. Az engine csak Linux visible Wayland-sessionben választ
+   `--ozone-platform=wayland` indítást. A headless és X11 kontrollok megmaradtak.
+   Új engine-forrás: 0.3.5; ZIP/hash/lock/csomagteszt összehangolva.
+   A forrás saját helyi commitja `65b67ad1f0fd8f8f16a22ba6fbcb17717975948e`;
+   a külön engine-repóba nem történt push, a BFS-jelölt tartalmazza a teljes forrást.
+5. A Linux CI Chromium-sandboxját a runner userns-policy blokkolta. A runner
+   saját privát tesztkönyvtárában lévő Chromium binárisokra szűkített AppArmor
+   userns-engedély után a natív x64 és ARM64 próbák sikeresek. Globális sysctl-
+   vagy Chromium-sandbox-kikapcsolás nincs; a termék nem telepít ilyen profilt.
+
+Az egyszer hibás `runner.temp` workflow-contextot javítottuk és actionlinttel
+ellenőriztük. A privát rootfs-helper kezdeti hiányzó Git/tar és Debian tmpfs-mode
+hibái környezeti előfeltételek voltak; külön rootfs-másolatokon rendezve, a korábbi
+nyers hibás naplók megtartásával. Nem számítanak termék-RED-nek vagy sikernek.
+
+### Lezárt hatókör és külső várakozások
+
+A tételes A01–A26 státusz a [jegyzékben](OS-EXPANSION-ACCEPTANCE.md) található.
+Új modellkérés nem indult. A Cursor modell/MCP/pre/post-tool próba keretre váró;
+a többi korábban authra váró modellút sem lett megkerülve. Natív Finder/GUI,
+emberi handoff/resume és friss agent-session csak megfelelő hozzáféréssel vagy
+emberi részvétellel igazolható; a blokkolt ágakat nem ismételtük.
+Az Alpine browser ABI-határ dokumentált korlát, nem általános Linux-tiltás.
+
+A négy megőrzött natív Cursor-fájl hash-e újra egyezik. Csak saját tesztprofilok
+és rootfs-másolatok változtak. Nincs modellkérés, adatköltöztetés, main-merge vagy
+npm-kiadás. A végső eredménydokumentáció `[skip ci]` commitban kerül a munkágra;
+nem módosítja a fenti, tesztelt termékforrást.

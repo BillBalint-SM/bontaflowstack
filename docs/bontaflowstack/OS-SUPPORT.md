@@ -1,8 +1,8 @@
 # Linux/macOS candidate: installation and verification status
 
 The published `1.2.0` release has a Windows x64 baseline. Issue #6 extends the
-local candidate to Linux and macOS x64/ARM64. These candidate changes have not
-been published. An accepted npm target is not evidence of a complete native port.
+candidate branch to Linux and macOS x64/ARM64. These changes have not been released
+on npm. An accepted npm target is not evidence of a complete native port.
 
 The following status is based on the [implementation evidence](OS-EXPANSION-IMPLEMENTATION.md)
 recorded on 2026-10-15. Older entries in that log describe earlier states; later
@@ -17,22 +17,26 @@ model journeys, and do not turn a waiting model cell into a verified result.
 
 | Environment | Observed candidate result | Still unverified or blocked |
 | --- | --- | --- |
-| Windows x64 | Previous full regression and native lifecycle results retained; Windows storage layout and host commands preserved | New changes need their affected Windows checks |
+| Windows x64 | Full common/source/release CI retained; current engine suite 12 PASS / 1 Linux-specific SKIP; storage layout and host commands preserved | Model-dependent host acceptance is separate |
 | Linux x64, WSL Ubuntu 26.04, glibc 2.43, Node 24.21.0 | Six native host install/repeat/update paths; core, Chromium/render and Impeccable paths; OpenCode native model health/browser/render journey | Host model coverage differs; WSL userland evidence does not establish every distribution or a separately booted Linux desktop |
-| Fedora 44 x64 userland under rootless bwrap/WSL | Actual native engine suite 12/12, render, browser and CSS detector; current shared tarball setup help/core doctor | Native host journeys and independently booted desktop; dependency preparation had a limited RPM post-install failure, detailed in the log |
-| Arch bootstrap 2026.10.01 x64 under rootless bwrap/WSL | Actual native engine suite 12/12, render, browser and CSS detector; current shared tarball setup help/core doctor | Native host journeys, independently booted desktop |
-| Alpine 3.24.2 x64, musl | Current shared tarball setup help/core doctor with native Node 24.18.1; earlier native Impeccable/CSS path. Doctor reports libc as unknown | Full engine blocked: bundled Chromium requires the missing glibc ELF loader; not full Alpine browser support |
-| Debian 13 x64 | CI job prepared with a pinned image | Actual execution of the new CI job and native host/engine journey |
-| Linux ARM64 glibc | Candidate target, generated adapters and CI job prepared | Actual native ARM64 checks, hosts and engines |
-| macOS ARM64 / Intel x64 | Candidate paths, Node discovery/recovery and adapters have controlled coverage; native CI jobs prepared | No Mac available locally; native checks, Finder/GUI PATH, engines, volume case behavior and host journeys |
+| Fedora 44 x64 userland under rootless bwrap/WSL | Native engine suite 12/12, render/browser/CSS; real OpenCode install/repeat/update, 34 skills/MCP registration, cache removal and config/state/conflict preservation | Model-driven host tools and independently booted desktop |
+| Arch userland, bootstrap 2026.10.01 plus recorded package updates, under rootless bwrap/WSL | Same actual tarball and OpenCode lifecycle as Fedora; native engine suite 12/12 and CSS detector | Model-driven host tools, independently booted desktop |
+| Alpine 3.24.2 x64, musl | Actual final CI tarball npx setup with native Node 24.22.0 musl and Codex 0.162.0: core registered, state preserved, full setup correctly incomplete; common CI and earlier native Impeccable/CSS evidence retained. Libc diagnostic remains unknown | Full engine blocked: bundled Chromium requires the missing glibc ELF loader; not full Alpine browser support |
+| Debian 13 x64 | Pinned-image common CI and same-tarball packed core; real OpenCode install/repeat/update, Chromium build/launch, Impeccable CSS and config/state preservation in a private Debian userland | Model-driven tools and independently booted desktop |
+| Linux ARM64 glibc | Actual native CI: five CLI setup lifecycles, native Chromium click/readback/render and Impeccable detector | Model-driven tools and graphical hosts |
+| macOS ARM64 | Actual native CI: five CLI setup lifecycles, Chromium/render, Impeccable, case-sensitive HFSX and insensitive runner volume identities | Finder/GUI PATH, graphical hosts, human handoff and model-driven tools |
+| macOS Intel x64 | Actual native CI: five CLI setup lifecycles, Chromium/render, Impeccable and both volume case modes | Finder/GUI, graphical hosts, human handoff and model-driven tools |
 
 Linux support uses OS/CPU, ABI and actual capability checks. There is no Ubuntu
 allowlist. A missing library or an incompatible Chromium build affects that
 capability; it does not disable core registration solely because of a distro name.
 Setup does not install system libraries with apt, dnf, pacman or sudo.
 
-X11/WSLg native Cursor visibility and physical clicking were confirmed. Separate
-Wayland and human BFS browser handoff/resume are still unverified. A GUI snapshot,
+X11/WSLg native Cursor visibility and physical clicking were confirmed. A real
+WSLg Wayland-only visible engine launch, click/readback and screenshot now pass
+with X11 disabled and no `--no-sandbox` process argument. The engine selects
+Wayland for an explicit Wayland session or a Wayland-only display; headless and
+X11 paths remain separate. Human BFS browser handoff/resume is still unverified. A GUI snapshot,
 installed manifest or successful doctor is not a substitute for those checks.
 With display variables removed, the real Linux engine completed headless
 click/readback, screenshot and render operations, reported a missing X display
@@ -115,6 +119,11 @@ removes that Node, rerun the same candidate setup with a working Node 24+ proces
 the owned runtime-recovery path has controlled and native Linux evidence.
 Actual macOS GUI recovery is still unverified.
 
+macOS setup captures native CLI output through private temporary files because
+some upstream CLIs exit before large JSON pipe output drains. The files use 0600,
+their parent is private, reads retain the 8 MiB limit, and normal completion/error
+paths remove them. Forced termination can leave a private diagnostic directory.
+
 ## CI coverage and its limits
 
 The existing Windows source-package/release checks remain. Added jobs request
@@ -129,6 +138,19 @@ also verify and extract the same SHA-256-bound candidate tarball built by the
 Linux x64 job, then exercise setup help and the packed core doctor. Alpine uses
 an official Node 24 musl image in Docker for the same core/package boundary.
 Those jobs do not establish full distro engine or graphical host acceptance.
+
+Native setup CI additionally installs pinned Codex, Claude, Gemini, Copilot and
+OpenCode CLI packages on all four POSIX OS/CPU targets. It runs actual npm/npx
+install/repeat/update and host read-back, tests the standalone native engine and
+checks both Mac case modes. These jobs make no model requests. The Ubuntu CI
+runner provisions its own libraries and a namespace permission scoped to Chromium
+binaries inside its private test directory; user setup changes no system policy.
+This runner prerequisite is not an Ubuntu dependency of the BFS product.
+
+The [final native/core CI](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38754515090)
+passed all 14 jobs on `e5f8b79a0a5e3b1e684dd65d48425030be2085a3`.
+See the [acceptance ledger](OS-EXPANSION-ACCEPTANCE.md) for completed boundaries
+and the specific checks requiring credentials, quota, a human or graphical hardware.
 
 The [initial GitHub run](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38745221254)
 passed Linux x64/ARM64, Mac ARM64/Intel and Debian/Fedora/Arch common checks.
