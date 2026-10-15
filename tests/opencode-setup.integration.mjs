@@ -8,6 +8,7 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
 import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
+import {captureCommand} from '../installers/npm/bin/setup.mjs';
 
 test('real npm setup registers and upgrades OpenCode while preserving JSONC, state and conflicts',{skip:process.env.BFS_RUN_OPENCODE_SETUP!=='1'},async()=>{
   const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-opencode-setup-')),project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
@@ -26,7 +27,7 @@ test('real npm setup registers and upgrades OpenCode while preserving JSONC, sta
   const records=[];
   async function run(label,command,args,{cwd=project,allowFailure=false}={}) {
     console.log(`Running ${label}; evidence: ${root}`);
-    const result=await new Promise((resolve,reject)=>{
+    const result=process.platform==='darwin' && args[0]==='debug' && args[1]==='skill' ? (()=>{const value=captureCommand(command,args,{env,cwd,timeout:15*60*1000});if(value.error)throw value.error;return {...value,code:value.status};})() : await new Promise((resolve,reject)=>{
       const child=spawn(command,args,{cwd,env,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});let stdout='',stderr='';
       const timer=setTimeout(()=>{if(child.pid){if(process.platform==='win32')spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});else try{process.kill(-child.pid,'SIGTERM');}catch(error){if(error.code!=='ESRCH')throw error;}}reject(new Error(`${label} timed out`));},15*60*1000);
       child.stdout.on('data',data=>stdout+=String(data));child.stderr.on('data',data=>stderr+=String(data));child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('close',code=>{clearTimeout(timer);resolve({code,stdout,stderr});});

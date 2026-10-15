@@ -6,11 +6,19 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { setup } from '../installers/npm/bin/setup.mjs';
+import { setup,captureCommand } from '../installers/npm/bin/setup.mjs';
 import { findCursor } from '../installers/npm/bin/cursor.mjs';
 import { dataPaths } from '../plugins/bontaflowstack/core/state.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+test('native command capture retains exit and separate output streams',()=>{
+  const result=captureCommand(process.execPath,['-e','process.stdout.write("out");process.stderr.write("err");process.exitCode=7']);
+  assert.equal(result.status,7);assert.equal(result.stdout,'out');assert.equal(result.stderr,'err');
+});
+test('Darwin captures complete large CLI JSON even when the CLI exits immediately',{skip:process.platform!=='darwin'},()=>{
+  const result=captureCommand(process.execPath,['-e','process.stdout.write(JSON.stringify({text:"x".repeat(256000)}));process.exit(0)']);
+  assert.equal(result.status,0);assert.equal(JSON.parse(result.stdout).text.length,256000);
+});
 const scratch = fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()), `bfs-universal-setup-${randomUUID()}-`));
 const packageRoot = path.join(scratch, 'package');
 const built = spawnSync(process.execPath, [path.join(repo, 'scripts', 'build-npm-package.mjs'), '--output', packageRoot], { cwd:repo, encoding:'utf8', windowsHide:true });

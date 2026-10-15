@@ -8,6 +8,7 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
 import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
+import {captureCommand} from '../installers/npm/bin/setup.mjs';
 
 test('real npm setup installs, repeats and upgrades the Gemini extension with persistent engines',{skip:process.env.BFS_RUN_GEMINI_SETUP!=='1'},async()=>{
   const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-gemini-setup-'));
@@ -23,7 +24,7 @@ test('real npm setup installs, repeats and upgrades the Gemini extension with pe
   const records=[];
   async function run(label,args,{cwd=project,consent=false,allowFailure=false,command=process.execPath,input}={}) {
     console.log(`Running ${label}; evidence: ${root}`);
-    const result=await new Promise((resolve,reject)=>{
+    const result=process.platform==='darwin' && !consent && args.includes('--output-format') ? (()=>{const value=captureCommand(command,args,{env,cwd,timeout:15*60*1000});if(value.error)throw value.error;return {...value,code:value.status};})() : await new Promise((resolve,reject)=>{
       const child=spawn(command,args,{cwd,env,windowsHide:true,stdio:['pipe','pipe','pipe']});
       let stdout='',stderr='',promptBuffer='',replies=0;
       const timer=setTimeout(()=>{if(child.pid){if(process.platform==='win32')spawn('taskkill.exe',['/pid',String(child.pid),'/t','/f'],{windowsHide:true,stdio:'ignore'});else child.kill('SIGTERM');}reject(new Error(`${label} timed out`));},15*60*1000);

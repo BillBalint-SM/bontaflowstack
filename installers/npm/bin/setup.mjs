@@ -23,10 +23,10 @@ const layout = {
   opencode: { plugin:'opencode', manifest:'package.json' },
 };
 
-function runCommand(command, args, { env, inherit = false } = {}) {
+export function captureCommand(command, args, { env, inherit = false, cwd, timeout } = {}) {
   let result,temporary;const descriptors=[],limit=8*1024*1024;
   try {
-    const options={env,encoding:'utf8',windowsHide:true,stdio:inherit?'inherit':['ignore','pipe','pipe'],maxBuffer:limit};
+    const options={env,cwd,timeout,encoding:'utf8',windowsHide:true,stdio:inherit?'inherit':['ignore','pipe','pipe'],maxBuffer:limit};
     // Some native CLIs exit before Darwin pipe buffers drain; files keep their JSON complete.
     if(process.platform==='darwin' && !inherit) {
       temporary=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-command-'));
@@ -43,6 +43,10 @@ function runCommand(command, args, { env, inherit = false } = {}) {
     for(const descriptor of descriptors)fs.closeSync(descriptor);
     if(temporary){for(const name of ['stdout','stderr'])if(fs.existsSync(path.join(temporary,name)))fs.unlinkSync(path.join(temporary,name));fs.rmdirSync(temporary);}
   }
+  return result;
+}
+function runCommand(command,args,options) {
+  const result=captureCommand(command,args,options);
   if (result.error) throw new Error(`Cannot run ${command}: ${result.error.message}`);
   if (result.status !== 0) throw new Error(`${path.basename(command)} failed (${result.status ?? result.signal}). ${result.stderr?.trim() || result.stdout?.trim() || 'See the command output above.'}`);
   // Gemini 0.63 sends extension-list JSON through its stderr logger.
