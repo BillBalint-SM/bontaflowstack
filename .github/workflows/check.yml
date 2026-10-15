@@ -129,6 +129,8 @@ jobs:
           docker image inspect "$MUSL_IMAGE" --format '{{json .RepoDigests}}'
           docker run --rm --volume "$PWD:/work:ro" --workdir /work "$MUSL_IMAGE" /bin/sh -ec '
             apk add --no-cache git
+            cp -a /work /tmp/bfs-source
+            cd /tmp/bfs-source
             cat /etc/os-release
             node -e "console.log(JSON.stringify({platform:process.platform,arch:process.arch,node:process.version}))"
             node scripts/check.mjs

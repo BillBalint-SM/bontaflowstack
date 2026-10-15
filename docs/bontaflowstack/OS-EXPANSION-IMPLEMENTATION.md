@@ -1250,3 +1250,27 @@ Fő naplók: `os17-final-windows.log`, `os17-final-alias-linux.log`,
 A helyi CI-helper első CRLF-es futtatásának hibás kimenete és stagingje külön megmaradt;
 LF-normalizálás után a tényleges parancsblokkok végső futása sikeres. Ez helper-hiba,
 nem GitHub CI-RED. A forrás `.gitattributes` fájlja továbbra is LF-et ír elő.
+
+## OS18 – GitHub CI futtatás és Alpine-javítás
+
+A felhasználó kérésére a jelölt a `codex/linux-macos` ágra került, kiadás és
+main-merge nélkül. Az első tényleges [CI-futás](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38745221254)
+forrása `c30ffe75764bac052c317636e3bc430217317b27`. Linux x64/ARM64,
+Mac ARM64/Intel és Debian/Fedora/Arch közös ellenőrzései sikeresek.
+Az Alpine-ág ténylegesen hibázott; a Windows-ág e bejegyzéskor még fut.
+
+Az Alpine-napló írásvédett checkoutba író teszteket és a hostcsomag-építő
+`cpSync` EEXIST hibáját mutatta. A másolási hiba helyben, ellenőrzőösszeggel
+ellenőrzött hivatalos Node 24.22.0 musl binárissal reprodukálható volt.
+A [Node 24.22 kiadási jegyzet](https://nodejs.org/en/blog/release/v24.22.0)
+rögzíti az `errorOnExist` könyvtárkezelésének változását. A builder most a saját
+egyedi staginggyökér új `plugin` alkönyvtárába másol, megőrizve az ütközést tiltó
+opciókat, majd a saját staginggyökeret takarítja. Ugyanaz a helyi Alpine-próba
+a javítás után sikeres; a négy host csomagtesztje Windowson is sikeres (4/4).
+Az Alpine CI saját írható `/tmp/bfs-source` másolatban futtatja a teljes közös
+ellenőrzést; a becsomagolt jelölt checksum-ellenőrzése megmaradt.
+
+Az ismételt teljes GitHub-mátrix eredménye még ellenőrzendő. Modellkérés nem
+indult, a Cursor modell/MCP-próbája keretre váró. A négy korábban rögzített
+natív Cursor-adatfájl SHA-256-egyezése újra igazolt; privát profilok, nyers
+naplók és képernyőképek nem kerültek Gitbe.
