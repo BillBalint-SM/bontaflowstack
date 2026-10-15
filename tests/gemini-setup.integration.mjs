@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
 
 test('real npm setup installs, repeats and upgrades the Gemini extension with persistent engines',{skip:process.env.BFS_RUN_GEMINI_SETUP!=='1'},async()=>{
-  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-gemini-setup-'));
+  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-gemini-setup-'));
   const project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
   const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,'UserProfile'),GEMINI_CLI_HOME:path.join(root,'Gemini'),BFS_STATE_HOME:path.join(root,'state'),npm_config_cache:path.join(root,'npm-cache'),npm_config_yes:'true'};
   env.CODEX_THREAD_ID ||= 'gemini-setup-validation';

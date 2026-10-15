@@ -10,7 +10,7 @@ import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-ev
 import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 
 test('real npm setup registers and upgrades OpenCode while preserving JSONC, state and conflicts',{skip:process.env.BFS_RUN_OPENCODE_SETUP!=='1'},async()=>{
-  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-opencode-setup-')),project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
+  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-opencode-setup-')),project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
   const cli=process.env.BFS_OPENCODE_CLI || path.join(process.env.APPDATA,'npm/node_modules/opencode-ai/bin/opencode.exe');assert.ok(fs.existsSync(cli));
   const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,"User's $profile"),XDG_CONFIG_HOME:path.join(root,"User's $config"),BFS_STATE_HOME:path.join(root,'state'),npm_config_cache:path.join(root,'npm-cache'),npm_config_yes:'true'};
   env.CODEX_THREAD_ID ||= 'opencode-setup-validation';

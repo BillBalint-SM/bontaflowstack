@@ -12,7 +12,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   console.log('SKIP: set BFS_RUN_NPM_SETUP_INTEGRATION=1 to run real npm pack/npx setup for Codex and Claude (downloads pinned browser engines).');
 } else {
   const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const evidenceDir = path.join(process.platform==='win32'?path.join(repo,'.tmp'):os.tmpdir(), `npm-setup-integration-${randomUUID()}`);
+  const evidenceDir = path.join(process.platform==='win32'?path.join(repo,'.tmp'):fs.realpathSync.native(os.tmpdir()), `npm-setup-integration-${randomUUID()}`);
   const version = JSON.parse(fs.readFileSync(path.join(repo,'installers/npm/package.json'),'utf8')).version;
   const packageRoot = path.join(evidenceDir, 'source-package');
   const upgradeRoot = path.join(evidenceDir, 'synthetic-upgrade-package');
@@ -45,7 +45,10 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
     const diagnostic=writeCommandEvidence(path.join(evidenceDir, `${name}.command-evidence.json`),record);
     commandLogs.push({ name, ...diagnostic });
     if (result.error) throw result.error;
-    if (!allowFailure) assert.equal(result.status, 0, `${name} failed; retained command evidence contains the exit code and output sizes`);
+    if (!allowFailure) {
+      const reason=result.stderr.match(/BontaFlowStack setup: ([^\r\n]+)/)?.[1]?.replace(/https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]+|(?:gh[pousr]_|sk-)[\w-]+/gi,'[redacted]');
+      assert.equal(result.status, 0, `${name} failed${reason?`: ${reason}`:''}; retained command evidence contains the exit code and output sizes`);
+    }
     return record;
   }
   function resolveNpmCli(fileName) {

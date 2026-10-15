@@ -10,7 +10,7 @@ import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-ev
 import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 
 test('real npm setup installs, repeats and upgrades Copilot with persistent engines and preserves disabled policy',{skip:process.env.BFS_RUN_COPILOT_SETUP!=='1'},async()=>{
-  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(os.tmpdir(),'bfs-copilot-setup-'));
+  const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-copilot-setup-'));
   const project=path.join(root,'project with spaces'),built=path.join(root,'package'),packed=path.join(root,'packed');
   const env={...process.env,LOCALAPPDATA:path.join(root,'LocalAppData'),USERPROFILE:path.join(root,'UserProfile'),COPILOT_HOME:path.join(root,"Copilot's $profile"),COPILOT_CACHE_HOME:path.join(root,'copilot-cache'),BFS_STATE_HOME:path.join(root,'state'),npm_config_cache:path.join(root,'npm-cache'),npm_config_yes:'true'};
   env.CODEX_THREAD_ID ||= 'copilot-setup-validation';

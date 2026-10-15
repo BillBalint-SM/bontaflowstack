@@ -27,6 +27,7 @@ jobs:
         if: runner.os == 'Linux'
         run: npx --yes --package playwright@1.62.1 playwright install-deps chromium
       - name: Native Codex and Claude install, repeat, update and removal
+        shell: bash
         env:
           BFS_RUN_NPM_SETUP_INTEGRATION: '1'
         run: node tests/npm-setup.integration.mjs | tee "$RUNNER_TEMP/native-setup.log"
