@@ -6,7 +6,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import {writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
 
 test('real npm setup installs, repeats and upgrades the Gemini extension with persistent engines',{skip:process.env.BFS_RUN_GEMINI_SETUP!=='1'},async()=>{
   const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-gemini-setup-'));
@@ -42,7 +42,7 @@ test('real npm setup installs, repeats and upgrades the Gemini extension with pe
     });
     writeCommandEvidence(path.join(root,`${label}.command-evidence.json`),result);
     records.push({label,code:result.code,consentReplies:result.consentReplies});
-    if(!allowFailure)assert.equal(result.code,0,`${label} failed; retained command evidence contains the exit code and output sizes`);
+    if(!allowFailure)assert.equal(result.code,0,`${label} failed: ${setupFailure(result)}; retained command evidence contains the exit code and output sizes`);
     return result;
   }
   await run('build',[path.join(repo,'scripts/build-npm-package.mjs'),'--output',built]);

@@ -6,7 +6,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import {writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
 import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 
 test('real npm setup installs, repeats and upgrades Copilot with persistent engines and preserves disabled policy',{skip:process.env.BFS_RUN_COPILOT_SETUP!=='1'},async()=>{
@@ -45,7 +45,7 @@ test('real npm setup installs, repeats and upgrades Copilot with persistent engi
     });
     writeCommandEvidence(path.join(root,`${label}.command-evidence.json`),result);
     records.push({label,code:result.code});
-    if(!allowFailure)assert.equal(result.code,0,`${label} failed; retained command evidence contains the exit code and output sizes`);
+    if(!allowFailure)assert.equal(result.code,0,`${label} failed: ${setupFailure(result)}; retained command evidence contains the exit code and output sizes`);
     return result;
   }
   await run('build',[path.join(repo,'scripts/build-npm-package.mjs'),'--output',built]);

@@ -3,7 +3,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {writeNativeEvidence,writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import {writeNativeEvidence,writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
+
+test('setup failure summaries retain library causes and redact credential-shaped diagnostics',()=>{
+  const summary=setupFailure({stderr:'private transcript\nSetup incomplete: core registered\nbrowserType.launch: missing sandbox\nnpm error https://example.invalid/auth?token=private user@example.invalid sk-private123\n'});
+  assert.match(summary,/missing sandbox/);assert.match(summary,/core registered/);
+  for(const text of ['private transcript','https://','user@example.invalid','sk-private123','token=private'])assert.equal(summary.includes(text),false);
+});
 
 test('native diagnostic file retains outcomes without transcripts, credentials or personal content',t=>{
   const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-evidence-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));

@@ -6,7 +6,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {writeCommandEvidence,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import {writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
 import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 
 test('real npm setup registers and upgrades OpenCode while preserving JSONC, state and conflicts',{skip:process.env.BFS_RUN_OPENCODE_SETUP!=='1'},async()=>{
@@ -32,7 +32,7 @@ test('real npm setup registers and upgrades OpenCode while preserving JSONC, sta
       child.stdout.on('data',data=>stdout+=String(data));child.stderr.on('data',data=>stderr+=String(data));child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('close',code=>{clearTimeout(timer);resolve({code,stdout,stderr});});
     });
     writeCommandEvidence(path.join(root,label+'.command-evidence.json'),result);records.push({label,code:result.code});
-    if(!allowFailure)assert.equal(result.code,0,`${label} failed; retained command evidence contains the exit code and output sizes`);return result;
+    if(!allowFailure)assert.equal(result.code,0,`${label} failed: ${setupFailure(result)}; retained command evidence contains the exit code and output sizes`);return result;
   }
   await run('build',process.execPath,[path.join(repo,'scripts/build-npm-package.mjs'),'--output',built]);
   const pack=async(label,directory)=>{const result=await run(label,process.execPath,[path.join(npmBase,'npm-cli.js'),'pack','--json','--pack-destination',packed],{cwd:directory}),data=JSON.parse(result.stdout),entry=Array.isArray(data)?data[0]:data.bontaflowstack,file=path.join(packed,entry.filename);return {file,sha256:createHash('sha256').update(fs.readFileSync(file)).digest('hex')};};

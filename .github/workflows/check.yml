@@ -40,6 +40,18 @@ jobs:
         env:
           BFS_RUN_NPM_SETUP_INTEGRATION: '1'
         run: node tests/npm-setup.integration.mjs | tee "$RUNNER_TEMP/native-setup.log"
+      - name: Native Mac case-sensitive and insensitive volume identities
+        if: ${{ !cancelled() && runner.os == 'macOS' }}
+        env:
+          BFS_RUN_NATIVE_FILESYSTEM: '1'
+        shell: bash
+        run: |
+          node tests/posix-filesystem.integration.mjs "$TMPDIR" insensitive
+          hdiutil create -size 64m -fs HFSX -volname BFSCase "$RUNNER_TEMP/bfs-case.dmg"
+          mkdir "$RUNNER_TEMP/bfs-case-mount"
+          hdiutil attach "$RUNNER_TEMP/bfs-case.dmg" -mountpoint "$RUNNER_TEMP/bfs-case-mount" -nobrowse
+          trap 'hdiutil detach "$RUNNER_TEMP/bfs-case-mount"' EXIT
+          node tests/posix-filesystem.integration.mjs "$RUNNER_TEMP/bfs-case-mount" sensitive
       - name: Native browser, render and sandbox launch arguments
         env:
           BFS_RUN_NATIVE_ENGINES: '1'

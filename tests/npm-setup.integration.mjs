@@ -6,7 +6,7 @@ import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { writeCommandEvidence ,writeAcceptanceEvidence} from './fixtures/native-evidence.mjs';
+import { writeCommandEvidence ,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
 
 if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
   console.log('SKIP: set BFS_RUN_NPM_SETUP_INTEGRATION=1 to run real npm pack/npx setup for Codex and Claude (downloads pinned browser engines).');
@@ -46,7 +46,7 @@ if (process.env.BFS_RUN_NPM_SETUP_INTEGRATION !== '1') {
     commandLogs.push({ name, ...diagnostic });
     if (result.error) throw result.error;
     if (!allowFailure) {
-      const reason=result.stderr.split(/\r?\n/).filter(line=>/^(?:BontaFlowStack setup:|Setup incomplete|npm (?:error|ERR!)|\w*Error(?: \[[A-Z_]+\])?:)|sandbox|error while loading shared libraries|browserType.launch|Operation not permitted/.test(line)).slice(0,8).join('; ').replace(/https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]+|(?:gh[pousr]_|sk-)[\w-]+/gi,'[redacted]');
+      const reason=setupFailure(result);
       assert.equal(result.status, 0, `${name} failed${reason?`: ${reason}`:''}; retained command evidence contains the exit code and output sizes`);
     }
     return record;
