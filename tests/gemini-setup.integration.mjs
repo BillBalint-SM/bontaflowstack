@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {writeCommandEvidence,writeAcceptanceEvidence,setupFailure} from './fixtures/native-evidence.mjs';
+import {dataPaths} from '../plugins/bontaflowstack/core/state.mjs';
 
 test('real npm setup installs, repeats and upgrades the Gemini extension with persistent engines',{skip:process.env.BFS_RUN_GEMINI_SETUP!=='1'},async()=>{
   const repo=fileURLToPath(new URL('../',import.meta.url)),root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-gemini-setup-'));
@@ -66,7 +67,7 @@ test('real npm setup installs, repeats and upgrades the Gemini extension with pe
   const second=await pack('pack-upgrade',upgrade);await npx('upgrade',second);
   const active=await extensions('upgraded-registration');assert.equal(active.version,next);assert.equal(active.isActive,true);assert.equal(active.skills.length,34);
   assert.equal(active.installMetadata.source,initial.installMetadata.source);assert.equal(fs.readFileSync(memory,'utf8'),'preserved user state');
-  const versionRoot=process.platform==='win32'?path.join(env.LOCALAPPDATA,'BontaFlowStack/npm/versions'):path.join(env.XDG_DATA_HOME,'bontaflowstack/npm/versions',`${process.platform}-${process.arch}`);
+  const versionRoot=path.join(dataPaths(env).installRoot,'versions',...(process.platform==='win32'?[]:[`${process.platform}-${process.arch}`]));
   assert.ok(fs.existsSync(path.join(versionRoot,initial.version,'hosts/gemini/catalog.json')));
   fs.renameSync(env.npm_config_cache,env.npm_config_cache+'-removed');fs.renameSync(built,built+'-removed');fs.renameSync(upgrade,upgrade+'-removed');
   const after=await extensions('without-cache');assert.equal(after.version,next);

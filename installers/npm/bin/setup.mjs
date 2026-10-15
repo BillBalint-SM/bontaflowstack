@@ -24,10 +24,25 @@ const layout = {
 };
 
 function runCommand(command, args, { env, inherit = false } = {}) {
-  const result = spawnSync(command, args, {
-    env, encoding: 'utf8', windowsHide: true,
-    stdio: inherit ? 'inherit' : ['ignore', 'pipe', 'pipe'], maxBuffer: 8 * 1024 * 1024,
-  });
+  let result,temporary;const descriptors=[],limit=8*1024*1024;
+  try {
+    const options={env,encoding:'utf8',windowsHide:true,stdio:inherit?'inherit':['ignore','pipe','pipe'],maxBuffer:limit};
+    // Some native CLIs exit before Darwin pipe buffers drain; files keep their JSON complete.
+    if(process.platform==='darwin' && !inherit) {
+      temporary=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-command-'));
+      for(const name of ['stdout','stderr'])descriptors.push(fs.openSync(path.join(temporary,name),'wx',0o600));
+      options.stdio=['ignore',...descriptors];
+    }
+    result=spawnSync(command,args,options);
+    if(temporary)for(const name of ['stdout','stderr']) {
+      const file=path.join(temporary,name);
+      if(fs.statSync(file).size>limit)throw new Error(`${path.basename(command)} ${name} exceeded the 8 MiB capture limit`);
+      result[name]=fs.readFileSync(file,'utf8');
+    }
+  } finally {
+    for(const descriptor of descriptors)fs.closeSync(descriptor);
+    if(temporary){for(const name of ['stdout','stderr'])if(fs.existsSync(path.join(temporary,name)))fs.unlinkSync(path.join(temporary,name));fs.rmdirSync(temporary);}
+  }
   if (result.error) throw new Error(`Cannot run ${command}: ${result.error.message}`);
   if (result.status !== 0) throw new Error(`${path.basename(command)} failed (${result.status ?? result.signal}). ${result.stderr?.trim() || result.stdout?.trim() || 'See the command output above.'}`);
   // Gemini 0.63 sends extension-list JSON through its stderr logger.
