@@ -17,7 +17,7 @@ function git(cwd, ...args) {
 }
 function fixture(t, name='parallel', customize=()=>{}) {
   const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),`bfs-${name}-`));
-  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
+  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync.native(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
   const repo=path.join(root,'repo');fs.mkdirSync(repo);
   fs.writeFileSync(path.join(repo,'README.md'),'parallel fixture\n');
   fs.mkdirSync(path.join(repo,'tests'));

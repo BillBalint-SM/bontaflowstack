@@ -130,8 +130,12 @@ Linux x64 job, then exercise setup help and the packed core doctor. Alpine uses
 an official Node 24 musl image in Docker for the same core/package boundary.
 Those jobs do not establish full distro engine or graphical host acceptance.
 
-At preparation time, the workflow has not run on GitHub. Local Linux/Windows
-results are recorded separately. Container image digests pin the base filesystem;
+The [initial GitHub run](https://github.com/BillBalint-SM/bontaflowstack/actions/runs/38745221254)
+passed Linux x64/ARM64, Mac ARM64/Intel and Debian/Fedora/Arch common checks.
+It exposed Alpine checkout/copy handling and Windows short-temp-path fixture
+failures; fixes are under verification on the
+[candidate branch CI](https://github.com/BillBalint-SM/bontaflowstack/actions/workflows/check.yml?query=branch%3Acodex%2Flinux-macos).
+Local Linux/Windows results are recorded separately. Container image digests pin the base filesystem;
 package-manager prerequisites and GitHub runner images can still change.
 No model API, host login token, paid upgrade, publication or deployment is needed
 by these jobs. Native host login, GUI trust and human handoff remain separate.

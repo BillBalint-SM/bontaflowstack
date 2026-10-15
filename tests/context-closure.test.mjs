@@ -13,7 +13,7 @@ import { essentialContext } from '../plugins/bontaflowstack/core/context.mjs';
 
 function fixture(t,gitProject=false) {
   const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-closure-'));
-  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
+  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync.native(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});});
   const project=path.join(root,'source');fs.mkdirSync(project);
   fs.writeFileSync(path.join(project,'plan.md'),'Accepted complete plan');
   if(gitProject)for(const args of [['init','--quiet'],['add','plan.md'],['-c','user.name=Acceptance','-c','user.email=acceptance@localhost','commit','--quiet','-m','fixture base']]) {

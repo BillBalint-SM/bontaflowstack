@@ -14,7 +14,7 @@ function fixture(t) {
   const root=fs.mkdtempSync(path.join(fs.realpathSync.native(os.tmpdir()),'bfs-reliability-'));
   const project=path.join(root,'project');fs.mkdirSync(project);
   const env={...process.env,BFS_STATE_HOME:path.join(root,'state'),CODEX_THREAD_ID:'fixture-task'};
-  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));assert.match(path.basename(root),/^bfs-reliability-/);fs.rmSync(root,{recursive:true,force:true});});
+  t.after(()=>{assert.equal(path.dirname(root),fs.realpathSync.native(os.tmpdir()));assert.match(path.basename(root),/^bfs-reliability-/);fs.rmSync(root,{recursive:true,force:true});});
   return {root,project,env,ctx:context(project,env)};
 }
 function cli(env,project,args,input={}) {

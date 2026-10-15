@@ -1274,3 +1274,12 @@ Az ismételt teljes GitHub-mátrix eredménye még ellenőrzendő. Modellkérés
 indult, a Cursor modell/MCP-próbája keretre váró. A négy korábban rögzített
 natív Cursor-adatfájl SHA-256-egyezése újra igazolt; privát profilok, nyers
 naplók és képernyőképek nem kerültek Gitbe.
+
+Az első Windows CI végül hibával zárult: öt közös fixture létrehozáskor
+`realpathSync.native`, takarításkor `realpathSync` útvonalat hasonlított.
+A runner rövid `C:\Users\RUNNER~1` Temp-útja és a hosszú `runneradmin` út
+ugyanarra a könyvtárra mutatott, de a sztringek különböztek. A CI-napló
+a takarítás előtti egyenlőségasserten mutatja a hibát. Az öt takarítási
+assert most ugyanazt a natív feloldást használja, mint a létrehozás; a
+könyvtárhatár és prefix ellenőrzése nem lazult. Három célzott helyi
+Windows-eset sikeres; a rövidút-specifikus regressziót a teljes CI igazolja.
