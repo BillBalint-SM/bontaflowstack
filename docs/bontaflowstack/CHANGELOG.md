@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1 — installer fix for current Node, prepared 2026-11-22
+
+- Fix `EEXIST` during setup and package builds on Node 24.22 and newer: the
+  Impeccable copy and the host package staging now copy into a fresh directory
+  instead of the empty one reserved by `mkdtemp`.
+- No change to adapters, skills or host behavior. See the
+  [release report](RELEASE-1.2.1.md).
+
 ## 1.2.0 — six agent platforms, 2026-10-14
 
 - Add Gemini CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI adapters

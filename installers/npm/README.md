@@ -4,14 +4,14 @@
 CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI** on Windows x64.
 
 One npm setup prepares the selected platform adapters, browser/render engine and
-Impeccable CLI. Release `1.2.0` includes all six adapters.
+Impeccable CLI. Release `1.2.1` includes all six adapters.
 
 ## Install
 
 Install and configure detected platforms:
 
 ```powershell
-npx bontaflowstack@1.2.0 setup
+npx bontaflowstack@1.2.1 setup
 ```
 
 Running the same exact package without `setup` starts the same flow. Setup does
