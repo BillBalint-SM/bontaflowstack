@@ -25,7 +25,7 @@ még nem létező kiadási könyvtárat:
 ```powershell
 node scripts/check.mjs
 node --test tests/npm-release.test.mjs
-node scripts/npm-release.mjs prepare --output artifacts/npm/1.2.0 --tag latest --release-tag v1.2.0
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.2.1 --tag latest --release-tag v1.2.1
 ```
 
 A `prepare` elkészíti az adaptereket, valódi `npm pack`-ot futtat, megőrzi
@@ -39,7 +39,7 @@ telepítési vagy frissítési utat a publikálás előtt.
 A tulajdonosi npm-fiókkal interaktívan:
 
 ```powershell
-node scripts/npm-release.mjs publish --artifact artifacts/npm/1.2.0 --tag latest
+node scripts/npm-release.mjs publish --artifact artifacts/npm/1.2.1 --tag latest
 ```
 
 A parancs csak az előkészített `.tgz`-t publikálja. Ellenőrzi a tiszta checkoutot,
@@ -51,7 +51,7 @@ Feldolgozási késésnél ne publikáld újra ugyanazt a verziót. Őrizd meg a
 kiadási könyvtárat, és futtasd újra a lekérdezést:
 
 ```powershell
-node scripts/npm-release.mjs verify --artifact artifacts/npm/1.2.0 --tag latest
+node scripts/npm-release.mjs verify --artifact artifacts/npm/1.2.1 --tag latest
 ```
 
 Az npm-verzió nem írható felül. A verifier kezeli az npm objektum- és egyetlen
