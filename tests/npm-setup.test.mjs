@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { setup } from '../installers/npm/bin/setup.mjs';
+const windowsOnly = { skip: process.platform !== 'win32' && 'needs a Windows host (PowerShell or Windows PATH); runs on the windows-latest CI job' };
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), `bfs-universal-setup-${randomUUID()}-`));
@@ -509,7 +510,7 @@ test('multiple existing state stores fail before install; explicit override choo
   assert.equal(fs.readFileSync(path.join(store, 'store.json'), 'utf8'), 'store');
 });
 
-test('native host discovery finds Codex and Claude Node wrappers on a custom PATH', async () => {
+test('native host discovery finds Codex and Claude Node wrappers on a custom PATH', windowsOnly, async () => {
   const env = makeEnv('custom-path');
   const custom = path.join(scratch, 'custom-cli-path');
   const codexWrapper = path.join(custom, 'node_modules', '@openai', 'codex', 'bin', 'codex.js');

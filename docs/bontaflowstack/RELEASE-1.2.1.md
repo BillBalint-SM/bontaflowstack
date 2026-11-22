@@ -16,23 +16,22 @@ its own scope.
 
 ## Release checks
 
-Run on 2026-11-22 on Linux x64 with Node 26.13.1. The package is built and
-released for Windows x64, so these results are partial.
+Run on 2026-11-22 on Linux x64 with Node 26.13.1, from branch
+`chore/linux-release-path` (the release path now runs on Linux).
 
-- `node --test tests/release-gate.test.mjs`: 10 of 10 passed.
-- `node --test tests/npm-setup.test.mjs`: 25 of 26 passed.
-- `node scripts/check.mjs`: 153 tests, 142 passed, 8 failed, 3 skipped. The same
-  8 tests fail on `main` (`ed5b0de`) without this change; they exercise the
-  Windows shell, PowerShell launchers and a Codex wrapper lookup. The failing
-  sets are identical.
-- Skipped on Linux by their own condition: the real `npm pack` tests in
-  `tests/npm-release.test.mjs` and `tests/npm-package.test.mjs`.
-- `node scripts/npm-release.mjs prepare` was not completed: it stopped with
-  `Cannot locate npm-cli.js` on this machine, and the process requires Windows
-  x64. Run it on Windows x64 or in the Windows CI job from a committed source
-  with the `v1.2.1` tag.
-- Not run: the Windows package build and test (`scripts/build-package.ps1`,
-  `scripts/test-package.ps1`), which `check.yml` runs on `windows-latest`.
+- `node scripts/check.mjs`: exit 0; 153 tests, 142 passed, 0 failed, 11 skipped.
+  The 8 tests that exercise Windows host behavior (PowerShell launchers, Windows
+  shell, Windows PATH) are skipped off Windows and run in the `core` job.
+- `node --test tests/npm-package.test.mjs tests/npm-release.test.mjs`: 4 of 4
+  passed, including the real `npm pack` tests that were Windows-only before.
+- `node --test tests/npm-release.test.mjs tests/release-gate.test.mjs tests/release-workflow.test.mjs tests/release-promotion.test.mjs`:
+  18 passed, 0 failed, 1 skipped.
+- `node scripts/npm-release.mjs prepare --tag latest --release-tag v1.2.1`
+  completed on Linux as a rehearsal into a temporary directory (removed); the
+  real preparation runs from the tagged source.
+- Not run on this machine: the Windows package build and test
+  (`scripts/build-package.ps1`, `scripts/test-package.ps1`) and the skipped
+  Windows host tests, which `check.yml` runs on `windows-latest`.
 
 ## Published package identity
 

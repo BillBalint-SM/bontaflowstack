@@ -40,14 +40,16 @@ function npmCliPath() {
     process.env.npm_execpath,
     process.env.APPDATA && path.join(process.env.APPDATA, 'npm', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
     path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    path.join(path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
   ].filter(Boolean);
   return candidates.find(file => fs.statSync(file, { throwIfNoEntry:false })?.isFile());
 }
 
 function runNpm(args, cwd, { interactive = false } = {}) {
   const cli = npmCliPath();
-  if (!cli) throw new Error('Cannot locate npm-cli.js. Install Node.js 24+ with npm and retry.');
-  const result = spawnSync(process.execPath, [cli, ...args], {
+  // Windows needs the exact npm-cli.js (npm is a .cmd shim there); elsewhere the npm on PATH is a normal executable.
+  if (!cli && process.platform === 'win32') throw new Error('Cannot locate npm-cli.js. Install Node.js 24+ with npm and retry.');
+  const result = spawnSync(cli ? process.execPath : 'npm', cli ? [cli, ...args] : args, {
     cwd, encoding:interactive ? undefined : 'utf8', windowsHide:true,
     stdio:interactive ? 'inherit' : ['ignore', 'pipe', 'pipe'],
     timeout:interactive ? undefined : 120000,

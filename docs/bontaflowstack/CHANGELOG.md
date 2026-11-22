@@ -5,6 +5,10 @@
 - Fix `EEXIST` during setup and package builds on Node 24.22 and newer: the
   Impeccable copy and the host package staging now copy into a fresh directory
   instead of the empty one reserved by `mkdtemp`.
+- Run the npm release path on Linux: `npm-release.mjs` finds npm outside Windows,
+  the real `npm pack` tests run on every platform, Windows-host tests are skipped
+  elsewhere, and `npm-publish.yml` and a new `linux` job in `check.yml` run on
+  `ubuntu-latest`.
 - No change to adapters, skills or host behavior. See the
   [release report](RELEASE-1.2.1.md).
 

@@ -36,7 +36,7 @@ test('npm release policy requires rc for prereleases and latest for stable versi
   assert.throws(() => requirePublishTag('1.1.0', 'rc'), /explicit npm dist-tag `latest`/);
 });
 
-test('prepare creates one immutable exact-version tarball and publish rejects tampered bytes before npm runs', { skip:process.platform !== 'win32' }, t => {
+test('prepare creates one immutable exact-version tarball and publish rejects tampered bytes before npm runs', t => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'bfs-npm-release-'));
   const artifact = path.join(temp, 'release');
   t.after(() => fs.rmSync(temp, { recursive:true, force:true }));

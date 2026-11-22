@@ -13,6 +13,7 @@ import { delivery, versionNext } from '../plugins/bontaflowstack/core/delivery.m
 import { engines } from '../plugins/bontaflowstack/core/engines.mjs';
 import { checkLocalLinks } from '../scripts/check.mjs';
 import { loadCatalog, resolveSkill, pluginRoot } from '../plugins/bontaflowstack/core/cli.mjs';
+const windowsOnly = { skip: process.platform !== 'win32' && 'needs a Windows host (PowerShell or Windows PATH); runs on the windows-latest CI job' };
 
 const catalog = loadCatalog();
 function hookCommand(event = 'PreToolUse') {
@@ -541,7 +542,7 @@ test('delivery preserves command exit and rejects stale evidence', t => {
   assert.equal(versionNext('1.2.3.4','minor'),'1.3.0.0');
 });
 
-test('PowerShell launcher resolves a renamed skill and reads from a fresh package path', t => {
+test('PowerShell launcher resolves a renamed skill and reads from a fresh package path', windowsOnly, t => {
   const {env,project}=fixture(t);
   const result=spawnSync('powershell.exe',['-NoProfile','-File',path.join(pluginRoot,'scripts/bfstack.ps1'),'-Command','catalog','-Action','resolve','bfstack'],{cwd:project,env,encoding:'utf8',windowsHide:true});
   assert.equal(result.status,0,result.stderr);
@@ -590,7 +591,7 @@ test('Impeccable uses persisted configuration, honors overrides and preserves de
   assert.deepEqual(JSON.parse(engines(ctx,'design-detect').stdout),[process.execPath,'custom']);
 });
 
-test('PowerShell native-hook command forwards UTF-8 stdin and returns the host contract', t => {
+test('PowerShell native-hook command forwards UTF-8 stdin and returns the host contract', windowsOnly, t => {
   const {env,project}=fixture(t);
   const payload={hook_event_name:'PreToolUse',session_id:env.CODEX_THREAD_ID,cwd:project,tool_name:'functions.exec_command',tool_input:{cmd:'git status'}};
   const command=hookCommand();
@@ -599,7 +600,7 @@ test('PowerShell native-hook command forwards UTF-8 stdin and returns the host c
   assert.match(JSON.parse(result.stdout).hookSpecificOutput.additionalContext,/BFS_GUARD_OBSERVED/);
 });
 
-test('native hook preserves inspection failure exit codes and Stop success', t => {
+test('native hook preserves inspection failure exit codes and Stop success', windowsOnly, t => {
   const {env,project}=fixture(t);
   for (const [event,code] of [['PreToolUse',2],['Stop',0]]) {
     const payload={hook_event_name:event,session_id:env.CODEX_THREAD_ID,cwd:project,tool_name:'functions.exec_command',tool_input:null};
@@ -610,7 +611,7 @@ test('native hook preserves inspection failure exit codes and Stop success', t =
   }
 });
 
-test('parallel native hooks refresh missing and stale observations and wait for a writer', async t => {
+test('parallel native hooks refresh missing and stale observations and wait for a writer', windowsOnly, async t => {
   const {env,project,root}=fixture(t);
   for(const mode of ['missing','stale','locked']) {
     const runEnv={...env,PLUGIN_ROOT:pluginRoot,BFS_STATE_HOME:path.join(root,mode)};

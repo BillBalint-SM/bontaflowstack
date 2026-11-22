@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+const windowsOnly = { skip: process.platform !== 'win32' && 'needs a Windows host (PowerShell or Windows PATH); runs on the windows-latest CI job' };
 
 const core=fileURLToPath(new URL('../plugins/bontaflowstack/core/',import.meta.url));
 async function fixture(t) {
@@ -147,7 +148,7 @@ test('OpenCode new user turns recover unfinished work and provide bounded record
   const unknown={system:[]};await f.plugin['experimental.chat.system.transform']({},unknown);assert.deepEqual(unknown,{system:[]});
 });
 
-test('OpenCode guard uses the configured Windows shell despite its native bash tool name',async t=>{
+test('OpenCode guard uses the configured Windows shell despite its native bash tool name', windowsOnly,async t=>{
   const f=await fixture(t);
   await f.call('core',{args:['guard','status']});
   const output={title:'',output:'',metadata:{}};

@@ -21,3 +21,15 @@ jobs:
       - run: ./scripts/build-package.ps1 -OutputDirectory artifacts/source-check
       - run: ./scripts/test-package.ps1 -Archive (Get-ChildItem artifacts/source-check/*-source.zip).FullName
       - run: node --test tests/npm-release.test.mjs tests/release-gate.test.mjs tests/release-workflow.test.mjs tests/release-promotion.test.mjs
+  linux:
+    # Linux is the maintainer platform: release path and repository checks run here too.
+    # Windows-host tests are skipped on this runner and run in the core job.
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/check.mjs
+      - run: node --test tests/npm-release.test.mjs tests/release-gate.test.mjs tests/release-workflow.test.mjs tests/release-promotion.test.mjs
