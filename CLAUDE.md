@@ -8,11 +8,12 @@ product content for those hosts; keep every host working when changing shared fi
 
 ## Working here
 
-- **Target platform is Windows x64.** The package build and package test are PowerShell scripts
-  (`scripts/build-package.ps1`, `scripts/test-package.ps1`) and run in CI on `windows-latest`
-  (`.github/workflows/check.yml`). On Linux, run the Node tests that do not need the built package, for
-  example `node --test tests/npm-release.test.mjs tests/release-gate.test.mjs`, and say which checks
-  were left to CI.
+- **Maintainer platform is Linux; the product also targets Windows x64.** The npm release path
+  (`scripts/check.mjs`, `scripts/npm-release.mjs prepare/publish/verify`) runs on Linux, and
+  `.github/workflows/check.yml` runs it in the `linux` job. Tests of Windows host behavior (PowerShell
+  launchers, Windows shell, Windows PATH) are skipped off Windows and run in the `core` job on
+  `windows-latest`, which also runs the PowerShell package build and test
+  (`scripts/build-package.ps1`, `scripts/test-package.ps1`). Say which checks were left to CI.
 - Node.js 24 or newer.
 - Release steps are described in `docs/bontaflowstack/RELEASE-PROCESS.md` and gated by
   `release/policy.json`; follow them instead of ad-hoc version bumps.

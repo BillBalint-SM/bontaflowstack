@@ -18,11 +18,13 @@ csomag történetét őrzik. Az `1.2.0` mind a hat adaptert csomagolja.
 
 ### Előkészítés
 
-Windows x64-en, Node.js 24+-szal és npm 11.21.0+-szal futtasd a projektellenőrzést.
+Linuxon vagy Windowson, Node.js 24+-szal és npm 11.21.0+-szal futtasd a projektellenőrzést.
+A Windows-hostot ellenőrző tesztek más rendszeren kihagyásra kerülnek, és a `check.yml` `core` jobjában
+futnak `windows-latest` gépen; a `linux` job ugyanazt a kiadási útvonalat Linuxon is lefuttatja.
 Commitold a kiadás forrását, hozd létre a pontos verziótaget, majd készíts új,
 még nem létező kiadási könyvtárat:
 
-```powershell
+```bash
 node scripts/check.mjs
 node --test tests/npm-release.test.mjs
 node scripts/npm-release.mjs prepare --output artifacts/npm/1.2.1 --tag latest --release-tag v1.2.1
@@ -38,7 +40,7 @@ telepítési vagy frissítési utat a publikálás előtt.
 
 A tulajdonosi npm-fiókkal interaktívan:
 
-```powershell
+```bash
 node scripts/npm-release.mjs publish --artifact artifacts/npm/1.2.1 --tag latest
 ```
 
@@ -50,7 +52,7 @@ böngészős hitelesítést kérhet. A verifier összeveti a registry nevét, ve
 Feldolgozási késésnél ne publikáld újra ugyanazt a verziót. Őrizd meg a
 kiadási könyvtárat, és futtasd újra a lekérdezést:
 
-```powershell
+```bash
 node scripts/npm-release.mjs verify --artifact artifacts/npm/1.2.1 --tag latest
 ```
 
@@ -60,7 +62,7 @@ Az npm-verzió nem írható felül. A verifier kezeli az npm objektum- és egyet
 az elvárt állapot. Lásd az npm [publish](https://docs.npmjs.com/cli/v11/commands/npm-publish/)
 és [dist-tag](https://docs.npmjs.com/cli/v11/commands/npm-dist-tag/) dokumentációját.
 
-A GitHub Actions `.github/workflows/npm-publish.yml` kézi workflow-ja a kiválasztott
+A GitHub Actions `.github/workflows/npm-publish.yml` kézi workflow-ja (`ubuntu-latest`) a kiválasztott
 pontos `v<verzió>` forrástagból dolgozik, és a verzió alapján választ `rc` vagy
 `latest` címkét. Ugyanazt az ellenőrző és publikáló eszközt hívja. OIDC használatához
 az npm csomagbeállításainál Trusted Publishert kell konfigurálni a

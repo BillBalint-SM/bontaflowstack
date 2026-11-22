@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
+const windowsOnly = { skip: process.platform !== 'win32' && 'needs a Windows host (PowerShell or Windows PATH); runs on the windows-latest CI job' };
 const plugin=path.resolve('plugins/bontaflowstack');
 
 test('portable MCP entry and bundled engine match their release records',()=>{
@@ -19,7 +20,7 @@ test('portable MCP entry and bundled engine match their release records',()=>{
   assert.equal(createHash('sha256').update(bytes).digest('hex'),lock.sha256);
 });
 
-test('bundled installer rejects escaped, missing and checksum-mismatched archives before execution',()=>{
+test('bundled installer rejects escaped, missing and checksum-mismatched archives before execution', windowsOnly,()=>{
   const folder=path.resolve('.tmp','host-package-'+randomUUID());
   const scripts=path.join(folder,'scripts');fs.mkdirSync(scripts,{recursive:true});
   const installer=path.join(scripts,'install-engines.ps1');fs.copyFileSync(path.join(plugin,'scripts/install-engines.ps1'),installer);
@@ -37,7 +38,7 @@ test('bundled installer rejects escaped, missing and checksum-mismatched archive
   }
 });
 
-test('release packaging rejects skipped checks before running package checks',()=>{
+test('release packaging rejects skipped checks before running package checks', windowsOnly,()=>{
   const result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File','scripts/build-package.ps1','-Release','-SkipChecks'],{encoding:'utf8',windowsHide:true,timeout:10000});
   assert.equal(result.status,1);assert.match(result.stderr,/Release packaging requires the package checks/);
 });

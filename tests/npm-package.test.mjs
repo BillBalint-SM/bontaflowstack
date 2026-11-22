@@ -14,12 +14,13 @@ function npmCliPath() {
   const candidates = [
     process.env.npm_execpath,
     process.env.APPDATA && path.join(process.env.APPDATA, 'npm', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
-    path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js')
+    path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    path.join(path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js')
   ].filter(Boolean);
   return candidates.find(file => fs.statSync(file, { throwIfNoEntry:false })?.isFile());
 }
 
-test('npm builder packages exact-version host plugins and only installable files', { skip:process.platform !== 'win32' }, t => {
+test('npm builder packages exact-version host plugins and only installable files', t => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'bfs-npm-package-'));
   const output = path.join(temp, 'package');
   const packDestination = path.join(temp, 'packed');
@@ -85,8 +86,9 @@ test('npm builder packages exact-version host plugins and only installable files
   assert.ok(fs.readFileSync(path.join(opencode,'HOST.md'),'utf8').includes(`npx bontaflowstack@${manifest.version} setup`));
 
   const npmCli = npmCliPath();
-  assert.ok(npmCli, 'npm-cli.js must be available to verify the real npm tarball');
-  const packed = spawnSync(process.execPath, [npmCli, 'pack', '--json', '--pack-destination', packDestination], {
+  // On Windows npm is a .cmd shim, so the exact npm-cli.js is required; elsewhere npm on PATH is used.
+  assert.ok(npmCli || process.platform !== 'win32', 'npm-cli.js must be available to verify the real npm tarball');
+  const packed = spawnSync(npmCli ? process.execPath : 'npm', [...(npmCli ? [npmCli] : []), 'pack', '--json', '--pack-destination', packDestination], {
     cwd:output, encoding:'utf8', windowsHide:true
   });
   assert.equal(packed.status, 0, packed.stderr);
