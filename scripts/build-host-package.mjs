@@ -24,6 +24,8 @@ function build(host,outputValue) {
   fs.mkdirSync(path.dirname(output),{recursive:true});
   const stage=fs.mkdtempSync(path.join(path.dirname(output),'.bfs-host-'));
   try {
+    // cpSync with errorOnExist rejects an existing target on current Node; mkdtemp only reserves the name.
+    fs.rmdirSync(stage);
     fs.cpSync(source,stage,{recursive:true,errorOnExist:true,force:false,filter:file=>{
       const relative=path.relative(source,file).replaceAll(path.sep,'/');
       return relative!=='.codex-plugin' && relative!=='.mcp.json' && relative!=='hooks' && !relative.endsWith('/agents/openai.yaml');
