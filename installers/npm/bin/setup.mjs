@@ -224,6 +224,8 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
     } else {
       fs.mkdirSync(path.dirname(toolRoot), { recursive:true });
       const stage = fs.mkdtempSync(path.join(path.dirname(toolRoot), '.staging-'));
+      // cpSync with errorOnExist rejects an existing target on current Node; mkdtemp only reserves the name.
+      fs.rmdirSync(stage);
       fs.cpSync(toolSource, stage, { recursive:true, force:false, errorOnExist:true });
       requireValue(sameTool(stage), `Impeccable copy differs; files were preserved at ${stage}`);
       fs.renameSync(stage, toolRoot);
