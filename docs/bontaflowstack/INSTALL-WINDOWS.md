@@ -2,16 +2,16 @@
 
 [Magyar útmutató](../../TELEPITES.md) · [Claude Code-részletek](INSTALL-CLAUDE-CODE.md)
 
-Release `1.2.0` includes Codex, Claude Code, Gemini CLI, GitHub Copilot CLI,
+Release `1.2.1` includes Codex, Claude Code, Gemini CLI, GitHub Copilot CLI,
 Cursor IDE and OpenCode CLI. See [all six platforms](PLATFORMS.md)
 for selectors, minimum host versions and first use.
 
 The single standard install route is the exact-version npm setup command. Version
-**1.2.0 is the six-platform npm release**; see the
-[release report](RELEASE-1.2.0.md).
+**1.2.1 is the six-platform npm release**; see the
+[release report](RELEASE-1.2.1.md).
 
 ```powershell
-npx bontaflowstack@1.2.0 setup
+npx bontaflowstack@1.2.1 setup
 ```
 
 Invoking the same pinned package without the `setup` argument starts the same
@@ -41,12 +41,12 @@ Setup configures all detected platforms by default. Select one explicitly:
 
 | Platform | Command |
 | --- | --- |
-| Codex | `npx bontaflowstack@1.2.0 setup --host codex` |
-| Claude Code | `npx bontaflowstack@1.2.0 setup --host claude` |
-| Gemini CLI | `npx bontaflowstack@1.2.0 setup --host gemini` |
-| GitHub Copilot CLI | `npx bontaflowstack@1.2.0 setup --host copilot` |
-| Cursor IDE | `npx bontaflowstack@1.2.0 setup --host cursor` |
-| OpenCode CLI | `npx bontaflowstack@1.2.0 setup --host opencode` |
+| Codex | `npx bontaflowstack@1.2.1 setup --host codex` |
+| Claude Code | `npx bontaflowstack@1.2.1 setup --host claude` |
+| Gemini CLI | `npx bontaflowstack@1.2.1 setup --host gemini` |
+| GitHub Copilot CLI | `npx bontaflowstack@1.2.1 setup --host copilot` |
+| Cursor IDE | `npx bontaflowstack@1.2.1 setup --host cursor` |
+| OpenCode CLI | `npx bontaflowstack@1.2.1 setup --host opencode` |
 
 Use `--host all` only when all six platforms are installed; it stops if any is missing.
 
@@ -58,7 +58,7 @@ host adapter outside the npm cache. It does not install Node, Git or host
 applications, sign in, change permission settings, or approve hooks.
 
 The versioned files are stored under
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.2.0\hosts`.
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.2.1\hosts`.
 For BFS state, setup reuses the sole existing state root it finds, including a
 Windows Store redirected LocalAppData location. With no existing state it uses
 `%LOCALAPPDATA%\BontaFlowStack\state\v2`. If it finds non-empty state at two
@@ -90,14 +90,14 @@ from plugin installation.
 
 ## Update and recovery
 
-Release `1.2.0` also prepares the official Impeccable CLI and
+Release `1.2.1` also prepares the official Impeccable CLI and
 its persistent shared configuration for all six hosts. No manual command setting is needed.
 See [Impeccable setup](IMPECCABLE-SETUP.md) for the change and verification scope.
 
-To upgrade an earlier release to the 1.2.0 release, run:
+To upgrade an earlier release to the 1.2.1 release, run:
 
 ```powershell
-npx bontaflowstack@1.2.0 setup
+npx bontaflowstack@1.2.1 setup
 ```
 
 The installer preserves earlier versioned adapters and the shared `state/v2`
@@ -118,7 +118,7 @@ data. Back up and remove those separately only when you intend to erase them; se
 
 | Symptom | Action |
 | --- | --- |
-| npm reports `404` or `not published` | Check the exact version and registry with `npm view bontaflowstack@1.2.0 version --registry=https://registry.npmjs.org`. See the release report for publication status. |
+| npm reports `404` or `not published` | Check the exact version and registry with `npm view bontaflowstack@1.2.1 version --registry=https://registry.npmjs.org`. See the release report for publication status. |
 | The selected host is not detected | Install the host and open a new PowerShell window. Check CLI hosts on `PATH`, or the Cursor Windows installation. |
 | Plugin version is old after setup | Start a new host session and inspect the installed version and plugin path. |
 | Engine works in terminal but not in host | Check the adapter's `install-state.json` and run the host's BFS doctor command; do not guess a redirected app data path. |

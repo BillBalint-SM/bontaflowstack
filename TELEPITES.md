@@ -10,16 +10,16 @@ tervezd meg a felületét, építsd meg az elfogadott terv alapján, és ellenő
 böngészőben. Később ott folytathatod, ahol abbahagytad: a projektdöntések és az
 elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 
-[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.0)
+[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.1)
 [![Licenc: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Agentplatformok: 6](https://img.shields.io/badge/Agentplatformok-6-222222)
 
-**Publikált npm-kiadás: `1.2.0`.**
+**Publikált npm-kiadás: `1.2.1`.**
 · [Telepítés lépésről lépésre](#telepítés-windowsra)
 · [Korábbi 1.0.0-s bizonyítékok](docs/bontaflowstack/RELEASE-1.0.0.md)
 
-Az `1.2.0` mind a hat platform adapterét tartalmazza egyetlen npm-csomagban.
+Az `1.2.1` mind a hat platform adapterét tartalmazza egyetlen npm-csomagban.
 A közös telepítő a böngésző/render motort és az Impeccable-t is beállítja.
 [Platformútmutató](docs/bontaflowstack/PLATFORMS.md).
 
@@ -53,7 +53,7 @@ platform: Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE vagy
 OpenCode CLI. A CLI-hostok legyenek elérhetők a PATH-on. A telepítési parancs:
 
 ```powershell
-npx bontaflowstack@1.2.0 setup
+npx bontaflowstack@1.2.1 setup
 ```
 
 Ugyanez a rögzített csomag `setup` nélkül is elindítja a beállítást. Alapértelmezésben
@@ -182,11 +182,11 @@ operációs rendszer szintű biztonsági határ.
 
 ## Telepítés Windowsra
 
-Az aktuális egyetlen telepítési út az npm-csomag pontos verziója. A **1.2.0**
-kiadás elérhető a nyilvános npm-registryben, a `latest` címke is erre mutat. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.2.0.md).
+Az aktuális egyetlen telepítési út az npm-csomag pontos verziója. A **1.2.1**
+kiadás elérhető a nyilvános npm-registryben, a `latest` címke is erre mutat. [Kiadási jelentés](docs/bontaflowstack/RELEASE-1.2.1.md).
 
 ```powershell
-npx bontaflowstack@1.2.0 setup
+npx bontaflowstack@1.2.1 setup
 ```
 
 Ugyanez a parancs `setup` nélkül is elindítja a beállítást. Ne tölts le ZIP-et,
@@ -218,12 +218,12 @@ a `--host all` hibaüzenettel leáll, ha a hatból valamelyik hiányzik.
 Futtasd az egyetlen telepítési parancsot:
 
 ```powershell
-npx bontaflowstack@1.2.0 setup
+npx bontaflowstack@1.2.1 setup
 ```
 
 Siker esetén az installer kiírja a verziót, a regisztrált hostokat és a tartós
 telepítési könyvtárakat. A csomag a verziózott hostfájlokat az npm-cache-en kívül,
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.2.0\hosts` alatt tartja.
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.2.1\hosts` alatt tartja.
 Az installer egyetlen már létező BFS-állapotgyökeret automatikusan újrahasznál,
 beleértve a Windows Store által átirányított LocalAppData útvonalat is. Ha nincs
 korábbi adat, az alapértelmezett gyökér `%LOCALAPPDATA%\BontaFlowStack\state\v2`.
@@ -253,7 +253,7 @@ Tartsd meg a választott permission profilt; a böngésző Chromium sandboxja ma
 ### Frissítés és visszaállítás
 
 Frissítéshez futtasd ugyanazt a parancsot egy új, pontos csomagverzióval, például
-`npx bontaflowstack@1.2.0 setup` egy korábbi verzióról való frissítéshez. A telepítő a
+`npx bontaflowstack@1.2.1 setup` egy korábbi verzióról való frissítéshez. A telepítő a
 régi hostverziókat és a közös `state/v2` adatot megőrzi; egyszerre egy setupot futtass.
 Visszaállításhoz a korábbi, ismert verzió parancsát használd, ha az elérhető.
 
@@ -270,7 +270,7 @@ művelet, lásd a [helyi adatok útmutatóját](docs/bontaflowstack/LOCAL-DATA.m
 
 | Jelenség | Teendő |
 | --- | --- |
-| A parancs `not published` vagy `404` hibát ad | Ellenőrizd a pontos verziót és a registryt: `npm view bontaflowstack@1.2.0 version --registry=https://registry.npmjs.org`. A verzió állapotát a kiadási jelentés rögzíti. |
+| A parancs `not published` vagy `404` hibát ad | Ellenőrizd a pontos verziót és a registryt: `npm view bontaflowstack@1.2.1 version --registry=https://registry.npmjs.org`. A verzió állapotát a kiadási jelentés rögzíti. |
 | A választott platform nem található | Telepítsd a hostot, majd nyisd újra a PowerShellt; CLI-hostnál ellenőrizd a PATH-ot, Cursornál a Windows-telepítést. |
 | Régi verzió töltődik be | Indíts új hostmunkamenetet, majd ellenőrizd a pluginverziót és a `readFromFolder` útvonalat. |
 | A motor a terminálból elérhető, hostból nem | A telepítő és az adapter a közös `install-state.json` útvonalat használja; futtasd a hostból a `doctor` ellenőrzést, és őrizd meg a kimenetet. |
