@@ -7,8 +7,8 @@ A forrásból készülő csomag automatikusan felismeri és beállítja a hat pl
 a közös motort és az Impeccable CLI-t. Új felhasználói ZIP nem készül.
 A csomag belső, ellenőrzőösszeggel rögzített motorarchívuma nem külön telepítő.
 
-Az aktuális stabil kiadás az `1.2.0`; a kiadás részleteit
-a [kiadási jelentés](RELEASE-1.2.0.md) rögzíti.
+Az aktuális stabil kiadás az `1.2.1`; a kiadás részleteit
+a [kiadási jelentés](RELEASE-1.2.1.md) rögzíti.
 Stabil verzió csak `latest`, előzetes verzió csak `rc` npm dist-taggel
 publikálható. A forráscsomag verziója az `installers/npm/package.json` fájlban
 van; a builder ezt vezeti át mind a hat csomagolt host manifestjébe és katalógusába.

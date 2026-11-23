@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.1 — installer fix for current Node, prepared 2026-11-22
+## 1.2.1 — installer fix for current Node, 2026-11-23
 
 - Fix `EEXIST` during setup and package builds on Node 24.22 and newer: the
   Impeccable copy and the host package staging now copy into a fresh directory

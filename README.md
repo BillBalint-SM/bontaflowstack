@@ -10,16 +10,16 @@ interface, build from an accepted plan, check it in a real browser, and pick up
 where you left off—with project decisions and delivery evidence kept alongside
 the work.
 
-[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.0)
+[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
 ![Agent platforms: 6](https://img.shields.io/badge/Agent_platforms-6-222222)
 
-**Published npm release: `1.2.0`.**
+**Published npm release: `1.2.1`.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
 · [Telepítés magyarul](TELEPITES.md)
 
-Release `1.2.0` includes all six platform adapters in one npm package.
+Release `1.2.1` includes all six platform adapters in one npm package.
 See the [platform guide](docs/bontaflowstack/PLATFORMS.md).
 
 ## Bring the whole product journey into your project
@@ -48,7 +48,7 @@ platform installed: Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor I
 or OpenCode CLI. CLI hosts must be discoverable on `PATH`. Run the versioned setup:
 
 ```powershell
-npx bontaflowstack@1.2.0 setup
+npx bontaflowstack@1.2.1 setup
 ```
 
 Running the same pinned package without `setup` starts the same flow. By default,
@@ -178,10 +178,10 @@ boundary.
 
 ## Releases and documentation
 
-The combined npm installer **1.2.0** is available from the public npm registry
+The combined npm installer **1.2.1** is available from the public npm registry
 and is the `latest` release.
 The command above is the single standard install route for all six platforms.
-See the [release report](docs/bontaflowstack/RELEASE-1.2.0.md).
+See the [release report](docs/bontaflowstack/RELEASE-1.2.1.md).
 Raster image generation/editing is outside the accepted Claude scope;
 supplied-image understanding and authored HTML/SVG remain supported.
 

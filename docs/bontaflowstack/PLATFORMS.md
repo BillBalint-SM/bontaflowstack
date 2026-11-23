@@ -3,14 +3,14 @@
 [English overview](../../README.md) · [Magyar útmutató](../../TELEPITES.md)
 
 BontaFlowStack provides 34 skills across six agent platforms on Windows x64.
-Release `1.2.0` includes all six adapters in the same npm package.
+Release `1.2.1` includes all six adapters in the same npm package.
 
 ## One installer
 
 Install all detected platforms with the exact-version setup command:
 
 ```powershell
-npx bontaflowstack@1.2.0 setup
+npx bontaflowstack@1.2.1 setup
 ```
 
 Setup detects installed platforms, installs durable adapter files outside the
