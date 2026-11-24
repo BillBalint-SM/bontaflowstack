@@ -175,3 +175,16 @@ test('the bundled engine archive matches its lock and extracts to the expected e
   assert.equal(JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8')).version, lock.version);
   for (const file of ['scripts/manifest.mjs', 'package-lock.json', 'src/browser.mjs']) assert.ok(fs.existsSync(path.join(target, file)), file);
 });
+
+test('the installed entry point runs when started through the .bin symlink that npx uses', { skip: process.platform === 'win32' && 'needs POSIX symlinks; Windows npm uses .cmd shims' }, () => {
+  const bin = path.join(scratch, 'node_modules/.bin');
+  fs.mkdirSync(bin, { recursive: true });
+  const link = path.join(bin, 'bontaflowstack');
+  fs.symlinkSync(path.join(packageRoot, 'bin/setup.mjs'), link);
+  const version = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')).version;
+  const shown = spawnSync(process.execPath, [link, '--version'], { encoding: 'utf8' });
+  assert.equal(shown.status, 0, shown.stderr);
+  assert.equal(shown.stdout.trim(), version, 'a silent exit means the symlinked entry point did nothing');
+  const help = spawnSync(process.execPath, [link, '--help'], { encoding: 'utf8' });
+  assert.match(help.stdout, /^Usage: npx bontaflowstack@/);
+});

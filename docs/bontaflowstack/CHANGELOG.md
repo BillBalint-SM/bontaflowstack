@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1 — fix `npx setup` doing nothing on Linux, 2026-11-24
+
+- Fix `npx bontaflowstack@1.3.0 setup` exiting 0 without output or installation on Linux:
+  the entry point compared `process.argv[1]` with its real path, but `npx` starts it through
+  the `node_modules/.bin` symlink. It now compares real paths. A regression test starts the
+  entry point through such a symlink.
+- No change to adapters, skills or Windows behavior. See the [release report](RELEASE-1.3.1.md).
+
 ## 1.3.0 — Linux x64 phase 1, 2026-11-24
 
 - The package installs on Linux x64 as well as Windows x64 (`os` is `["win32","linux"]`,
