@@ -33,3 +33,15 @@ jobs:
           node-version: '24'
       - run: node scripts/check.mjs
       - run: node --test tests/npm-release.test.mjs tests/release-gate.test.mjs tests/release-workflow.test.mjs tests/release-promotion.test.mjs
+  linux-setup:
+    # Real Linux x64 setup of the shipped package against the real Claude Code CLI (phase 1).
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/heads/codex/release-gate-proof-')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global @anthropic-ai/claude-code
+      - run: claude --version
+      - run: node --test tests/linux-setup.integration.mjs

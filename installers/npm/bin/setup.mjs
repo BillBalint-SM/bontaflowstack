@@ -22,6 +22,13 @@ const layout = {
   opencode: { plugin:'opencode', manifest:'package.json' },
 };
 
+// Explicit support matrix: which OS/arch pairs are supported and which hosts are enabled on each.
+// Linux x64 phase 1 supports Claude Code only; the other hosts are added host by host with evidence.
+export const supportMatrix = {
+  win32: { arch: ['x64'], label: 'Windows x64', hosts: Object.keys(layout) },
+  linux: { arch: ['x64'], label: 'Linux x64', hosts: ['claude'] },
+};
+
 function runCommand(command, args, { env, inherit = false } = {}) {
   const result = spawnSync(command, args, {
     env, encoding: 'utf8', windowsHide: true,
@@ -33,7 +40,13 @@ function runCommand(command, args, { env, inherit = false } = {}) {
   return result.stdout?.trim() || result.stderr?.trim() || '';
 }
 
-function candidates(host, env) {
+function candidates(host, env, platform = 'win32') {
+  if (platform !== 'win32') {
+    const commands = [], native = path.join(env.HOME || os.homedir(), '.local', 'bin', host);
+    if (fs.existsSync(native)) commands.push([native]);
+    commands.push([host]);
+    return commands;
+  }
   const profile = env.USERPROFILE || os.homedir();
   const commands = [];
   const native = path.join(profile, '.local', 'bin', `${host}.exe`);
@@ -57,12 +70,17 @@ function candidates(host, env) {
 }
 
 export async function setup({ packageRoot = defaultPackageRoot, env = process.env, run = runCommand, platform = process.platform, arch = process.arch, host = 'auto' } = {}) {
-  if (platform !== 'win32' || arch !== 'x64') throw new Error('This release supports Windows x64 only.');
+  const target = supportMatrix[platform];
+  if (!target || !target.arch.includes(arch)) throw new Error(`This release supports ${Object.values(supportMatrix).map(item => item.label).join(' and ')} only; this machine is ${platform} ${arch}.`);
+  const windows = platform === 'win32';
   if (Number(process.versions.node.split('.')[0]) < 24) throw new Error('Install Node.js 24 or newer, including npm.');
-  if (!env.LOCALAPPDATA || !path.isAbsolute(env.LOCALAPPDATA)) throw new Error('LOCALAPPDATA must be an absolute directory.');
+  if (windows && (!env.LOCALAPPDATA || !path.isAbsolute(env.LOCALAPPDATA))) throw new Error('LOCALAPPDATA must be an absolute directory.');
+  if (!windows && (!env.HOME || !path.isAbsolute(env.HOME))) throw new Error('HOME must be an absolute directory.');
   if (!['auto', ...Object.keys(layout), 'all'].includes(host)) throw new Error('Host must be codex, claude, gemini, copilot, cursor, opencode or all.');
+  const enabled = Object.keys(layout).filter(name => target.hosts.includes(name));
+  if (host === 'all' && enabled.length < Object.keys(layout).length || host !== 'auto' && host !== 'all' && !enabled.includes(host)) throw new Error(`${host === 'all' ? 'All hosts are' : `${host} is`} not yet supported on ${target.label}. Supported here: ${enabled.join(', ')}.`);
   const source = path.join(packageRoot, 'hosts');
-  const { noLinks, digest, atomicWrite, readJson, requireValue } = await import(pathToFileURL(path.join(source, layout.codex.plugin, 'core/state.mjs')));
+  const { noLinks, digest, atomicWrite, readJson, requireValue, dataRoot } = await import(pathToFileURL(path.join(source, layout.codex.plugin, 'core/state.mjs')));
   const pkg = read(path.join(packageRoot, 'package.json'));
   requireValue(pkg.name === 'bontaflowstack' && /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9]+(?:[.-][a-zA-Z0-9]+)*)?$/.test(pkg.version), 'Invalid installer package identity or version.');
   for (const [name, details] of Object.entries(layout)) {
@@ -86,20 +104,21 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
       return entry.isDirectory() ? inventory(file).map(([name, hash]) => [`${entry.name}/${name}`, hash]) : [[entry.name, digest(fs.readFileSync(file))]];
     });
   }
-  const root = path.join(env.LOCALAPPDATA, 'BontaFlowStack', 'npm');
+  const dataBase = windows ? env.LOCALAPPDATA : dataRoot(env, platform, env.HOME);
+  const root = path.join(dataBase, 'BontaFlowStack', 'npm');
   const versions = path.join(root, 'versions');
   const installationRoot = path.join(versions, pkg.version);
   noLinks(installationRoot);
   const marker = path.join(root, 'installation.json');
   const ownership = readJson(marker);
   requireValue(!fs.existsSync(root) || ownership?.schema === 1 && ownership.package === pkg.name, `Unrecognized installation directory; files were preserved: ${root}`);
-  const defaultState = path.join(env.LOCALAPPDATA, 'BontaFlowStack', 'state', 'v2');
+  const defaultState = path.join(dataBase, 'BontaFlowStack', 'state', 'v2');
   let stateHome = env.BFS_STATE_HOME || ownership?.stateHome;
   if (!stateHome) {
     const stores = [defaultState];
-    const packages = path.join(env.LOCALAPPDATA, 'Packages');
-    noLinks(packages);
-    if (fs.existsSync(packages)) {
+    const packages = path.join(dataBase, 'Packages');
+    if (windows) noLinks(packages);
+    if (windows && fs.existsSync(packages)) {
       for (const name of fs.readdirSync(packages).filter(name => name.startsWith('OpenAI.Codex_'))) stores.push(path.join(packages, name, 'LocalCache/Local/BontaFlowStack/state/v2'));
     }
     const existing = stores.filter(directory => { noLinks(directory); return fs.existsSync(directory) && fs.readdirSync(directory).length > 0; });
@@ -123,7 +142,7 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
   for (const key of Object.keys(powershellEnv)) if (key.toLowerCase() === 'psmodulepath') delete powershellEnv[key];
   const invoke = (command, args, inherit = false) => run(command, args, { env: command === 'powershell.exe' ? powershellEnv : commandEnv, inherit });
   const hosts = [];
-  for (const name of Object.keys(layout).filter(name => ['auto', 'all', name].includes(host))) {
+  for (const name of enabled.filter(name => ['auto', 'all', name].includes(host))) {
     if(name==='cursor') {
       const app=findCursor(env);
       requireValue(app || host==='auto','Cursor IDE was not found. Install the host and rerun setup.');
@@ -134,7 +153,7 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
       continue;
     }
     let executable, versionText;
-    for (const candidate of candidates(name, env)) {
+    for (const candidate of candidates(name, env, platform)) {
       try { versionText = invoke(candidate[0], [...candidate.slice(1), '--version']); executable = candidate; break; }
       catch { /* Try the next installed CLI location. */ }
     }
@@ -174,7 +193,7 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
       if (name === 'codex') {
         requireValue(validCodexMarket(readJson(path.join(prior, '.agents/plugins/marketplace.json'))) && readJson(path.join(prior, 'plugins/bontaflowstack/.codex-plugin/plugin.json'))?.name === pkg.name, `Marketplace ${details.marketplace} belongs to another installation; it was preserved.`);
       } else {
-        const legacyRoot = path.join(env.LOCALAPPDATA, 'BontaFlowStack', 'claude-code');
+        const legacyRoot = path.join(dataBase, 'BontaFlowStack', 'claude-code');
         const legacy = readJson(path.join(legacyRoot, 'installation.json'));
         const managed = ownership && path.dirname(path.dirname(path.dirname(path.resolve(prior)))) === versions;
         const previousInstaller = legacy?.schema === 1 && legacy.package === pkg.name && path.dirname(path.resolve(prior)) === path.join(legacyRoot, 'versions');
@@ -186,7 +205,10 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
     hosts.push({ host: name, cli, prior, installed, pluginId, ...details, pluginRoot, marketplaceRoot });
   }
   requireValue(hosts.length, 'No supported host found. Install Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE or OpenCode CLI, then rerun the same command.');
-  invoke('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Get-Command npm.cmd,node,git -CommandType Application -ErrorAction Stop | Out-Null']);
+  if (windows) invoke('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Get-Command npm.cmd,node,git -CommandType Application -ErrorAction Stop | Out-Null']);
+  else for (const tool of ['npm', 'git']) {
+    try { invoke(tool, ['--version']); } catch (error) { throw new Error(`${tool} is required on PATH. ${error.message}`); }
+  }
   if (!ownership) atomicWrite(marker, { schema: 1, package: pkg.name, stateHome });
   const progressFile=path.join(root,'setup-status.json');
   const progress={schema:1,package:pkg.name,version:pkg.version,status:'running',phase:'files',hosts:hosts.map(({host})=>({host,status:'pending'}))};
@@ -212,8 +234,9 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
     const impeccableManifest = require.resolve('impeccable/package.json');
     const impeccable = read(impeccableManifest);
     requireValue(impeccable.version === pkg.dependencies.impeccable, 'Unexpected Impeccable npm version; rerun setup with a clean npm cache.');
-    const platformManifest = createRequire(impeccableManifest).resolve('@impeccable/cli-windows-x64/package.json');
-    requireValue(read(platformManifest).version === impeccable.optionalDependencies['@impeccable/cli-windows-x64'], 'Unexpected Impeccable platform package.');
+    const platformPackage = `@impeccable/cli-${windows ? 'windows' : 'linux'}-x64`;
+    const platformManifest = createRequire(impeccableManifest).resolve(`${platformPackage}/package.json`);
+    requireValue(read(platformManifest).version === impeccable.optionalDependencies[platformPackage], 'Unexpected Impeccable platform package.');
     const toolSource = path.dirname(platformManifest);
     const toolRoot = path.join(stateHome, 'tools', 'impeccable', impeccable.version);
     noLinks(toolRoot);
@@ -230,7 +253,7 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
       requireValue(sameTool(stage), `Impeccable copy differs; files were preserved at ${stage}`);
       fs.renameSync(stage, toolRoot);
     }
-    const executable = path.join(toolRoot, 'bin/impeccable.exe');
+    const executable = path.join(toolRoot, windows ? 'bin/impeccable.exe' : 'bin/impeccable');
     const engineVersion = invoke(executable, ['--version']);
     requireValue(/^\d+\.\d+\.\d+$/.test(engineVersion), 'Impeccable did not confirm a working executable.');
     const configFile = path.join(stateHome, 'impeccable.json');
@@ -240,7 +263,8 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
     if (priorTool) externalCommand({home:stateHome}, 'BFS_IMPECCABLE_COMMAND', {});
     atomicWrite(configFile, configuration);
     externalCommand({home:stateHome}, 'BFS_IMPECCABLE_COMMAND', commandEnv);
-    invoke('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', path.join(core, 'scripts/install-engines.ps1')], true);
+    if (windows) invoke('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', path.join(core, 'scripts/install-engines.ps1')], true);
+    else invoke(process.execPath, [path.join(core, 'scripts/install-engines.mjs')], true);
     invoke(process.execPath, [path.join(core, 'core/cli.mjs'), 'doctor', 'bfs-browse'], true);
     progress.phase='registration';
     for (const target of hosts) {
@@ -300,7 +324,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const args = process.argv.slice(2);
     if (args.length === 1 && ['--help', '-h'].includes(args[0])) {
-      console.log('Usage: npx bontaflowstack@<version> [setup] [--host codex|claude|gemini|copilot|cursor|opencode|all]\nAutomatically installs and configures every detected host and the shared engines.\nRequires Windows x64, Node.js 24+, npm, Git, and Codex 0.162.0+, Claude Code 2.1.296+, Gemini CLI 0.63.0+, GitHub Copilot CLI 1.0.96+, Cursor IDE 3.24.12+ or OpenCode CLI 1.19.0+. Cursor requires an IDE window reload and host verification.');
+      console.log('Usage: npx bontaflowstack@<version> [setup] [--host codex|claude|gemini|copilot|cursor|opencode|all]\nAutomatically installs and configures every detected host and the shared engines.\nRequires Node.js 24+, npm and Git. Windows x64: Codex 0.162.0+, Claude Code 2.1.296+, Gemini CLI 0.63.0+, GitHub Copilot CLI 1.0.96+, Cursor IDE 3.24.12+ or OpenCode CLI 1.19.0+. Linux x64 (phase 1): Claude Code 2.1.296+ only; the other hosts are not yet supported there. Cursor requires an IDE window reload and host verification.');
     } else if (args.length === 1 && args[0] === '--version') {
       console.log(read(path.join(defaultPackageRoot, 'package.json')).version);
     } else {

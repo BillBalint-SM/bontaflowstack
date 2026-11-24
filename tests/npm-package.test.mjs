@@ -39,7 +39,7 @@ test('npm builder packages exact-version host plugins and only installable files
   assert.equal(packedPackage.private, undefined);
   assert.deepEqual(packedPackage.bin, { bontaflowstack:'bin/setup.mjs' });
   assert.equal(packedPackage.engines.node, '>=24');
-  assert.deepEqual(packedPackage.os, ['win32']);
+  assert.deepEqual(packedPackage.os, ['win32', 'linux']);
   assert.deepEqual(packedPackage.cpu, ['x64']);
   assert.deepEqual(packedPackage.dependencies, {impeccable:'4.5.2'});
   assert.equal(packedPackage.scripts, undefined);

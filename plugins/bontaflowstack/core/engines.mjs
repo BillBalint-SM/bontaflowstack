@@ -20,7 +20,7 @@ function engineFile(root, relative) {
 }
 function registered(ctx) {
   const registration = readJson(path.join(ctx.home, 'engines.json'));
-  requireValue(registration?.root && /^[a-f0-9]{64}$/.test(registration.manifestSha256), 'Optional engines are not installed; run scripts/install-engines.ps1 explicitly');
+  requireValue(registration?.root && /^[a-f0-9]{64}$/.test(registration.manifestSha256), 'Optional engines are not installed; run the engine installer (scripts/install-engines.ps1 on Windows, scripts/install-engines.mjs on Linux)');
   const root = canonical(registration.root);
   const result = manifest(root);
   requireValue(result.hash === registration.manifestSha256 && result.value.version === registration.version, 'Engine installation changed; rebuild and register the verified package');
