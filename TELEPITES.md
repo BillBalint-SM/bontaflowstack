@@ -184,8 +184,8 @@ operációs rendszer szintű biztonsági határ.
 
 A forrás már támogatja a `npx bontaflowstack setup` futtatását Linux x64-en, **csak Claude Code 2.1.296+**
 hosttal. A Codex, Gemini CLI, GitHub Copilot CLI, Cursor IDE és OpenCode CLI Linuxon még nem támogatott;
-a setup érthető hibával elutasítja őket. A Windows x64 működés változatlan. Ez az `1.2.1` utáni első
-kiadásban érkezik; a publikált `1.2.1` csomag továbbra is csak Windowst engedélyez, Linuxon `EBADPLATFORM`
+a setup érthető hibával elutasítja őket. A Windows x64 működés változatlan. Ez az `1.3.0`
+kiadástól érhető el; a publikált `1.2.1` csomag továbbra is csak Windowst engedélyez, Linuxon `EBADPLATFORM`
 hibával áll le. Részletek (angolul): [Linux phases](docs/bontaflowstack/LINUX-PHASES.md).
 
 ## Telepítés Windowsra

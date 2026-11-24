@@ -77,8 +77,8 @@ Setup also runs on Linux x64, with **Claude Code 2.1.296+ only**; the other five
 supported there and `--host <other>` / `--host all` stop with a clear message. BFS files go to
 `$XDG_DATA_HOME/BontaFlowStack` (default `~/.local/share/BontaFlowStack`), the engines are built by
 `install-engines.mjs` (Linux x64 Chromium from Playwright; minimal images may first need
-`npx playwright install-deps chromium` as root) and no PowerShell is used. This ships in the first release
-after `1.2.1`; the published `1.2.1` package still declares Windows only.
+`npx playwright install-deps chromium` as root) and no PowerShell is used. This ships from `1.3.0`;
+the published `1.2.1` package still declares Windows only.
 
 ## Documentation and help
 
