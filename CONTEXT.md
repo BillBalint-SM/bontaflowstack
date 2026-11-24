@@ -13,13 +13,13 @@ HTML/SVG remain within scope.
 
 The only current distribution route for the whole package is
 `npx bontaflowstack@<exact-version> setup`; omitting `setup` also starts installation.
-The published stable npm release is 1.2.1, packaging all six adapters with `scripts/build-npm-package.mjs`.
+The published stable npm release is 1.3.1, packaging all six adapters with `scripts/build-npm-package.mjs`.
 It detects installed platforms, registers the selected hosts, persists versioned
 files outside the npx cache, and prepares the shared pinned engines. Each plugin
 pins the same state directory so Desktop environment redirection does not split
 the new installation. Native host trust remains a human host action.
 The 1.1.0 registry integrity and actual registry npx setup were verified for its
-Codex/Claude package. Current publication evidence belongs in `RELEASE-1.2.1.md`. ZIP release records
+Codex/Claude package. Current publication evidence belongs in `RELEASE-1.3.1.md`. ZIP release records
 describe historical releases with their original verification scope. See
 `docs/bontaflowstack/RELEASE-PROCESS.md` for the current publishing route.
 
@@ -256,6 +256,11 @@ commit `f6869b167e47dacca331397ef7f76fc5081c6ac4`. It fixes the `EEXIST` setup a
 build failure on Node 24.22 and newer and moves the release path to Linux. The
 registry integrity matched the prepared tarball. No actual registry `npx` setup
 was run for 1.2.1 yet. Detailed evidence is in `docs/bontaflowstack/RELEASE-1.2.1.md`.
+
+Release 1.3.0 (2026-11-24) added Linux x64 (Claude Code only) to `os`, but its `npx ... setup` does nothing on
+Linux. Release 1.3.1 (2026-11-24) is `latest` and fixes that; an observed Linux x64 run installed the plugin.
+Windows x64 setup and a real Claude Code session using the plugin were not checked. Evidence:
+`docs/bontaflowstack/RELEASE-1.3.1.md`.
 
 ## Terms
 

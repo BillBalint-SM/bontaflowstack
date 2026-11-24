@@ -10,16 +10,16 @@ interface, build from an accepted plan, check it in a real browser, and pick up
 where you left off—with project decisions and delivery evidence kept alongside
 the work.
 
-[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.1)
+[![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.3.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform: Windows x64 and Linux x64 (Claude Code)](https://img.shields.io/badge/Platform-Windows_x64_%7C_Linux_x64_(Claude_Code)-0078D6)
 ![Agent platforms: 6](https://img.shields.io/badge/Agent_platforms-6-222222)
 
-**Published npm release: `1.2.1`.**
+**Published npm release: `1.3.1`.**
 · [Install in English](docs/bontaflowstack/INSTALL-WINDOWS.md)
 · [Telepítés magyarul](TELEPITES.md)
 
-Release `1.2.1` includes all six platform adapters in one npm package.
+Release `1.3.1` includes all six platform adapters in one npm package.
 See the [platform guide](docs/bontaflowstack/PLATFORMS.md).
 
 ## Bring the whole product journey into your project
@@ -48,7 +48,7 @@ platform installed: Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor I
 or OpenCode CLI. CLI hosts must be discoverable on `PATH`. Run the versioned setup:
 
 ```powershell
-npx bontaflowstack@1.2.1 setup
+npx bontaflowstack@1.3.1 setup
 ```
 
 Running the same pinned package without `setup` starts the same flow. By default,
@@ -58,11 +58,11 @@ It installs versioned host adapters outside the npm cache and prepares the
 browser/render engine and Impeccable CLI. Internet access is needed for dependencies and
 Chromium; a signed-in host account is needed to run model-driven workflows.
 
-**Linux x64 (phase 1, Claude Code only):** the source now supports `npx bontaflowstack setup` on Linux x64
+**Linux x64 (phase 1, Claude Code only):** the published package supports `npx bontaflowstack@1.3.1 setup` on Linux x64
 for **Claude Code 2.1.296+** only. Codex, Gemini CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI are
 not yet supported on Linux; setup refuses them with a clear message. Windows x64 behavior is unchanged.
-This ships from `1.3.0`; the published `1.2.1` package still declares Windows only
-and ends in `EBADPLATFORM` on Linux. Details: [Linux phases](docs/bontaflowstack/LINUX-PHASES.md).
+Linux setup works from `1.3.1`. `1.3.0` already installs on Linux, but its `npx ... setup` does nothing there
+(fixed in `1.3.1`); `1.2.1` and earlier declare Windows only and end in `EBADPLATFORM` on Linux. Details: [Linux phases](docs/bontaflowstack/LINUX-PHASES.md).
 
 
 After setup, start a fresh session. In Codex, open your project and ask:
@@ -185,10 +185,10 @@ boundary.
 
 ## Releases and documentation
 
-The combined npm installer **1.2.1** is available from the public npm registry
+The combined npm installer **1.3.1** is available from the public npm registry
 and is the `latest` release.
 The command above is the single standard install route for all six platforms.
-See the [release report](docs/bontaflowstack/RELEASE-1.2.1.md).
+See the [release report](docs/bontaflowstack/RELEASE-1.3.1.md).
 Raster image generation/editing is outside the accepted Claude scope;
 supplied-image understanding and authored HTML/SVG remain supported.
 

@@ -1,7 +1,7 @@
 # Linux x64 support phases
 
-Status: phase 1 implemented, proven by a real CI run, and prepared for release `1.3.0`. Windows x64 behavior is unchanged.
-The published `1.2.1` package declares `"os": ["win32"]` and ends in `EBADPLATFORM` on Linux; the source `os` now includes `linux`.
+Status: phase 1 implemented, proven by a real CI run, and published in `1.3.0`; `npx setup` works on Linux from `1.3.1` ([release record](RELEASE-1.3.1.md)). Windows x64 behavior is unchanged.
+The `1.2.1` package declares `"os": ["win32"]` and ends in `EBADPLATFORM` on Linux; `os` includes `linux` from `1.3.0`, but `1.3.0`'s `npx setup` does nothing on Linux (fixed in `1.3.1`).
 
 ## Support matrix
 
