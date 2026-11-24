@@ -1,7 +1,8 @@
 # BontaFlowStack
 
 34 connected skills and local project memory for **Codex, Claude Code, Gemini
-CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI** on Windows x64.
+CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI** on Windows x64, and Claude Code on Linux x64
+(phase 1, see below).
 
 One npm setup prepares the selected platform adapters, browser/render engine and
 Impeccable CLI. Release `1.2.1` includes all six adapters.
@@ -15,8 +16,8 @@ npx bontaflowstack@1.2.1 setup
 ```
 
 Running the same exact package without `setup` starts the same flow. Setup does
-not run as an npm install lifecycle script. Use Node.js 24+ with npm, Git for
-Windows, internet access and an installed host. Sign in through the host before
+not run as an npm install lifecycle script. Use Node.js 24+ with npm, Git (Git for
+Windows on Windows), internet access and an installed host. Sign in through the host before
 model-driven work.
 
 The installer accepts these selectors:
@@ -70,9 +71,19 @@ wait for the previous process to stop and rerun the same command.
 Remove BFS through each host's plugin or extension controls. Retained versions,
 engine files and project data are separate from registration.
 
+## Linux x64 (phase 1)
+
+Setup also runs on Linux x64, with **Claude Code 2.1.296+ only**; the other five hosts are not yet
+supported there and `--host <other>` / `--host all` stop with a clear message. BFS files go to
+`$XDG_DATA_HOME/BontaFlowStack` (default `~/.local/share/BontaFlowStack`), the engines are built by
+`install-engines.mjs` (Linux x64 Chromium from Playwright; minimal images may first need
+`npx playwright install-deps chromium` as root) and no PowerShell is used. This ships in the first release
+after `1.2.1`; the published `1.2.1` package still declares Windows only.
+
 ## Documentation and help
 
 - [All platforms and first use](https://github.com/BillBalint-SM/bontaflowstack/blob/main/docs/bontaflowstack/PLATFORMS.md)
+- [Linux phases and design](https://github.com/BillBalint-SM/bontaflowstack/blob/main/docs/bontaflowstack/LINUX-PHASES.md)
 - [Windows installation](https://github.com/BillBalint-SM/bontaflowstack/blob/main/docs/bontaflowstack/INSTALL-WINDOWS.md)
 - [Magyar útmutató](https://github.com/BillBalint-SM/bontaflowstack/blob/main/TELEPITES.md)
 - [Report an issue](https://github.com/BillBalint-SM/bontaflowstack/issues/new)

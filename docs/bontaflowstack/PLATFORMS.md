@@ -2,7 +2,8 @@
 
 [English overview](../../README.md) · [Magyar útmutató](../../TELEPITES.md)
 
-BontaFlowStack provides 34 skills across six agent platforms on Windows x64.
+BontaFlowStack provides 34 skills across six agent platforms on Windows x64. On Linux x64 (phase 1) only Claude Code is supported;
+see [Linux phases](LINUX-PHASES.md).
 Release `1.2.1` includes all six adapters in the same npm package.
 
 ## One installer
@@ -35,7 +36,7 @@ use a single selector when you want only one.
 
 ## Requirements and first use
 
-Install Node.js 24+ with npm, Git for Windows and your chosen agent application.
+Install Node.js 24+ with npm, Git (Git for Windows on Windows) and your chosen agent application.
 CLI hosts must be discoverable by setup; Cursor can be detected from its Windows
 installation. Internet access is required for the engine dependencies and
 Chromium. Use your platform's normal sign-in and permission controls.
@@ -73,5 +74,5 @@ with your BFS version, platform and version, Windows version, setup command,
 reproduction steps and exact error. Remove credentials, private content and
 personal paths before sharing logs.
 
-[Windows installation](INSTALL-WINDOWS.md) · [Claude Code](INSTALL-CLAUDE-CODE.md)
+[Windows installation](INSTALL-WINDOWS.md) · [Linux phases](LINUX-PHASES.md) · [Claude Code](INSTALL-CLAUDE-CODE.md)
 · [Changelog](CHANGELOG.md)

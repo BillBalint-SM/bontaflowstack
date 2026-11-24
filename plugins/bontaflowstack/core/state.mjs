@@ -47,6 +47,13 @@ export function noLinks(target) {
 export function git(cwd, args) {
   return spawnSync('git', ['-C', cwd, ...args], { encoding: 'utf8', windowsHide: true, timeout: 10000, maxBuffer: 4 * 1024 * 1024 });
 }
+// Per-user data root: an explicit LOCALAPPDATA (always on Windows, a legacy override elsewhere),
+// else ~/AppData/Local on Windows, else $XDG_DATA_HOME or ~/.local/share.
+export function dataRoot(env = process.env, platform = process.platform, home = os.homedir()) {
+  if (env.LOCALAPPDATA) return env.LOCALAPPDATA;
+  if (platform === 'win32') return path.join(home, 'AppData', 'Local');
+  return env.XDG_DATA_HOME && path.isAbsolute(env.XDG_DATA_HOME) ? env.XDG_DATA_HOME : path.join(home, '.local', 'share');
+}
 export function context(cwd = process.cwd(), env = process.env) {
   const location = canonical(cwd);
   requireValue(fs.statSync(location).isDirectory(), 'Project must be a directory');
@@ -65,7 +72,7 @@ export function context(cwd = process.cwd(), env = process.env) {
       requireValue(path.isAbsolute(pinnedHome), 'Installed stateHome must be an absolute path');
     }
   }
-  const home = path.resolve(env.BFS_STATE_HOME || pinnedHome || path.join(env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'BontaFlowStack', 'state', 'v2'));
+  const home = path.resolve(env.BFS_STATE_HOME || pinnedHome || path.join(dataRoot(env), 'BontaFlowStack', 'state', 'v2'));
   const projectId = key(anchor), workspaceId = key(workspace);
   const projectDir = path.join(home, 'projects', projectId);
   const workspaceDir = path.join(projectDir, 'workspaces', workspaceId);

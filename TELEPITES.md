@@ -12,7 +12,7 @@ elvégzett ellenőrzések bizonyítékai a munka mellett maradnak.
 
 [![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.1)
 [![Licenc: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
+![Platform: Windows x64 és Linux x64 (Claude Code)](https://img.shields.io/badge/Platform-Windows_x64_%7C_Linux_x64_(Claude_Code)-0078D6)
 ![Agentplatformok: 6](https://img.shields.io/badge/Agentplatformok-6-222222)
 
 **Publikált npm-kiadás: `1.2.1`.**
@@ -48,7 +48,7 @@ a megfelelő belépési pont kiválasztását. Magyarul is kérheted a munkát.
 
 ## Kezdd itt
 
-**Szükséges:** Windows x64, Node.js 24+ npm-mel, Git és legalább egy támogatott
+**Szükséges:** Windows x64 (vagy Linux x64, csak Claude Code-dal, lásd lent), Node.js 24+ npm-mel, Git és legalább egy támogatott
 platform: Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE vagy
 OpenCode CLI. A CLI-hostok legyenek elérhetők a PATH-on. A telepítési parancs:
 
@@ -179,6 +179,14 @@ designintegrációkat akkor adhatod hozzá, amikor szükség van a képességeik
 Az opcionális hookok a host natív bizalmi jóváhagyását igénylik; a
 telepítő ezt nem kerüli meg. A guard feladatra korlátozott figyelmeztetést és szerkesztési ellenőrzést ad; nem
 operációs rendszer szintű biztonsági határ.
+
+## Linux x64 (1. fázis)
+
+A forrás már támogatja a `npx bontaflowstack setup` futtatását Linux x64-en, **csak Claude Code 2.1.296+**
+hosttal. A Codex, Gemini CLI, GitHub Copilot CLI, Cursor IDE és OpenCode CLI Linuxon még nem támogatott;
+a setup érthető hibával elutasítja őket. A Windows x64 működés változatlan. Ez az `1.2.1` utáni első
+kiadásban érkezik; a publikált `1.2.1` csomag továbbra is csak Windowst engedélyez, Linuxon `EBADPLATFORM`
+hibával áll le. Részletek (angolul): [Linux phases](docs/bontaflowstack/LINUX-PHASES.md).
 
 ## Telepítés Windowsra
 

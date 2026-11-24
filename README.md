@@ -12,7 +12,7 @@ the work.
 
 [![npm](https://img.shields.io/npm/v/bontaflowstack)](https://www.npmjs.com/package/bontaflowstack/v/1.2.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Platform: Windows x64](https://img.shields.io/badge/Platform-Windows_x64-0078D6)
+![Platform: Windows x64 and Linux x64 (Claude Code)](https://img.shields.io/badge/Platform-Windows_x64_%7C_Linux_x64_(Claude_Code)-0078D6)
 ![Agent platforms: 6](https://img.shields.io/badge/Agent_platforms-6-222222)
 
 **Published npm release: `1.2.1`.**
@@ -43,7 +43,7 @@ You can ask in your own language.
 
 ## Start here
 
-**Requirements:** Windows x64, Node.js 24+ with npm, Git, and at least one supported
+**Requirements:** Windows x64 (or Linux x64 with Claude Code only, see below), Node.js 24+ with npm, Git, and at least one supported
 platform installed: Codex, Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor IDE
 or OpenCode CLI. CLI hosts must be discoverable on `PATH`. Run the versioned setup:
 
@@ -57,6 +57,13 @@ choose one, or `--host all` to require all six platforms.
 It installs versioned host adapters outside the npm cache and prepares the
 browser/render engine and Impeccable CLI. Internet access is needed for dependencies and
 Chromium; a signed-in host account is needed to run model-driven workflows.
+
+**Linux x64 (phase 1, Claude Code only):** the source now supports `npx bontaflowstack setup` on Linux x64
+for **Claude Code 2.1.296+** only. Codex, Gemini CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI are
+not yet supported on Linux; setup refuses them with a clear message. Windows x64 behavior is unchanged.
+This lands in the first release after `1.2.1`; the published `1.2.1` package still declares Windows only
+and ends in `EBADPLATFORM` on Linux. Details: [Linux phases](docs/bontaflowstack/LINUX-PHASES.md).
+
 
 After setup, start a fresh session. In Codex, open your project and ask:
 
