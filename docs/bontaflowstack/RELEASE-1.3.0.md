@@ -4,7 +4,7 @@ Status: published on 2026-11-24 (registry time 2026-11-24T06:30:26Z). Package: `
 Source tag: `v1.3.0`; npm channel: `latest`.
 
 **Known defect: `npx bontaflowstack@1.3.0 setup` does nothing on Linux.** See
-[Observed Linux result](#observed-linux-result).
+[Observed Linux result](#observed-linux-result). Fixed in [1.3.1](RELEASE-1.3.1.md).
 
 ## Change
 
