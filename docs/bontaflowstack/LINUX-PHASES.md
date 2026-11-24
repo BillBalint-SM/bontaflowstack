@@ -1,7 +1,7 @@
 # Linux x64 support phases
 
-Status: phase 1 implemented in source; not yet released. Windows x64 behavior is unchanged.
-The published `1.2.1` package declares `"os": ["win32"]` and ends in `EBADPLATFORM` on Linux.
+Status: phase 1 implemented in source and proven by a real CI run; not yet released. Windows x64 behavior is unchanged.
+The published `1.2.1` package declares `"os": ["win32"]` and ends in `EBADPLATFORM` on Linux; the source `os` now includes `linux`.
 
 ## Support matrix
 
@@ -66,9 +66,9 @@ Linux notes: Chromium needs the usual system libraries; on a minimal image run
   XDG, version gate, ZIP extraction safety, bundled archive vs lock). Runs in `node scripts/check.mjs`.
 - Real run: `tests/linux-setup.integration.mjs` builds the npm package, runs the shipped `setup` against the
   real Claude Code CLI with downloaded engines, checks `claude plugin list`, the engine doctor and a repeat run.
-  CI job `linux-setup` (ubuntu-latest) runs it. It passes `npm install --force` only while `package.json`
-  still restricts `os`.
-- `installers/npm/package.json` keeps `"os": ["win32"]` until that CI job has passed on this change; then `os`
-  gains `linux` and `tests/npm-package.test.mjs` is updated in the same change. No release, tag, version bump
-  or publish is part of this work; those need the owner's separate approval.
+  CI job `linux-setup` (ubuntu-latest) runs it.
+- `installers/npm/package.json` `os` is `["win32", "linux"]` (`cpu` stays `["x64"]`). It was widened only after the
+  `linux-setup` CI job passed on this branch (real setup, real Claude Code CLI, `ubuntu-latest`); the job no longer
+  needs `npm install --force`. `setup` still enforces the matrix, so the other hosts stay refused on Linux. No release,
+  tag, version bump or publish is part of this work; those need the owner's separate approval.
 - Windows assertions (`tests/npm-setup.test.mjs` and others) are unchanged and still run on `windows-latest`.
