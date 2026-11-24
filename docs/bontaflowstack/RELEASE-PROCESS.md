@@ -7,8 +7,8 @@ A forrásból készülő csomag automatikusan felismeri és beállítja a hat pl
 a közös motort és az Impeccable CLI-t. Új felhasználói ZIP nem készül.
 A csomag belső, ellenőrzőösszeggel rögzített motorarchívuma nem külön telepítő.
 
-Az aktuális stabil kiadás az `1.2.1`; a kiadás részleteit
-a [kiadási jelentés](RELEASE-1.2.1.md) rögzíti.
+Az aktuális stabil kiadás az `1.3.1`; a kiadás részleteit
+a [kiadási jelentés](RELEASE-1.3.1.md) rögzíti.
 Stabil verzió csak `latest`, előzetes verzió csak `rc` npm dist-taggel
 publikálható. A forráscsomag verziója az `installers/npm/package.json` fájlban
 van; a builder ezt vezeti át mind a hat csomagolt host manifestjébe és katalógusába.
@@ -27,7 +27,7 @@ még nem létező kiadási könyvtárat:
 ```bash
 node scripts/check.mjs
 node --test tests/npm-release.test.mjs
-node scripts/npm-release.mjs prepare --output artifacts/npm/1.2.1 --tag latest --release-tag v1.2.1
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.3.1 --tag latest --release-tag v1.3.1
 ```
 
 A `prepare` elkészíti az adaptereket, valódi `npm pack`-ot futtat, megőrzi
@@ -41,7 +41,7 @@ telepítési vagy frissítési utat a publikálás előtt.
 A tulajdonosi npm-fiókkal interaktívan:
 
 ```bash
-node scripts/npm-release.mjs publish --artifact artifacts/npm/1.2.1 --tag latest
+node scripts/npm-release.mjs publish --artifact artifacts/npm/1.3.1 --tag latest
 ```
 
 A parancs csak az előkészített `.tgz`-t publikálja. Ellenőrzi a tiszta checkoutot,
@@ -53,7 +53,7 @@ Feldolgozási késésnél ne publikáld újra ugyanazt a verziót. Őrizd meg a
 kiadási könyvtárat, és futtasd újra a lekérdezést:
 
 ```bash
-node scripts/npm-release.mjs verify --artifact artifacts/npm/1.2.1 --tag latest
+node scripts/npm-release.mjs verify --artifact artifacts/npm/1.3.1 --tag latest
 ```
 
 Az npm-verzió nem írható felül. A verifier kezeli az npm objektum- és egyetlen
