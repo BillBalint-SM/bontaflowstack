@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0 — Linux x64 phase 1, 2026-11-24
+
+- The package installs on Linux x64 as well as Windows x64 (`os` is `["win32","linux"]`,
+  `cpu` stays `["x64"]`); `1.2.1` fails with `EBADPLATFORM` on Linux.
+- `setup` uses an explicit support matrix. Linux x64 supports the shared installer and
+  **Claude Code 2.1.296+ only**; Codex, Gemini CLI, GitHub Copilot CLI, Cursor IDE,
+  OpenCode CLI, `--host all`, macOS, Linux arm64 and Windows arm64 are refused with a clear message.
+- Linux data lives under `$XDG_DATA_HOME/BontaFlowStack`; engines are installed by
+  `install-engines.mjs`; Impeccable uses `@impeccable/cli-linux-x64`; no PowerShell.
+- Windows x64 behavior is unchanged. See the [release report](RELEASE-1.3.0.md) and
+  [Linux phases](LINUX-PHASES.md).
+
 ## 1.2.1 — installer fix for current Node, 2026-11-23
 
 - Fix `EEXIST` during setup and package builds on Node 24.22 and newer: the

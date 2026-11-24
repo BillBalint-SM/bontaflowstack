@@ -61,7 +61,7 @@ Chromium; a signed-in host account is needed to run model-driven workflows.
 **Linux x64 (phase 1, Claude Code only):** the source now supports `npx bontaflowstack setup` on Linux x64
 for **Claude Code 2.1.296+** only. Codex, Gemini CLI, GitHub Copilot CLI, Cursor IDE and OpenCode CLI are
 not yet supported on Linux; setup refuses them with a clear message. Windows x64 behavior is unchanged.
-This lands in the first release after `1.2.1`; the published `1.2.1` package still declares Windows only
+This ships from `1.3.0`; the published `1.2.1` package still declares Windows only
 and ends in `EBADPLATFORM` on Linux. Details: [Linux phases](docs/bontaflowstack/LINUX-PHASES.md).
 
 

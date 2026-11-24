@@ -1,6 +1,6 @@
 # Linux x64 support phases
 
-Status: phase 1 implemented in source and proven by a real CI run; not yet released. Windows x64 behavior is unchanged.
+Status: phase 1 implemented, proven by a real CI run, and prepared for release `1.3.0`. Windows x64 behavior is unchanged.
 The published `1.2.1` package declares `"os": ["win32"]` and ends in `EBADPLATFORM` on Linux; the source `os` now includes `linux`.
 
 ## Support matrix
