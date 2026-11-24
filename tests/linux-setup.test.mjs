@@ -31,7 +31,7 @@ function makeEnv(label) {
   const home = path.join(scratch, label, 'home');
   fs.mkdirSync(path.join(home, '.local/bin'), { recursive: true });
   fs.writeFileSync(path.join(home, '.local/bin/claude'), 'fixture executable', { mode: 0o755 });
-  return { ...process.env, HOME: home, XDG_DATA_HOME: '', BFS_STATE_HOME: '', PATH: path.join(scratch, label, 'bin') };
+  return { ...process.env, HOME: home, LOCALAPPDATA: '', XDG_DATA_HOME: '', BFS_STATE_HOME: '', PATH: path.join(scratch, label, 'bin') };
 }
 function runner(version = '2.1.296 (Claude Code)') {
   const state = { marketplaces: [], plugins: [] }, calls = [];
@@ -91,7 +91,7 @@ test('Linux setup installs under XDG data, registers Claude Code and uses no Pow
   assert.equal(JSON.parse(fs.readFileSync(path.join(result.hosts[0].pluginRoot, 'install-state.json'), 'utf8')).stateHome, result.stateHome);
   const config = JSON.parse(fs.readFileSync(path.join(result.stateHome, 'impeccable.json'), 'utf8'));
   assert.deepEqual(config.command, [path.join(result.stateHome, 'tools/impeccable/4.5.2/bin/impeccable')]);
-  assert.equal(fs.statSync(config.command[0]).mode & 0o111, 0o111, 'the Impeccable binary stays executable');
+  if (process.platform !== 'win32') assert.equal(fs.statSync(config.command[0]).mode & 0o111, 0o111, 'the Impeccable binary stays executable');
   const engines = mock.calls.find(call => call.args.some(arg => arg.endsWith('install-engines.mjs')));
   assert.equal(engines.command, process.execPath);
   assert.equal(engines.options.env.BFS_STATE_HOME, result.stateHome);
@@ -125,9 +125,10 @@ test('data root is LOCALAPPDATA when set, AppData on Windows and XDG elsewhere',
   assert.equal(dataRoot({ LOCALAPPDATA: 'C:\\Data' }, 'win32', 'C:\\Users\\x'), 'C:\\Data');
   assert.equal(dataRoot({ LOCALAPPDATA: '/legacy' }, 'linux', '/home/x'), '/legacy');
   assert.equal(dataRoot({}, 'win32', 'C:\\Users\\x'), path.join('C:\\Users\\x', 'AppData', 'Local'));
-  assert.equal(dataRoot({}, 'linux', '/home/x'), '/home/x/.local/share');
+  const fallback = path.join('/home/x', '.local', 'share');
+  assert.equal(dataRoot({}, 'linux', '/home/x'), fallback);
   assert.equal(dataRoot({ XDG_DATA_HOME: '/data' }, 'linux', '/home/x'), '/data');
-  assert.equal(dataRoot({ XDG_DATA_HOME: 'relative' }, 'linux', '/home/x'), '/home/x/.local/share');
+  assert.equal(dataRoot({ XDG_DATA_HOME: 'relative' }, 'linux', '/home/x'), fallback);
 });
 
 function zipOf(entries) {
