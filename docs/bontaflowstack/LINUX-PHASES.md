@@ -1,7 +1,7 @@
 # Linux x64 support phases
 
-Status: phase 1 implemented, proven by a real CI run, and prepared for release `1.3.0`. Windows x64 behavior is unchanged.
-The published `1.2.1` package declares `"os": ["win32"]` and ends in `EBADPLATFORM` on Linux; the source `os` now includes `linux`.
+Status: phase 1 is published in `1.3.1` (observed: `npx bontaflowstack@1.3.1 setup --host claude` on Linux x64 installs and registers Claude Code). Windows x64 behavior is unchanged.
+The published `1.2.1` package declares `"os": ["win32"]` and ends in `EBADPLATFORM` on Linux. `1.3.0` installs on Linux but its `npx ... setup` silently does nothing (symlink entry-point check); `1.3.1` fixes that. See [RELEASE-1.3.0](RELEASE-1.3.0.md) and [RELEASE-1.3.1](RELEASE-1.3.1.md).
 
 ## Support matrix
 

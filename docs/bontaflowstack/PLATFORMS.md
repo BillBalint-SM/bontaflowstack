@@ -4,14 +4,14 @@
 
 BontaFlowStack provides 34 skills across six agent platforms on Windows x64. On Linux x64 (phase 1) only Claude Code is supported;
 see [Linux phases](LINUX-PHASES.md).
-Release `1.2.1` includes all six adapters in the same npm package.
+Release `1.3.1` includes all six adapters in the same npm package.
 
 ## One installer
 
 Install all detected platforms with the exact-version setup command:
 
 ```powershell
-npx bontaflowstack@1.2.1 setup
+npx bontaflowstack@1.3.1 setup
 ```
 
 Setup detects installed platforms, installs durable adapter files outside the

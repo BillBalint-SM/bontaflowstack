@@ -2,12 +2,12 @@
 
 Claude Code uses the same npm installer as the other
 [BontaFlowStack platforms](PLATFORMS.md). The six-platform release is
-**`bontaflowstack@1.2.1`**; see the
-[release report](RELEASE-1.2.1.md).
+**`bontaflowstack@1.3.1`**; see the
+[release report](RELEASE-1.3.1.md).
 Install it with:
 
 ```powershell
-npx bontaflowstack@1.2.1 setup
+npx bontaflowstack@1.3.1 setup
 ```
 
 The same command without `setup` starts setup too. By default it configures
@@ -29,7 +29,7 @@ and begin with:
 ```
 
 The installer keeps versioned adapter files outside the npm cache at
-`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.2.1\hosts\claude`. Its
+`%LOCALAPPDATA%\BontaFlowStack\npm\versions\1.3.1\hosts\claude`. Its
 `install-state.json` pins the selected shared BFS state root. Setup reuses a
 sole existing root, including a Windows Store redirected LocalAppData location;
 with no prior state, it uses `%LOCALAPPDATA%\BontaFlowStack\state\v2`. If two
@@ -62,19 +62,19 @@ erase them; see [local data](LOCAL-DATA.md).
 
 ## Local package checks for maintainers
 
-The 1.2.1 release can also be reproduced from its source tag for local package
+The 1.3.1 release can also be reproduced from its source tag for local package
 verification. Use a fresh output directory and the local tarball:
 
 ```powershell
-node scripts/npm-release.mjs prepare --output artifacts/npm/1.2.1 --tag latest --release-tag v1.2.1
-npx --yes --package ./artifacts/npm/1.2.1/bontaflowstack-1.2.1.tgz -- bontaflowstack setup --host claude
+node scripts/npm-release.mjs prepare --output artifacts/npm/1.3.1 --tag latest --release-tag v1.3.1
+npx --yes --package ./artifacts/npm/1.3.1/bontaflowstack-1.3.1.tgz -- bontaflowstack setup --host claude
 ```
 
 The generated package is the distributable input; the source installer directory
 is not published directly. These local commands do not make the version available
 from npm. The actual package/setup tests use isolated configuration and cache
 directories. They do not publish a release. See the
-[1.2.1 release evidence](RELEASE-1.2.1.md).
+[1.3.1 release evidence](RELEASE-1.3.1.md).
 
 See the [universal Windows guide](INSTALL-WINDOWS.md) for common setup, host
 selection, trust, state sharing and troubleshooting.
