@@ -320,7 +320,14 @@ export async function setup({ packageRoot = defaultPackageRoot, env = process.en
   }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// npx starts the package through the node_modules/.bin symlink, so compare real paths.
+const isEntryPoint = () => {
+  if (!process.argv[1]) return false;
+  try { return fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url)); }
+  catch { return path.resolve(process.argv[1]) === fileURLToPath(import.meta.url); }
+};
+
+if (isEntryPoint()) {
   try {
     const args = process.argv.slice(2);
     if (args.length === 1 && ['--help', '-h'].includes(args[0])) {
