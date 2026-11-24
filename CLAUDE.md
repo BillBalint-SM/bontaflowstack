@@ -20,5 +20,6 @@ product content for those hosts; keep every host working when changing shared fi
 
 ## Authority
 
-Publishing to npm, creating a release or tag, and pushing each need explicit authorization.
+Publishing to npm and creating a release or tag need explicit authorization. Push, pull request
+and merge of prose changes follow the home repo's "Standing approval".
 A passing local check is not a release approval.
